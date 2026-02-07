@@ -1,0 +1,65 @@
+{
+    "robots": {
+        "keyword": [],
+        "title": "Counters",
+        "subtitle": "Manage bus station counters",
+        "icon": "las la-landmark",
+        "route_name": "owner.counter.index"
+    },
+    "seat_layout": {
+        "keyword": [],
+        "title": "Seat Layout",
+        "subtitle": "Configure bus seat arrangements",
+        "icon": "las la-couch",
+        "route_name": "owner.seat.layout.index"
+    },
+    "fleet_type": {
+        "keyword": [],
+        "title": "Fleet Type",
+        "subtitle": "Manage types of vehicles in the fleet",
+        "icon": "lab la-buffer",
+        "route_name": "owner.fleet.type.index"
+    },
+    "bus": {
+        "keyword": [],
+        "title": "Vehicles",
+        "subtitle": "Manage all buses in the fleet",
+        "icon": "las la-bus",
+        "route_name": "owner.vehicle.index"
+    },
+    "route": {
+        "keyword": [],
+        "title": "Routes",
+        "subtitle": "Manage travel routes and stops",
+        "icon": "las la-route",
+        "route_name": "owner.trip.route.index"
+    },
+    "ticket_price": {
+        "keyword": [],
+        "title": "Ticket Price",
+        "subtitle": "Set ticket prices for trips",
+        "icon": "las la-money-bill",
+        "route_name": "owner.trip.ticket.price.index"
+    },
+    "schedule": {
+        "keyword": [],
+        "title": "Schedules",
+        "subtitle": "Set schedules for buses and trips",
+        "icon": "las la-calendar-week",
+        "route_name": "owner.trip.schedule.index"
+    },
+    "trip": {
+        "keyword": [],
+        "title": "Trip",
+        "subtitle": "Manage all bus trips",
+        "icon": "las la-suitcase-rolling",
+        "route_name": "owner.trip.index"
+    },
+    "assign_vehicle": {
+        "keyword": [],
+        "title": "Assign Vehicles",
+        "subtitle": "Assign buses to scheduled trips",
+        "icon": "las la-bus",
+        "route_name": "owner.trip.assign.vehicle.index"
+    }
+}

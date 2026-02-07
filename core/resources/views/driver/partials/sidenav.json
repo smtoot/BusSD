@@ -1,0 +1,11 @@
+{
+    "booked_ticket": {
+        "keyword": [
+            "trip"
+        ],
+        "title": "Trips",
+        "icon": "la la-bus",
+        "route_name": "driver.trips",
+        "menu_active": "driver.trips"
+    }
+}

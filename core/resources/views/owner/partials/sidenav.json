@@ -1,0 +1,189 @@
+{
+    "dashboard": {
+        "title": "Dashboard",
+        "icon": "las la-home",
+        "route_name": "owner.dashboard",
+        "menu_active": "owner.dashboard"
+    },
+    "sales_report": {
+        "title": "Reservations & Sales",
+        "icon": "las la-chart-bar",
+        "menu_active": "owner.report*",
+        "submenu": [
+            {
+                "title": "All Sales",
+                "route_name": "owner.report.sale.index",
+                "menu_active": "owner.report.sale.index"
+            },
+            {
+                "title": "B2C (App) Sales",
+                "route_name": "owner.report.sale.b2c",
+                "menu_active": "owner.report.sale.b2c"
+            },
+            {
+                "title": "My Passengers",
+                "route_name": "owner.passenger.index",
+                "menu_active": "owner.passenger*"
+            },
+            {
+                "title": "Periodic Report",
+                "route_name": "owner.report.periodic",
+                "menu_active": "owner.report.periodic"
+            },
+            {
+                "title": "Performance Metrics",
+                "route_name": "owner.report.performance",
+                "menu_active": "owner.report.performance"
+            }
+        ]
+    },
+    "manage_transport": {
+        "title": "Operational Assets",
+        "icon": "las la-bus-alt",
+        "menu_active": [
+            "owner.manage.transport",
+            "owner.counter.index",
+            "owner.seat.layout.index",
+            "owner.vehicle.index",
+            "owner.fleet.type.index",
+            "owner.trip-schedule*",
+            "owner.trip*"
+        ],
+        "submenu": [
+            {
+                "title": "Buses & Fleets",
+                "route_name": "owner.vehicle.index",
+                "menu_active": "owner.vehicle.index"
+            },
+            {
+                "title": "Routes & Counters",
+                "route_name": "owner.counter.index",
+                "menu_active": "owner.counter.index"
+            },
+            {
+                "title": "Schedules & Trips",
+                "route_name": "owner.trip.index",
+                "menu_active": "owner.trip.index"
+            },
+            {
+                "title": "Bus Assignments",
+                "route_name": "owner.trip.assign.vehicle.index",
+                "menu_active": "owner.trip.assign.vehicle.index"
+            }
+        ]
+    },
+    "staff": {
+        "title": "Human Resources",
+        "icon": "la la-users-cog",
+        "menu_active": [
+            "owner.co-owner*",
+            "owner.driver*",
+            "owner.supervisor*",
+            "owner.counter.manager*"
+        ],
+        "submenu": [
+            {
+                "title": "Drivers",
+                "route_name": "owner.driver.index",
+                "menu_active": "owner.driver*"
+            },
+            {
+                "title": "Supervisors",
+                "route_name": "owner.supervisor.index",
+                "menu_active": "owner.supervisor*"
+            },
+            {
+                "title": "Counter Managers",
+                "route_name": "owner.counter.manager.index",
+                "menu_active": "owner.counter.manager*"
+            },
+            {
+                "title": "Co-Owners",
+                "route_name": "owner.co-owner.index",
+                "menu_active": "owner.co-owner*"
+            }
+        ]
+    },
+    "feedback": {
+        "title": "App Engagement",
+        "icon": "las la-star",
+        "route_name": "owner.feedback.index",
+        "menu_active": "owner.feedback*"
+    },
+    "financials": {
+        "title": "Financials",
+        "icon": "las la-wallet",
+        "menu_active": [
+            "owner.withdraw*",
+            "owner.deposit.history",
+            "owner.financial*"
+        ],
+        "submenu": [
+            {
+                "title": "Net Settlements",
+                "route_name": "owner.financial.settlements",
+                "menu_active": "owner.financial.settlements"
+            },
+            {
+                "title": "Refund Logs",
+                "route_name": "owner.financial.refunds",
+                "menu_active": "owner.financial.refunds"
+            },
+            {
+                "title": "Withdraw Payout",
+                "route_name": "owner.withdraw.methods",
+                "menu_active": "owner.withdraw.methods"
+            },
+            {
+                "title": "Payout History",
+                "route_name": "owner.withdraw.history",
+                "menu_active": "owner.withdraw.history"
+            },
+            {
+                "title": "Payment History",
+                "route_name": "owner.deposit.history",
+                "menu_active": "owner.deposit.history"
+            }
+        ]
+    },
+    "setting": {
+        "title": "Company Profile",
+        "icon": "las la-building",
+        "route_name": "owner.settings.index",
+        "menu_active": "owner.settings.index"
+    },
+    "package": {
+        "title": "Plan & Packages",
+        "icon": "las la-cube",
+        "menu_active": "owner.package*",
+        "submenu": [
+            {
+                "title": "My Plan",
+                "route_name": "owner.package.active",
+                "menu_active": "owner.package.active"
+            },
+            {
+                "title": "Upgrade Plan",
+                "route_name": "owner.package.index",
+                "menu_active": "owner.package.index"
+            }
+        ]
+    },
+    "ticket": {
+        "title": "Support Desktop",
+        "icon": "la la-ticket",
+        "menu_active": "owner.ticket*",
+        "submenu": [
+            {
+                "title": "Active Tickets",
+                "route_name": "owner.ticket.index",
+                "menu_active": "owner.ticket.index"
+            },
+            {
+                "title": "Open New Ticket",
+                "route_name": "owner.ticket.open",
+                "menu_active": "owner.ticket.open"
+            }
+        ]
+    }
+}

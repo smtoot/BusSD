@@ -1,0 +1,264 @@
+<?php
+
+namespace App\Http\Controllers\Api\Passenger;
+
+use App\Http\Controllers\Controller;
+use App\Models\BookedTicket;
+use App\Models\Trip;
+use App\Traits\ApiResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Carbon\Carbon;
+
+class BookingController extends Controller
+{
+    use ApiResponse;
+
+    public function initiate(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'trip_id' => 'required|exists:trips,id',
+            'date' => 'required|date_format:Y-m-d|after_or_equal:today',
+            'pickup_id' => 'required|integer',
+            'destination_id' => 'required|integer',
+            'seats' => 'required|array|min:1',
+            'passenger_details' => 'required|array|min:1',
+            'passenger_details.*.name' => 'required|string|max:100',
+            'passenger_details.*.mobile' => 'nullable|string|max:20',
+            'passenger_details.*.gender' => 'nullable|in:male,female',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->apiError($validator->errors()->all(), 422);
+        }
+
+        if (count($request->passenger_details) !== count($request->seats)) {
+            return $this->apiError('Passenger details count must match the number of seats.', 422);
+        }
+
+        $passenger = $request->user();
+        if ($passenger->status == 0) {
+            return $this->apiError('Account banned.', 403);
+        }
+
+        $trip = Trip::active()->with(['route'])->findOrFail($request->trip_id);
+        $date = Carbon::parse($request->date)->format('m/d/Y');
+        $requestedSeats = $request->seats;
+
+        // B2C Locked Seats Check
+        $lockedSeats = is_array($trip->b2c_locked_seats) ? $trip->b2c_locked_seats : [];
+        foreach ($requestedSeats as $seat) {
+            if (in_array((string)$seat, array_map('strval', $lockedSeats))) {
+                return $this->apiError("Seat $seat is reserved for counter booking only.", 400);
+            }
+        }
+
+        try {
+            return DB::transaction(function () use ($trip, $date, $requestedSeats, $request, $passenger) {
+                // Atomic Race Condition Check
+                $alreadyBooked = BookedTicket::where('trip_id', $trip->id)
+                    ->where('date_of_journey', $date)
+                    ->where('status', 1)
+                    ->where(function($query) use ($requestedSeats) {
+                        foreach ($requestedSeats as $seat) {
+                            $query->orWhereJsonContains('seats', $seat);
+                        }
+                    })
+                    ->exists();
+
+                if ($alreadyBooked) {
+                    return $this->apiError('One or more selected seats are already booked.', 400);
+                }
+
+                // Create Pending Booking
+                $booking = new BookedTicket();
+                $booking->owner_id = $trip->owner_id;
+                $booking->trip_id = $trip->id;
+                $booking->passenger_id = $passenger->id;
+                $booking->source_destination = [$request->pickup_id, $request->destination_id];
+                $booking->pick_up_point = $request->pickup_id;
+                $booking->dropping_point = $request->destination_id;
+                $booking->seats = $requestedSeats;
+                $booking->passenger_details = $request->passenger_details;
+                $booking->ticket_count = count($requestedSeats);
+                $booking->date_of_journey = $date;
+                $booking->status = 0; // Pending
+                $booking->trx = getTrx();
+
+                // Price Calculation (Segment based)
+                $priceRecord = $trip->route->ticketPrice->prices()
+                    ->whereJsonContains('source_destination', [(string)$request->pickup_id, (string)$request->destination_id])
+                    ->first();
+                $booking->price = ($priceRecord ? $priceRecord->price : 0) * count($requestedSeats);
+
+                if ($booking->price <= 0) {
+                    throw new \Exception("Invalid price for this segment.");
+                }
+
+                $booking->save();
+
+                return $this->apiSuccess('Booking initiated. Please proceed to payment.', [
+                    'trx' => $booking->trx,
+                    'amount' => $booking->price,
+                    'booking_id' => $booking->id
+                ]);
+            });
+        } catch (\Exception $e) {
+            \Log::error('Booking initiation failed', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return $this->apiError('Something went wrong. Please try again.', 500);
+        }
+    }
+
+    public function upcoming(Request $request)
+    {
+        $passenger = $request->user();
+        $now = Carbon::now()->format('m/d/Y');
+        $perPage = min((int) $request->input('per_page', 15), 50);
+
+        $trips = BookedTicket::where('passenger_id', $passenger->id)
+            ->where('status', 1)
+            ->where('date_of_journey', '>=', $now)
+            ->with(['trip', 'trip.owner', 'trip.route', 'trip.schedule'])
+            ->orderBy('date_of_journey', 'asc')
+            ->paginate($perPage);
+
+        return $this->apiSuccess(null, $trips);
+    }
+
+    public function history(Request $request)
+    {
+        $passenger = $request->user();
+        $now = Carbon::now()->format('m/d/Y');
+        $perPage = min((int) $request->input('per_page', 15), 50);
+
+        $trips = BookedTicket::where('passenger_id', $passenger->id)
+            ->where('status', 1)
+            ->where('date_of_journey', '<', $now)
+            ->with(['trip', 'trip.owner', 'trip.route', 'trip.schedule'])
+            ->orderBy('date_of_journey', 'desc')
+            ->paginate($perPage);
+
+        return $this->apiSuccess(null, $trips);
+    }
+
+    public function viewTicket(Request $request, $id)
+    {
+        $passenger = $request->user();
+        $ticket = BookedTicket::where('id', $id)
+            ->where('passenger_id', $passenger->id)
+            ->with(['trip', 'trip.owner', 'trip.route', 'trip.schedule', 'trip.fleetType'])
+            ->firstOrFail();
+
+        // QR Data for scanning
+        $qrData = [
+            'trx' => $ticket->trx,
+            'passenger' => $passenger->firstname . ' ' . $passenger->lastname,
+            'bus' => $ticket->trip->title,
+            'seats' => $ticket->seats,
+            'date' => $ticket->date_of_journey,
+        ];
+
+        return $this->apiSuccess(null, [
+            'ticket' => $ticket,
+            'qr_data' => $qrData
+        ]);
+    }
+
+    public function cancelTicket(Request $request, $id)
+    {
+        $passenger = $request->user();
+        $ticket = BookedTicket::where('id', $id)
+            ->where('passenger_id', $passenger->id)
+            ->where('status', 1) // Confirmed only
+            ->with(['trip', 'trip.schedule'])
+            ->firstOrFail();
+
+        $journeyTime = Carbon::parse($ticket->date_of_journey . ' ' . $ticket->trip->schedule->start_from);
+        $now = Carbon::now();
+        $hoursBefore = $now->diffInHours($journeyTime, false);
+
+        if ($hoursBefore < 2) {
+            return $this->apiError('Cancellations are not allowed within 2 hours of departure.', 400);
+        }
+
+        // Refund Percentage Logic
+        if ($hoursBefore > 24) {
+            $refundPercent = 90;
+        } elseif ($hoursBefore >= 12) {
+            $refundPercent = 70;
+        } else {
+            $refundPercent = 50;
+        }
+
+        $refundAmount = ($ticket->price * $refundPercent) / 100;
+
+        try {
+            return DB::transaction(function () use ($ticket, $refundAmount, $refundPercent, $passenger) {
+                // Mark ticket as cancelled IMMEDIATELY to free seat and prevent use
+                $ticket->status = 3; // 3: Cancelled/Refund Pending
+                $ticket->save();
+
+                // Create Refund Request
+                $refund = new \App\Models\Refund();
+                $refund->booked_ticket_id = $ticket->id;
+                $refund->passenger_id = $passenger->id;
+                $refund->amount = $refundAmount;
+                $refund->trx = $ticket->trx;
+                $refund->status = 0; // Pending Admin Approval
+                $refund->save();
+
+                return $this->apiSuccess("Cancellation request submitted. Expected refund: {$refundAmount} " . gs('cur_text'), [
+                    'refund_amount' => $refundAmount,
+                    'refund_percent' => $refundPercent,
+                    'ticket_id' => $ticket->id
+                ]);
+            });
+        } catch (\Exception $e) {
+            \Log::error('Ticket cancellation failed', ['error' => $e->getMessage(), 'ticket_id' => $id]);
+            return $this->apiError('Something went wrong. Please try again.', 500);
+        }
+    }
+
+    public function rateTrip(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'rating' => 'required|integer|min:1|max:5',
+            'comment' => 'nullable|string|max:500',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->apiError($validator->errors()->all(), 422);
+        }
+
+        $passenger = $request->user();
+        $ticket = BookedTicket::where('id', $id)
+            ->where('passenger_id', $passenger->id)
+            ->where('status', 1) // Confirmed only
+            ->with(['trip', 'trip.schedule'])
+            ->firstOrFail();
+
+        $journeyTime = Carbon::parse($ticket->date_of_journey . ' ' . $ticket->trip->schedule->start_from);
+
+        // Ensure journey has started or finished
+        if (Carbon::now()->lessThan($journeyTime)) {
+            return $this->apiError('You can only rate a trip after the journey has started.', 400);
+        }
+
+        // Check for duplicate rating
+        $existing = \App\Models\TripRating::where('booked_ticket_id', $ticket->id)->exists();
+        if ($existing) {
+            return $this->apiError('You have already rated this trip.', 400);
+        }
+
+        $rating = new \App\Models\TripRating();
+        $rating->booked_ticket_id = $ticket->id;
+        $rating->passenger_id = $passenger->id;
+        $rating->trip_id = $ticket->trip_id;
+        $rating->rating = $request->rating;
+        $rating->comment = $request->comment;
+        $rating->save();
+
+        return $this->apiSuccess('Thank you for your feedback!', $rating);
+    }
+}

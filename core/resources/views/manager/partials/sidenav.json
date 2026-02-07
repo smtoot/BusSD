@@ -1,0 +1,68 @@
+{
+    "booked_ticket": {
+        "keyword": [
+            "booked ticket"
+        ],
+        "title": "Booked Ticket",
+        "icon": "la la-ticket",
+        "route_name": "manager.dashboard",
+        "menu_active": "manager.dashboard"
+    },
+    "trip": {
+        "keyword": [
+            "manage trips",
+            "trips"
+        ],
+        "title": "Trips",
+        "icon": "la la-radiation-alt",
+        "route_name": "manager.trip.index",
+        "menu_active": "manager.trip*"
+    },
+    "statistics": {
+        "keyword": [
+            "statistics"
+        ],
+        "title": "Statistics",
+        "icon": "la la-chart-bar",
+        "route_name": "manager.statistics",
+        "menu_active": "manager.statistics"
+    },
+    "sold_tickets": {
+        "title": "Sold Tickets",
+        "icon": "la la-money-bill-wave",
+        "menu_active": [
+            "manager.sold.tickets*"
+        ],
+        "submenu": [
+            {
+                "keyword": [
+                    "sold tickets",
+                    "todays tickets",
+                    "todays sold tickets"
+                ],
+                "title": "Today's",
+                "route_name": "manager.sold.tickets.todays",
+                "menu_active": "manager.sold.tickets.todays"
+            },
+            {
+                "keyword": [
+                    "sold tickets",
+                    "all time tickets",
+                    "all time sold tickets"
+                ],
+                "title": "All Time",
+                "route_name": "manager.sold.tickets.all",
+                "menu_active": "manager.sold.tickets.all"
+            },
+            {
+                "keyword": [
+                    "sold tickets",
+                    "canceled tickets"
+                ],
+                "title": "Canceled",
+                "route_name": "manager.sold.tickets.canceled",
+                "menu_active": "manager.sold.tickets.canceled"
+            }
+        ]
+    }
+}
