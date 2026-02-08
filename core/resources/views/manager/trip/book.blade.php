@@ -198,7 +198,7 @@
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     {{ $stoppages[0]->name }} - {{ $stoppages[1]->name }}
                                     <span class="font-weight-bolder">
-                                        {{ showAmount($item->price, currencyFormat: false) }}{{ $owner->general_settings->cur_sym }}
+                                        {{ showAmount($item->price, currencyFormat: false) }}{{ @$owner->general_settings->cur_sym ?? gs('cur_sym') }}
                                     </span>
                                 </li>
                             @endif

@@ -87,4 +87,40 @@ class ReportController extends Controller
         $feedbacks = \App\Models\TripRating::with(['passenger', 'trip', 'trip.owner'])->orderBy('id', 'desc')->paginate(getPaginate());
         return view('admin.reports.feedback', compact('pageTitle', 'feedbacks', 'remarks'));
     }
+
+    public function revenueLedger(Request $request)
+    {
+        $pageTitle = 'Revenue Ledger (Commissions)';
+        $transactions = Transaction::where('remark', 'b2c_ticket_sale')
+            ->searchable(['trx', 'owner:username'])
+            ->dateFilter()
+            ->with('owner')
+            ->orderBy('id', 'desc')
+            ->paginate(getPaginate());
+        
+        $totalCommission = Transaction::where('remark', 'b2c_ticket_sale')
+            ->dateFilter()
+            ->sum('charge');
+
+        return view('admin.reports.revenue_ledger', compact('pageTitle', 'transactions', 'totalCommission'));
+    }
+
+    public function settlementLedger(Request $request)
+    {
+        $pageTitle = 'Operator Settlement Ledger';
+        $owners = \App\Models\Owner::searchable(['username', 'email'])
+            ->withSum(['transactions as total_operator_earnings' => function($query) {
+                $query->where('remark', 'b2c_ticket_sale');
+            }], 'amount')
+            ->withSum(['transactions as total_commission' => function($query) {
+                $query->where('remark', 'b2c_ticket_sale');
+            }], 'charge')
+            ->withSum(['transactions as total_payouts' => function($query) {
+                $query->where('remark', 'withdraw');
+            }], 'amount')
+            ->orderBy('id', 'desc')
+            ->paginate(getPaginate());
+
+        return view('admin.reports.settlement_ledger', compact('pageTitle', 'owners'));
+    }
 }

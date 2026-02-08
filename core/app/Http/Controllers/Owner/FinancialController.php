@@ -5,11 +5,26 @@ namespace App\Http\Controllers\Owner;
 use App\Http\Controllers\Controller;
 use App\Models\BookedTicket;
 use App\Models\Refund;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
 class FinancialController extends Controller
 {
+    public function transactions(Request $request)
+    {
+        $pageTitle = 'Transaction History';
+        $owner = authUser();
+        $remarks = Transaction::where('owner_id', $owner->id)->distinct('remark')->orderBy('remark')->get('remark');
+        $transactions = Transaction::where('owner_id', $owner->id)
+            ->searchable(['trx'])
+            ->filter(['remark'])
+            ->orderBy('id', 'desc')
+            ->paginate(getPaginate());
+
+        return view('owner.financial.transactions', compact('pageTitle', 'transactions', 'remarks'));
+    }
+
     public function settlements()
     {
         $pageTitle = "Financial Settlements";

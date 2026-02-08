@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Counter;
 use App\Models\Route;
 use App\Models\Trip;
+use App\Models\TripRating;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -28,6 +29,12 @@ class TripSearchController extends Controller
             'pickup_id' => 'required|integer',
             'destination_id' => 'required|integer',
             'date' => 'required|date_format:Y-m-d|after_or_equal:today',
+            'min_price' => 'nullable|numeric|min:0',
+            'max_price' => 'nullable|numeric|min:0',
+            'fleet_type_id' => 'nullable|integer',
+            'departure_time_start' => 'nullable|date_format:H:i',
+            'departure_time_end' => 'nullable|date_format:H:i',
+            'sort_by' => 'nullable|in:price_asc,price_desc,time_asc,rating_desc',
         ]);
 
         if ($validator->fails()) {
@@ -39,7 +46,7 @@ class TripSearchController extends Controller
         $date = Carbon::parse($request->date)->format('m/d/Y');
         $dayOfWeek = Carbon::parse($request->date)->format('l');
 
-        $trips = Trip::active()
+        $query = Trip::active()
             ->whereJsonDoesntContain('day_off', $dayOfWeek)
             ->whereHas('route', function($q) use ($pickupId, $destinationId) {
                 $q->active()
@@ -47,50 +54,100 @@ class TripSearchController extends Controller
                   ->whereJsonContains('stoppages', (string)$destinationId);
             })
             ->with(['route', 'fleetType', 'schedule', 'owner', 'bookedTickets' => function($q) use ($date) {
-                $q->where('date_of_journey', $date)->where('status', 1);
-            }])
-            ->get();
+                $q->where('date_of_journey', $date)->whereIn('status', [1, 2]); 
+            }, 'seatLocks' => function($q) use ($date) {
+                $q->where('date_of_journey', $date)->where('expires_at', '>', now());
+            }]);
 
+        // Filter by Fleet Type
+        if ($request->fleet_type_id) {
+            $query->where('fleet_type_id', $request->fleet_type_id);
+        }
+
+        // Filter by Departure Time
+        if ($request->departure_time_start || $request->departure_time_end) {
+            $query->whereHas('schedule', function($q) use ($request) {
+                if ($request->departure_time_start) {
+                    $q->where('start_from', '>=', $request->departure_time_start);
+                }
+                if ($request->departure_time_end) {
+                    $q->where('start_from', '<=', $request->departure_time_end);
+                }
+            });
+        }
+
+        $trips = $query->get();
         $results = [];
-
         foreach ($trips as $trip) {
             $stoppages = $trip->route->stoppages;
             $pickupIndex = array_search((string)$pickupId, $stoppages);
             $destinationIndex = array_search((string)$destinationId, $stoppages);
 
-            // Directional Validation
             if ($pickupIndex === false || $destinationIndex === false || $pickupIndex >= $destinationIndex) {
                 continue;
             }
 
             // Calculate Availability
-            $totalSeats = $trip->fleetType->total_seat;
-            $bookedSeatsCount = $trip->bookedTickets->sum('ticket_count');
-            $lockedSeatsCount = is_array($trip->b2c_locked_seats) ? count($trip->b2c_locked_seats) : 0;
+            $totalSeats = (int) $trip->fleetType->total_seat;
+            $bookedSeatsCount = (int) $trip->bookedTickets->sum('ticket_count');
+            $lockedSeatsCount = 0;
+            foreach ($trip->seatLocks as $lock) {
+                $lockedSeatsCount += count($lock->seats);
+            }
             $availableSeats = max(0, $totalSeats - ($bookedSeatsCount + $lockedSeatsCount));
 
-            // Fetch Price (Simplified for now - usually needs more complex segment lookup)
-            // In a real implementation, we'd query TicketPriceByStoppage
+            // Fetch Price (Segment based)
             $fare = 0;
             if($trip->route->ticketPrice) {
                 $priceRecord = $trip->route->ticketPrice->prices()
                     ->whereJsonContains('source_destination', [(string)$pickupId, (string)$destinationId])
                     ->first();
-                $fare = $priceRecord ? $priceRecord->price : 0;
+                $fare = $priceRecord ? (float) $priceRecord->price : 0;
             }
 
-            if ($fare <= 0) continue; // Skip if no price is set for this segment
+            if ($fare <= 0) continue; 
+
+            // Filter by Price Range
+            if ($request->min_price && $fare < $request->min_price) continue;
+            if ($request->max_price && $fare > $request->max_price) continue;
+
+            // Rating logic - Aggregate for owner
+            $ownerRating = TripRating::whereHas('trip', function($q) use ($trip) {
+                $q->where('owner_id', $trip->owner_id);
+            })->avg('rating') ?: 0;
 
             $results[] = [
-                'trip_id' => $trip->id,
-                'owner_name' => $trip->owner->lastname, // Assuming company name is in lastname or similar
-                'bus_type' => $trip->fleetType->name,
-                'departure_time' => $trip->schedule->start_from,
-                'arrival_time' => $trip->schedule->end_at,
-                'fare' => $fare,
-                'available_seats' => $availableSeats,
-                'route_name' => $trip->route->name,
+                'trip_id' => (int) $trip->id,
+                'owner_name' => (string) ($trip->owner->general_settings->company_name ?? ($trip->owner->lastname ?: $trip->owner->username)), 
+                'owner_logo' => $trip->owner->image ? url(getFilePath('ownerProfile') . '/' . $trip->owner->image) : null,
+                'owner_rating' => round($ownerRating, 1),
+                'bus_type' => (string) $trip->fleetType->name,
+                'departure_time' => (string) $trip->schedule->start_from,
+                'arrival_time' => (string) $trip->schedule->end_at,
+                'fare' => (float) $fare,
+                'available_seats' => (int) $availableSeats,
+                'route_name' => (string) $trip->route->name,
+                'raw_time' => $trip->schedule->start_from, // used for sorting
             ];
+        }
+
+        // Sorting
+        if ($request->sort_by) {
+            $resultsCollection = collect($results);
+            if ($request->sort_by == 'price_asc') {
+                $results = $resultsCollection->sortBy('fare')->values()->all();
+            } elseif ($request->sort_by == 'price_desc') {
+                $results = $resultsCollection->sortByDesc('fare')->values()->all();
+            } elseif ($request->sort_by == 'time_asc') {
+                $results = $resultsCollection->sortBy('raw_time')->values()->all();
+            } elseif ($request->sort_by == 'rating_desc') {
+                $results = $resultsCollection->sortByDesc('owner_rating')->values()->all();
+            }
+        }
+
+        // Clean up raw_time before response
+        foreach ($results as &$res) {
+            unset($res['raw_time']);
         }
 
         return $this->apiSuccess(null, $results);
@@ -111,10 +168,10 @@ class TripSearchController extends Controller
         $trip = Trip::active()->with(['fleetType', 'fleetType.seatLayout'])->findOrFail($id);
         $date = Carbon::parse($request->date)->format('m/d/Y');
 
-        // Fetch all booked seats for this trip and date
+        // Fetch all booked seats (confirmed or pending payment)
         $bookedSeats = $trip->bookedTickets()
             ->where('date_of_journey', $date)
-            ->where('status', 1)
+            ->whereIn('status', [1, 2])
             ->get()
             ->pluck('seats')
             ->flatten()
@@ -124,15 +181,16 @@ class TripSearchController extends Controller
         $bookedSeats = array_values(array_unique(array_merge($bookedSeats, $lockedSeats)));
 
         $layout = $trip->fleetType->seatLayout;
-        $seatsConfig = $trip->fleetType->seats; // This is the object containing total rows, cols, etc.
+        $seatsConfig = $trip->fleetType->seats; 
 
         $results = [
-            'trip_id' => $trip->id,
-            'bus_name' => $trip->title,
+            'trip_id' => (int) $trip->id,
+            'bus_name' => (string) $trip->title,
             'layout' => [
-                'name' => $layout->name,
-                'total_seats' => $trip->fleetType->total_seat,
-                'deck' => $trip->fleetType->deck,
+                'name' => (string) $layout->name,
+                'total_seats' => (int) $trip->fleetType->total_seat,
+                'deck' => (int) $trip->fleetType->deck,
+                'schema' => $layout->schema ? (object) $layout->schema : null,
             ],
             'seats' => $seatsConfig,
             'booked_seats' => $bookedSeats

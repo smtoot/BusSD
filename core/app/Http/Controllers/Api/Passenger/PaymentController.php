@@ -37,6 +37,12 @@ class PaymentController extends Controller
         }
 
         $passenger = $request->user();
+        
+        // Anti-Fraud/Security: Check banned status
+        if ($passenger->status == 0) {
+            return $this->apiError('Account banned. Please contact support.', 403);
+        }
+
         $booking = BookedTicket::where('id', $request->booking_id)->where('passenger_id', $passenger->id)->firstOrFail();
 
         if ($booking->status == 1) {
@@ -51,14 +57,14 @@ class PaymentController extends Controller
             return $this->apiError('Invalid gateway.', 400);
         }
 
-        $amount = $booking->price;
-        if ($gate->min_amount > $amount || $gate->max_amount < $amount) {
+        $amount = (float) $booking->price;
+        if ((float)$gate->min_amount > $amount || (float)$gate->max_amount < $amount) {
             return $this->apiError('Please follow payment limit.', 400);
         }
 
-        $charge = $gate->fixed_charge + ($amount * $gate->percent_charge / 100);
+        $charge = (float) $gate->fixed_charge + ($amount * (float) $gate->percent_charge / 100);
         $payable = $amount + $charge;
-        $finalAmount = $payable * $gate->rate;
+        $finalAmount = $payable * (float) $gate->rate;
 
         $data = new Deposit();
         $data->passenger_id = $passenger->id;
@@ -67,20 +73,21 @@ class PaymentController extends Controller
         $data->method_currency = strtoupper($gate->currency);
         $data->amount = $amount;
         $data->charge = $charge;
-        $data->rate = $gate->rate;
+        $data->rate = (float) $gate->rate;
         $data->final_amount = $finalAmount;
         $data->btc_amount = 0;
         $data->btc_wallet = "";
         $data->trx = getTrx();
-        $data->success_url = ""; // Will be handled by app
-        $data->failed_url = ""; // Will be handled by app
+        $data->success_url = ""; // Handled by App
+        $data->failed_url = ""; // Handled by App
         $data->save();
 
         if ($data->method_code >= 1000) {
             return $this->apiSuccess('Manual payment initiated.', [
-                'trx' => $data->trx,
+                'trx' => (string) $data->trx,
                 'type' => 'manual',
-                'instructions' => $gate->method->description
+                'amount' => (float) $data->amount,
+                'instructions' => (string) $gate->method->description
             ]);
         }
 
@@ -88,13 +95,13 @@ class PaymentController extends Controller
         $dirName = $gate->method->alias;
         $new = 'App\\Http\\Controllers\\Gateway\\' . $dirName . '\\ProcessController';
 
-        // Note: We might need to adapt the existing ProcessControllers to return JSON instead of Blade views if detect it's an API request.
         $processData = $new::process($data);
         $processData = json_decode($processData);
 
         return $this->apiSuccess(null, [
-            'trx' => $data->trx,
+            'trx' => (string) $data->trx,
             'type' => 'automatic',
+            'amount' => (float) $data->amount,
             'process_data' => $processData
         ]);
     }
@@ -107,6 +114,11 @@ class PaymentController extends Controller
 
         if ($validator->fails()) {
             return $this->apiError($validator->errors()->all(), 422);
+        }
+
+        $passenger = $request->user();
+        if ($passenger->status == 0) {
+            return $this->apiError('Account banned.', 403);
         }
 
         $deposit = Deposit::with('gateway', 'gateway.form')->where('trx', $request->trx)->where('status', Status::PAYMENT_INITIATE)->first();
@@ -133,14 +145,15 @@ class PaymentController extends Controller
         $deposit->save();
 
         $adminNotification = new \App\Models\AdminNotification();
-        $adminNotification->title = 'Manual payment request from Passenger';
+        $adminNotification->title = 'Manual payment request from Passenger via API';
         $adminNotification->click_url = urlPath('admin.deposit.details', $deposit->id);
         $adminNotification->passenger_id = $deposit->passenger_id;
         $adminNotification->save();
 
         return $this->apiSuccess('Your payment proof has been submitted and is pending approval.', [
-            'trx' => $deposit->trx,
-            'status' => 'Pending'
+            'trx' => (string) $deposit->trx,
+            'status' => 'Pending',
+            'amount' => (float) $deposit->amount
         ]);
     }
 }

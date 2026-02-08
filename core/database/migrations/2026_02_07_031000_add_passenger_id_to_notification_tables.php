@@ -11,13 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('admin_notifications', function (Blueprint $table) {
-            $table->integer('passenger_id')->default(0)->after('owner_id');
-        });
+        if (!Schema::hasColumn('admin_notifications', 'passenger_id')) {
+            Schema::table('admin_notifications', function (Blueprint $table) {
+                $table->integer('passenger_id')->default(0)->after('owner_id');
+            });
+        }
 
-        Schema::table('notification_logs', function (Blueprint $table) {
-            $table->integer('passenger_id')->default(0)->after('owner_id');
-        });
+        if (!Schema::hasColumn('notification_logs', 'passenger_id')) {
+            Schema::table('notification_logs', function (Blueprint $table) {
+                $table->integer('passenger_id')->default(0)->after('owner_id');
+            });
+        }
     }
 
     /**

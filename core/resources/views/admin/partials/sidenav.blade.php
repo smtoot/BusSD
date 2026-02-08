@@ -2,7 +2,7 @@
     $sideBarLinks = json_decode($sidenav);
 @endphp
 
-<div class="sidebar bg--dark">
+<div class="sidebar rk-sidebar">
     <button class="res-sidebar-close-btn"><i class="las la-times"></i></button>
     <div class="sidebar__inner">
         <div class="sidebar__logo">
@@ -78,9 +78,9 @@
                 @endforeach
             </ul>
         </div>
-        <div class="version-info text-center text-uppercase">
-            <span class="text--primary">{{__(systemDetails()['name'])}}</span>
-            <span class="text--success">@lang('V'){{systemDetails()['version']}} </span>
+        <div class="version-info text-center text-uppercase rk-version">
+            <span>{{__(systemDetails()['name'])}}</span>
+            <span>@lang('V'){{systemDetails()['version']}} </span>
         </div>
     </div>
 </div>

@@ -44,22 +44,38 @@ class BookingController extends Controller
 
         $trip = Trip::active()->with(['route'])->findOrFail($request->trip_id);
         $date = Carbon::parse($request->date)->format('m/d/Y');
-        $requestedSeats = $request->seats;
+        $requestedSeats = array_map('strval', $request->seats);
 
-        // B2C Locked Seats Check
-        $lockedSeats = is_array($trip->b2c_locked_seats) ? $trip->b2c_locked_seats : [];
+        // 1. Static B2C Exclusions (Counter only seats)
+        $staticLocked = is_array($trip->b2c_locked_seats) ? $trip->b2c_locked_seats : [];
         foreach ($requestedSeats as $seat) {
-            if (in_array((string)$seat, array_map('strval', $lockedSeats))) {
+            if (in_array((string)$seat, array_map('strval', $staticLocked))) {
                 return $this->apiError("Seat $seat is reserved for counter booking only.", 400);
             }
         }
 
+        // 2. Dynamic Seat Locking Check (In-progress checkouts)
+        $alreadyLocked = \App\Models\SeatLock::where('trip_id', $trip->id)
+            ->where('date_of_journey', $date)
+            ->where('expires_at', '>', Carbon::now())
+            ->where('passenger_id', '!=', $passenger->id) // Allow user to re-initiate their own lock
+            ->where(function($query) use ($requestedSeats) {
+                foreach ($requestedSeats as $seat) {
+                    $query->orWhereJsonContains('seats', $seat);
+                }
+            })
+            ->exists();
+
+        if ($alreadyLocked) {
+            return $this->apiError('One or more selected seats are temporarily reserved. Please try again in 10 minutes.', 400);
+        }
+
         try {
             return DB::transaction(function () use ($trip, $date, $requestedSeats, $request, $passenger) {
-                // Atomic Race Condition Check
+                // 3. Atomic Final Booking Check
                 $alreadyBooked = BookedTicket::where('trip_id', $trip->id)
                     ->where('date_of_journey', $date)
-                    ->where('status', 1)
+                    ->whereIn('status', [1, 2]) // Confirmed or Payment Pending
                     ->where(function($query) use ($requestedSeats) {
                         foreach ($requestedSeats as $seat) {
                             $query->orWhereJsonContains('seats', $seat);
@@ -71,7 +87,26 @@ class BookingController extends Controller
                     return $this->apiError('One or more selected seats are already booked.', 400);
                 }
 
-                // Create Pending Booking
+                // 4. Create Dynamic Seat Lock
+                $existingLock = \App\Models\SeatLock::where('trip_id', $trip->id)
+                    ->where('passenger_id', $passenger->id)
+                    ->where('date_of_journey', $date)
+                    ->where('expires_at', '>', Carbon::now())
+                    ->first();
+
+                if ($existingLock) {
+                    return $this->apiError('You already have an active booking in progress. Please complete or cancel it first.', 400);
+                }
+
+                \App\Models\SeatLock::create([
+                    'trip_id' => $trip->id,
+                    'passenger_id' => $passenger->id,
+                    'date_of_journey' => $date,
+                    'seats' => $requestedSeats,
+                    'expires_at' => Carbon::now()->addMinutes(10)
+                ]);
+
+                // 5. Create Pending Booking
                 $booking = new BookedTicket();
                 $booking->owner_id = $trip->owner_id;
                 $booking->trip_id = $trip->id;
@@ -98,10 +133,11 @@ class BookingController extends Controller
 
                 $booking->save();
 
-                return $this->apiSuccess('Booking initiated. Please proceed to payment.', [
+                return $this->apiSuccess('Booking initiated. Seats locked for 10 minutes. Please proceed to payment.', [
                     'trx' => $booking->trx,
                     'amount' => $booking->price,
-                    'booking_id' => $booking->id
+                    'booking_id' => $booking->id,
+                    'lock_expires_at' => Carbon::now()->addMinutes(10)->toDateTimeString()
                 ]);
             });
         } catch (\Exception $e) {
@@ -110,20 +146,60 @@ class BookingController extends Controller
         }
     }
 
+    /**
+     * Release locked seats manually (e.g. user cancels checkout)
+     */
+    public function releaseSeats(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'trip_id' => 'required|exists:trips,id',
+            'date' => 'required|date_format:Y-m-d',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->apiError($validator->errors()->all(), 422);
+        }
+
+        $date = Carbon::parse($request->date)->format('m/d/Y');
+        
+        \App\Models\SeatLock::where('trip_id', $request->trip_id)
+            ->where('passenger_id', $request->user()->id)
+            ->where('date_of_journey', $date)
+            ->delete();
+
+        return $this->apiSuccess('Seats released successfully.');
+    }
+
     public function upcoming(Request $request)
     {
         $passenger = $request->user();
         $now = Carbon::now()->format('m/d/Y');
         $perPage = min((int) $request->input('per_page', 15), 50);
 
-        $trips = BookedTicket::where('passenger_id', $passenger->id)
-            ->where('status', 1)
+        $bookings = BookedTicket::where('passenger_id', $passenger->id)
+            ->whereIn('status', [1, 2]) // Confirmed or Payment Pending
             ->where('date_of_journey', '>=', $now)
             ->with(['trip', 'trip.owner', 'trip.route', 'trip.schedule'])
             ->orderBy('date_of_journey', 'asc')
             ->paginate($perPage);
 
-        return $this->apiSuccess(null, $trips);
+        // Map results for cleaner JSON
+        $bookings->getCollection()->transform(function($item) {
+            return [
+                'id' => (int) $item->id,
+                'trx' => (string) $item->trx,
+                'trip_title' => (string) $item->trip->title,
+                'owner' => (string) $item->trip->owner->lastname ?: $item->trip->owner->username,
+                'route' => (string) $item->trip->route->name,
+                'departure' => (string) $item->trip->schedule->start_from,
+                'date' => (string) $item->date_of_journey,
+                'seats' => $item->seats,
+                'total_price' => (float) $item->price,
+                'status' => (int) $item->status,
+            ];
+        });
+
+        return $this->apiSuccess(null, $bookings);
     }
 
     public function history(Request $request)
@@ -132,14 +208,29 @@ class BookingController extends Controller
         $now = Carbon::now()->format('m/d/Y');
         $perPage = min((int) $request->input('per_page', 15), 50);
 
-        $trips = BookedTicket::where('passenger_id', $passenger->id)
-            ->where('status', 1)
+        $bookings = BookedTicket::where('passenger_id', $passenger->id)
+            ->where('status', 1) // Only completed trips
             ->where('date_of_journey', '<', $now)
             ->with(['trip', 'trip.owner', 'trip.route', 'trip.schedule'])
             ->orderBy('date_of_journey', 'desc')
             ->paginate($perPage);
 
-        return $this->apiSuccess(null, $trips);
+        $bookings->getCollection()->transform(function($item) {
+            return [
+                'id' => (int) $item->id,
+                'trx' => (string) $item->trx,
+                'trip_title' => (string) $item->trip->title,
+                'owner' => (string) $item->trip->owner->lastname ?: $item->trip->owner->username,
+                'route' => (string) $item->trip->route->name,
+                'departure' => (string) $item->trip->schedule->start_from,
+                'date' => (string) $item->date_of_journey,
+                'seats' => $item->seats,
+                'total_price' => (float) $item->price,
+                'status' => (int) $item->status,
+            ];
+        });
+
+        return $this->apiSuccess(null, $bookings);
     }
 
     public function viewTicket(Request $request, $id)
@@ -152,15 +243,29 @@ class BookingController extends Controller
 
         // QR Data for scanning
         $qrData = [
-            'trx' => $ticket->trx,
-            'passenger' => $passenger->firstname . ' ' . $passenger->lastname,
-            'bus' => $ticket->trip->title,
+            'trx' => (string) $ticket->trx,
+            'passenger' => (string) $passenger->firstname . ' ' . $passenger->lastname,
+            'bus' => (string) $ticket->trip->title,
             'seats' => $ticket->seats,
-            'date' => $ticket->date_of_journey,
+            'date' => (string) $ticket->date_of_journey,
         ];
 
         return $this->apiSuccess(null, [
-            'ticket' => $ticket,
+            'ticket' => [
+                'id' => (int) $ticket->id,
+                'trx' => (string) $ticket->trx,
+                'trip_title' => (string) $ticket->trip->title,
+                'owner' => (string) $ticket->trip->owner->lastname ?: $ticket->trip->owner->username,
+                'route' => (string) $ticket->trip->route->name,
+                'departure' => (string) $ticket->trip->schedule->start_from,
+                'arrival' => (string) $ticket->trip->schedule->end_at,
+                'date' => (string) $ticket->date_of_journey,
+                'seats' => $ticket->seats,
+                'passenger_details' => $ticket->passenger_details,
+                'price' => (float) $ticket->price,
+                'status' => (int) $ticket->status,
+                'bus_type' => (string) $ticket->trip->fleetType->name,
+            ],
             'qr_data' => $qrData
         ]);
     }

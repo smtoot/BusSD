@@ -29,6 +29,7 @@ Route::middleware('admin')->group(function () {
     Route::controller('AdminController')->group(function () {
         Route::get('dashboard', 'dashboard')->name('dashboard');
         Route::get('chart/deposit', 'depositAndReport')->name('chart.deposit');
+        Route::get('chart/booking', 'bookingChart')->name('chart.booking');
         Route::get('profile', 'profile')->name('profile');
         Route::post('profile', 'profileUpdate')->name('profile.update');
         Route::get('password', 'password')->name('password');
@@ -41,17 +42,25 @@ Route::middleware('admin')->group(function () {
         Route::post('notifications/delete-all', 'deleteAllNotification')->name('notifications.delete.all');
         Route::post('notifications/delete-single/{id}', 'deleteSingleNotification')->name('notifications.delete.single');
 
+        //Features
+        Route::controller('FeatureController')->prefix('features')->name('feature.')->group(function () {
+            Route::get('', 'index')->name('index');
+            Route::post('store/{id?}', 'store')->name('store');
+            Route::post('status/{id}', 'changeStatus')->name('status');
+        });
+
         //Report Bugs
         Route::get('request-report', 'requestReport')->name('request.report');
         Route::post('request-report', 'reportSubmit');
         Route::get('download-attachments/{file_hash}', 'downloadAttachment')->name('download.attachment');
     });
 
-    // Features
-    Route::controller('FeatureController')->prefix('feature')->name('feature.')->group(function () {
-        Route::get('', 'index')->name('index');
-        Route::post('store/{id?}', 'store')->name('store');
-        Route::post('status/{id}', 'changeStatus')->name('status');
+    // Trip Manager
+    Route::controller('TripController')->name('trips.')->prefix('trips')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('show/{id}', 'show')->name('show');
+        Route::post('status/{id}', 'status')->name('status');
+        Route::get('export', 'export')->name('export');
     });
 
     // Package
@@ -59,6 +68,52 @@ Route::middleware('admin')->group(function () {
         Route::get('', 'index')->name('index');
         Route::post('store/{id?}', 'store')->name('store');
         Route::post('status/{id}', 'status')->name('status');
+    });
+
+    // Booking Manager
+    Route::controller('BookingController')->name('bookings.')->prefix('bookings')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('b2c', 'b2cBookings')->name('b2c');
+        Route::get('counter', 'counterBookings')->name('counter');
+        Route::get('show/{id}', 'show')->name('show');
+        Route::get('export', 'export')->name('export');
+    });
+
+    // Route Manager
+    Route::controller('RouteController')->name('routes.')->prefix('routes')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('create', 'create')->name('create');
+        Route::post('store', 'store')->name('store');
+        Route::get('edit/{id}', 'edit')->name('edit');
+        Route::post('update/{id}', 'update')->name('update');
+        Route::post('delete/{id}', 'destroy')->name('delete');
+        Route::get('show/{id}', 'show')->name('show');
+    });
+
+    // Fleet Manager
+    Route::controller('FleetController')->name('fleet.')->prefix('fleet')->group(function () {
+        Route::get('vehicles', 'vehicles')->name('vehicles');
+        Route::get('vehicles/show/{id}', 'vehicleShow')->name('vehicles.show');
+        Route::get('fleet-types', 'fleetTypes')->name('fleet_types');
+        Route::get('fleet-types/create', 'createFleetType')->name('fleet_types.create');
+        Route::post('fleet-types/store', 'storeFleetType')->name('fleet_types.store');
+        Route::get('fleet-types/edit/{id}', 'editFleetType')->name('fleet_types.edit');
+        Route::post('fleet-types/update/{id}', 'updateFleetType')->name('fleet_types.update');
+        Route::post('fleet-types/delete/{id}', 'destroyFleetType')->name('fleet_types.delete');
+        Route::get('seat-layouts', 'seatLayouts')->name('seat_layouts');
+        Route::post('seat-layouts/store/{id?}', 'seatLayoutStore')->name('seat_layouts.store');
+        Route::post('seat-layouts/status/{id}', 'seatLayoutStatus')->name('seat_layouts.status');
+        Route::get('export', 'export')->name('export');
+    });
+
+    // Counter Manager
+    Route::controller('CounterController')->name('counters.')->prefix('counters')->group(function () {
+        Route::get('/', 'index')->name('index');
+    });
+
+    // Schedule Manager
+    Route::controller('ScheduleController')->name('schedules.')->prefix('schedules')->group(function () {
+        Route::get('/', 'index')->name('index');
     });
 
     // Users Manager
@@ -160,6 +215,13 @@ Route::middleware('admin')->group(function () {
         Route::post('reject', 'reject')->name('reject');
     });
 
+    // SETTLEMENT SYSTEM
+    Route::controller('SettlementController')->name('settlements.')->prefix('settlements')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('process', 'process')->name('process');
+        Route::post('paid/{id}', 'markAsPaid')->name('paid');
+    });
+
     // Report
     Route::controller('ReportController')->prefix('report')->name('report.')->group(function () {
         Route::get('transaction/{user_id?}', 'transaction')->name('transaction');
@@ -168,8 +230,10 @@ Route::middleware('admin')->group(function () {
         Route::get('notification/history', 'notificationHistory')->name('notification.history');
         Route::get('email/detail/{id}', 'emailDetails')->name('email.details');
         Route::get('sales', 'sales')->name('sales.history');
-        Route::get('b2c-performance', 'b2cPerformance')->name('b2c.performance'); // New
-        Route::get('trip-feedback', 'tripFeedback')->name('trip.feedback'); // New
+        Route::get('b2c-performance', 'b2cPerformance')->name('b2c.performance');
+        Route::get('trip-feedback', 'tripFeedback')->name('trip.feedback');
+        Route::get('revenue-ledger', 'revenueLedger')->name('revenue.ledger');
+        Route::get('settlement-ledger', 'settlementLedger')->name('settlement.ledger');
     });
 
     // Admin Support

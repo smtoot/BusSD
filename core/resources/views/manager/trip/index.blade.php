@@ -98,7 +98,7 @@
                                                     <span class="d-block">{{ $trip->destinationPoint->name }}</span>
                                                 </td>
                                                 <td>
-                                                    {{ $owner->general_settings->cur_sym }}{{ $ticketPrice->price }}
+                                                    {{ @$owner->general_settings->cur_sym ?? gs('cur_sym') }}{{ $ticketPrice->price }}
                                                 </td>
                                                 <td>
                                                     {{ collect($trip->fleetType->seats)->sum() - $trip->bookedTickets->sum('ticket_count') }}

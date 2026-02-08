@@ -109,9 +109,17 @@ class TripController extends Controller
             $pos = array_search($route->destination_point, $stoppagesArray);
             unset($stoppagesArray[$pos]);
             if (!empty($stoppagesArray)) {
+                $order = "CASE id ";
+                $i = 0;
+                foreach ($stoppagesArray as $id) {
+                    $order .= "WHEN $id THEN $i ";
+                    $i++;
+                }
+                $order .= "END";
+
                 $stoppages = $owner->counters()
                     ->active()->whereIn('id', $stoppagesArray)
-                    ->orderByRaw("field(id," . implode(',', $stoppagesArray) . ")")
+                    ->orderByRaw($order)
                     ->get();
             } else {
                 $stoppages = [];

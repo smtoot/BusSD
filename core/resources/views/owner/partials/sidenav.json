@@ -120,6 +120,11 @@
         ],
         "submenu": [
             {
+                "title": "Transaction History",
+                "route_name": "owner.financial.transactions",
+                "menu_active": "owner.financial.transactions"
+            },
+            {
                 "title": "Net Settlements",
                 "route_name": "owner.financial.settlements",
                 "menu_active": "owner.financial.settlements"

@@ -39,6 +39,11 @@ class Trip extends Model
         return $this->hasMany(BookedTicket::class)->whereStatus('1');
     }
 
+    public function seatLocks()
+    {
+        return $this->hasMany(SeatLock::class);
+    }
+
     public function canceledTickets()
     {
         return $this->hasMany(BookedTicket::class)->whereStatus('0');

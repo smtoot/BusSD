@@ -1,4 +1,5 @@
 @extends('owner.layouts.app')
+
 @section('panel')
     <div class="row">
         <div class="col-lg-12">
@@ -14,7 +15,6 @@
                                     <th>@lang('Total Seat')</th>
                                     <th>@lang('AC / Non AC')</th>
                                     <th>@lang('Status')</th>
-                                    <th>@lang('Action')</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -22,17 +22,12 @@
                                     <tr>
                                         <td>{{ __($fleetType->name) }}</td>
                                         <td>{{ $fleetType->deck }}</td>
-                                        <td>{{ $fleetType->seatLayout->layout }}</td>
+                                        <td>{{ $fleetType->seatLayout->name ?: $fleetType->seatLayout->layout }}</td>
                                         <td>{{ array_sum((array)$fleetType->seats) }}</td>
                                         <td>{{ $fleetType->has_ac ? __('AC') : __('Non AC') }}</td>
                                         <td>@php echo $fleetType->statusBadge; @endphp</td>
                                         <td>
                                             <div class="button--group">
-                                                <button data-action="{{ route('owner.fleet.type.store', $fleetType->id) }}"
-                                                    data-title="@lang('Edit Fleet Type')" data-fleet_type="{{ $fleetType }}"
-                                                    class="btn btn-sm btn-outline--primary editBtn">
-                                                    <i class="la la-pencil"></i>@lang('Edit')
-                                                </button>
                                                 @if ($fleetType->status == Status::DISABLE)
                                                     <button class="btn btn-sm btn-outline--success confirmationBtn"
                                                         data-question="@lang('Are you sure to enable this fleet type?')"
@@ -115,68 +110,8 @@
     </div>
 
     <x-confirmation-modal />
-@endsection
+    @endsection
 
-@push('breadcrumb-plugins')
+    @push('breadcrumb-plugins')
     <x-search-form />
-    <button class="btn btn-sm btn-outline--primary addBtn" data-action="{{ route('owner.fleet.type.store') }}"
-        data-title="@lang('Add New Fleet Type')">
-        <i class="fas fa-plus"></i> @lang('Add New')
-    </button>
-@endpush
-
-@push('script')
-    <script>
-        (function($) {
-            'use strict';
-
-            let modal = $('#fleetModal')
-            let seatNumberWrapper = modal.find('.seat-number-wrapper');
-
-            $('.addBtn').on('click', function() {
-                modal.find('form').attr('action', $(this).data('action'));
-                modal.find('.modal-title').text($(this).data('title'));
-                modal.find('[name=name]').val('');
-                modal.find('[name=layout]').val('');
-                modal.find('[name=seat_layout]').val(0).change();
-                modal.find('[name=has_ac]').val({{ Status::YES }}).change();
-                modal.find('[name=deck]').val('');
-                seatNumberWrapper.empty();
-                modal.modal('show');
-            });
-
-            $('.editBtn').on('click', function() {
-                let fleetType = $(this).data('fleet_type');
-                modal.find('form').attr('action', $(this).data('action'));
-                modal.find('.modal-title').text($(this).data('title'));
-                modal.find('[name=name]').val(fleetType.name);
-                modal.find('[name=seat_layout]').val(fleetType.seat_layout_id).change();
-                modal.find('[name=deck]').val(fleetType.deck);
-                seatNumberWrapper.empty();
-                $.each(fleetType.seats, function(i, val) {
-                    seatNumberWrapper.append(`
-                        <div class="form-group">
-                            <label for="seat[${i}]">@lang('Seat Number for Deck') ${i} <span class="text-danger">*</span></label>
-                            <input type="text" name="seats[${i}]" value="${val}" id="seat" class="form-control integer-validation" placeholder="@lang('100')" autocomplete="off" required/>
-                        </div>
-                    `);
-                });
-                modal.find('[name=has_ac]').val(fleetType.has_ac).change();
-                modal.modal('show');
-            });
-
-            modal.find('[name=deck]').on('input', function() {
-                let deck = parseInt($(this).val());
-                seatNumberWrapper.empty();
-                for (let i = 1; i <= deck; i++) {
-                    seatNumberWrapper.append(`
-                        <div class="form-group">
-                            <label for="seat[${i}]">Seat Number for Deck ${i} <span class="text-danger">*</span></label>
-                            <input type="text" name="seats[${i}]" id="seat" class="form-control integer-validation" placeholder="100" autocomplete="off" required/>
-                        </div>
-                    `);
-                }
-            });
-        })(jQuery)
-    </script>
-@endpush
+@endsection

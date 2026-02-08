@@ -56,7 +56,14 @@ class AppServiceProvider extends ServiceProvider
                 'mobileUnverifiedOwnersCount' => Owner::mobileUnverified()->count(),
                 'pendingTicketCount'          => SupportTicket::whereIN('status', [Status::TICKET_OPEN, Status::TICKET_REPLY])->count(),
                 'pendingDepositsCount'        => Deposit::pending()->count(),
-                'updateAvailable'             => version_compare(gs('available_version'), systemDetails()['version'], '>') ? 'v' . gs('available_version') : false,
+                'pendingWithdrawalsCount'     => \App\Models\Withdrawal::where('status', 0)->count(),
+                'pendingRefundsCount'         => \App\Models\Refund::where('status', 0)->count(),
+                'bannedPassengersCount'       => \App\Models\Passenger::where('status', 0)->count(),
+                'updateAvailable'             => (function() {
+                    $availableVersion = gs('available_version');
+                    $systemVersion = systemDetails()['version'] ?? '0';
+                    return version_compare($availableVersion, $systemVersion, '>') ? 'v' . $availableVersion : false;
+                })(),
             ]);
         });
 

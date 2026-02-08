@@ -187,4 +187,14 @@ class Owner extends Authenticatable
     {
         return $this->hasMany(SoldPackage::class)->where('status', '!=', '0')->get();
     }
+
+    public function verifications()
+    {
+        return $this->hasMany(OperatorVerification::class);
+    }
+
+    public function settlements()
+    {
+        return $this->hasMany(Settlement::class);
+    }
 }

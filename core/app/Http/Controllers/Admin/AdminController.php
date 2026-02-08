@@ -33,6 +33,23 @@ class AdminController extends Controller
         $widget['sold_packages']    = SoldPackage::where('status', '!=', Status::PAYMENT_INCOMPLETE)->count();
         $widget['total_seals']      = Deposit::successful()->sum('amount');
 
+        // Aggregator Specific KPIs
+        $widget['total_passengers']    = \App\Models\Passenger::count();
+        $widget['total_trips']         = \App\Models\Trip::count();
+        $widget['active_trips']        = \App\Models\Trip::active()->count();
+        $widget['total_bookings']      = \App\Models\BookedTicket::where('status', Status::ENABLE)->count();
+        $widget['b2c_bookings']        = \App\Models\BookedTicket::where('status', Status::ENABLE)->whereNotNull('passenger_id')->count();
+        $widget['counter_bookings']    = \App\Models\BookedTicket::where('status', Status::ENABLE)->whereNull('passenger_id')->count();
+        $widget['total_routes']        = \App\Models\Route::count();
+        $widget['total_counters']      = \App\Models\Counter::count();
+
+        // Aggregator Financials & Ops
+        $widget['pending_settlements']      = \App\Models\Settlement::where('status', 0)->count();
+        $widget['pending_settlement_sum']   = \App\Models\Settlement::where('status', 0)->sum('net_payout');
+        $widget['pending_verifications']    = \App\Models\OperatorVerification::where('status', 0)->count();
+        $widget['active_seat_locks']        = \App\Models\SeatLock::where('expires_at', '>', Carbon::now())->count();
+        $widget['total_commissions']        = \App\Models\BookedTicket::where('status', Status::ENABLE)->whereNotNull('passenger_id')->sum('commission_amount');
+
         // user Browsing, Country, Operating Log
         $ownerLoginData = OwnerLogin::where('created_at', '>=', Carbon::now()->subDays(30))->get(['browser', 'os', 'country']);
 
@@ -53,8 +70,61 @@ class AdminController extends Controller
 
         $latestSales   = SoldPackage::with('owner')->where('status', 1)->where('ends_at', '>', Carbon::now())->orderByDesc('ends_at')->latest()->limit(6)->get();
         $latestOwners  = Owner::latest()->limit(6)->get();
+        $latestB2CBookings = \App\Models\BookedTicket::whereNotNull('passenger_id')->with(['passenger', 'trip.owner'])->latest()->limit(6)->get();
 
-        return view('admin.dashboard', compact('pageTitle', 'widget', 'chart', 'deposit', 'latestOwners', 'latestSales'));
+        return view('admin.dashboard', compact('pageTitle', 'widget', 'chart', 'deposit', 'latestOwners', 'latestSales', 'latestB2CBookings'));
+    }
+
+    public function bookingChart(Request $request)
+    {
+        $diffInDays = Carbon::parse($request->start_date)->diffInDays(Carbon::parse($request->end_date));
+        $groupBy = $diffInDays > 30 ? 'months' : 'days';
+        $format = $diffInDays > 30 ? '%M-%Y'  : '%d-%M-%Y';
+
+        if ($groupBy == 'days') {
+            $dates = $this->getAllDates($request->start_date, $request->end_date);
+        } else {
+            $dates = $this->getAllMonths($request->start_date, $request->end_date);
+        }
+
+        $b2cBookings = \App\Models\BookedTicket::whereNotNull('passenger_id')
+            ->where('status', Status::ENABLE)
+            ->whereDate('created_at', '>=', $request->start_date)
+            ->whereDate('created_at', '<=', $request->end_date)
+            ->selectRaw('COUNT(*) AS count')
+            ->selectRaw("DATE_FORMAT(created_at, '{$format}') as created_on")
+            ->groupBy('created_on')
+            ->get();
+
+        $counterBookings = \App\Models\BookedTicket::whereNull('passenger_id')
+            ->where('status', Status::ENABLE)
+            ->whereDate('created_at', '>=', $request->start_date)
+            ->whereDate('created_at', '<=', $request->end_date)
+            ->selectRaw('COUNT(*) AS count')
+            ->selectRaw("DATE_FORMAT(created_at, '{$format}') as created_on")
+            ->groupBy('created_on')
+            ->get();
+
+        $b2cData = [];
+        $counterData = [];
+        foreach ($dates as $date) {
+            $b2cData[] = $b2cBookings->where('created_on', $date)->first()?->count ?? 0;
+            $counterData[] = $counterBookings->where('created_on', $date)->first()?->count ?? 0;
+        }
+
+        $report['created_on'] = $dates;
+        $report['data'] = [
+            [
+                'name' => 'B2C Bookings',
+                'data' => $b2cData
+            ],
+            [
+                'name' => 'Counter Bookings',
+                'data' => $counterData
+            ]
+        ];
+
+        return response()->json($report);
     }
 
     public function depositAndReport(Request $request)

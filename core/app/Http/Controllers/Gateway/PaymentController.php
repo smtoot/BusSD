@@ -11,6 +11,9 @@ use App\Models\GatewayCurrency;
 use App\Models\Owner;
 use App\Models\SoldPackage;
 use App\Models\Transaction;
+use App\Models\BookedTicket;
+use App\Models\Passenger;
+use App\Models\SeatLock;
 use Illuminate\Http\Request;
 
 class PaymentController extends Controller
@@ -138,6 +141,12 @@ class PaymentController extends Controller
                 $booking = BookedTicket::with('trip', 'trip.owner')->find($deposit->booked_ticket_id);
                 $booking->status = 1; // Sold
                 $booking->save();
+
+                // Release the seat lock immediately after successful payment
+                SeatLock::where('trip_id', $booking->trip_id)
+                    ->where('passenger_id', $booking->passenger_id)
+                    ->where('date_of_journey', $booking->date_of_journey)
+                    ->delete();
 
                 $passenger = Passenger::find($deposit->passenger_id);
                 $owner = $booking->trip->owner;

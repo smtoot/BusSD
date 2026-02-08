@@ -145,7 +145,6 @@ Route::middleware('owner')->name('owner.')->group(function () {
 
                 route::prefix('fleet-type')->name('fleet.type.')->group(function () {
                     Route::get('', 'fleetType')->name('index');
-                    Route::post('store/{id?}', 'fleetTypeStore')->name('store');
                     Route::post('status/{id}', 'fleetTypeStatus')->name('status');
                 });
 
@@ -163,13 +162,11 @@ Route::middleware('owner')->name('owner.')->group(function () {
                 Route::post('store/{id?}', 'store')->name('store');
                 Route::post('status/{id}', 'changeTripStatus')->name('status');
 
-                //Trip Manage - Routes
-                Route::prefix('route')->name('route.')->group(function () {
-                    Route::get('', 'route')->name('index');
-                    Route::get('form/{id?}', 'routeForm')->name('form');
-                    Route::post('store/{id?}', 'routeStore')->name('store');
-                    Route::post('status/{id}', 'changeRouteStatus')->name('status');
-                });
+            //Trip Manage - Routes
+            Route::prefix('route')->name('route.')->group(function () {
+                Route::get('', 'route')->name('index');
+                Route::post('status/{id}', 'changeRouteStatus')->name('status');
+            });
 
                 //Trip Manage - Stoppage
                 Route::prefix('stoppage')->name('stoppage.')->group(function () {
@@ -235,6 +232,7 @@ Route::middleware('owner')->name('owner.')->group(function () {
 
             // Financial Transparency
             Route::controller('FinancialController')->prefix('financials')->name('financial.')->group(function () {
+                Route::get('transactions', 'transactions')->name('transactions');
                 Route::get('settlements', 'settlements')->name('settlements');
                 Route::get('refunds', 'refunds')->name('refunds');
             });

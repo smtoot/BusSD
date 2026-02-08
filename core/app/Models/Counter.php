@@ -26,7 +26,15 @@ class Counter extends Model
 
     public function scopeRouteStoppages($query, $array)
     {
+        $order = "CASE id ";
+        $i = 0;
+        foreach ($array as $id) {
+            $order .= "WHEN $id THEN $i ";
+            $i++;
+        }
+        $order .= "END";
+
         return $query->whereIn('id', $array)
-        ->orderByRaw("field(id,".implode(',',$array).")")->get();
+        ->orderByRaw($order)->get();
     }
 }

@@ -1,4 +1,5 @@
 @extends('owner.layouts.app')
+
 @section('panel')
     <div class="row">
         <div class="col-lg-12">
@@ -24,10 +25,6 @@
                                         <td>@php echo $route->statusBadge; @endphp</td>
                                         <td>
                                             <div class="button--group">
-                                                <a href="{{ route('owner.trip.route.form', $route->id) }}"
-                                                    class="btn btn-sm btn-outline--primary editBtn">
-                                                    <i class="la la-pencil"></i>@lang('Edit')
-                                                </a>
                                                 @if ($route->status == Status::DISABLE)
                                                     <button class="btn btn-sm btn-outline--success confirmationBtn"
                                                         data-question="@lang('Are you sure to enable this route?')"
@@ -63,11 +60,8 @@
     </div>
 
     <x-confirmation-modal />
-@endsection
+    @endsection
 
-@push('breadcrumb-plugins')
+    @push('breadcrumb-plugins')
     <x-search-form />
-    <a href="{{ route('owner.trip.route.form') }}" class="btn btn-sm btn-outline--primary">
-        <i class="fas fa-plus"></i> @lang('Add New')
-    </a>
-@endpush
+@endsection

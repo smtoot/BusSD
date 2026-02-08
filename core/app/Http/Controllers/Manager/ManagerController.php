@@ -257,7 +257,7 @@ class ManagerController extends Controller
         $activePackage = $owner->activePackages();
         $trips = $owner->trips()
             ->selectRaw('trips.*, ticket_prices.id as ticket_price_id')
-            ->rightJoin('ticket_prices', function ($join) {
+            ->join('ticket_prices', function ($join) {
                 $join->on('trips.route_id', '=', 'ticket_prices.route_id')
                     ->on('trips.fleet_type_id', '=', 'ticket_prices.fleet_type_id')
                     ->where('trips.status', Status::ENABLE);
@@ -265,7 +265,7 @@ class ManagerController extends Controller
             ->whereHas('route')
             ->paginate(getPaginate());
 
-        return view('manager.trip.index', compact('pageTitle', 'trips', 'activePackage'));
+        return view('manager.trip.index', compact('pageTitle', 'trips', 'activePackage', 'owner'));
     }
 
     public function statistics()
