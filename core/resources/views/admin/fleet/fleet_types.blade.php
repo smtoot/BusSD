@@ -73,6 +73,9 @@
 
 @push('breadcrumb-plugins')
     <div class="d-flex flex-wrap justify-content-end gap-2 align-items-center">
+        <a href="{{ route('admin.fleet.fleet_types.create') }}" class="btn btn--primary btn-sm">
+            <i class="las la-plus"></i> @lang('Add New Fleet Type')
+        </a>
         <x-search-form placeholder="Fleet Name" />
     </div>
 @endpush

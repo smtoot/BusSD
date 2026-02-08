@@ -42,6 +42,15 @@
                                                 class="btn btn-sm btn-outline--primary">
                                                 <i class="las la-desktop"></i> @lang('Details')
                                             </a>
+                                            <a href="{{ route('admin.routes.edit', $route->id) }}"
+                                                class="btn btn-sm btn-outline--primary">
+                                                <i class="las la-edit"></i> @lang('Edit')
+                                            </a>
+                                            <button type="button"
+                                                class="btn btn-sm btn-outline--danger"
+                                                onclick="confirmDelete('{{ route('admin.routes.delete', $route->id) }}')">
+                                                <i class="las la-trash"></i> @lang('Delete')
+                                            </button>
                                         </td>
                                     </tr>
                                 @empty
