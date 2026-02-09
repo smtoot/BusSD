@@ -374,7 +374,7 @@ class AdminController extends Controller
         $latestOwners  = Owner::latest()->limit(6)->get();
         $latestB2CBookings = \App\Models\BookedTicket::whereNotNull('passenger_id')->with(['passenger', 'trip.owner'])->latest()->limit(6)->get();
 
-        return view('admin.dashboard_v2', compact('pageTitle', 'widget', 'chart', 'deposit', 'latestOwners', 'latestSales', 'latestB2CBookings', 'topOwners'));
+        return view('admin.dashboard', compact('pageTitle', 'widget', 'chart', 'deposit', 'latestOwners', 'latestSales', 'latestB2CBookings', 'topOwners'));
     }
 
     public function dashboardBookingChart(Request $request)
