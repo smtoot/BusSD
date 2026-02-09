@@ -8,7 +8,7 @@
                     <h5 class="card-title">@lang('Edit Fleet Type')</h5>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{{ route('admin.fleet.fleet-types.update', $fleetType->id) }}">
+                    <form method="POST" action="{{ route('admin.fleet.fleet_types.update', $fleetType->id) }}">
                         @csrf
                         <div class="row">
                             <div class="col-md-6">
@@ -60,7 +60,7 @@
                         </div>
                         <div class="text-center mt-3">
                             <button type="submit" class="btn btn--primary">@lang('Submit')</button>
-                            <a href="{{ route('admin.fleet.fleet-types') }}" class="btn btn-outline--secondary">@lang('Cancel')</a>
+                            <a href="{{ route('admin.fleet.fleet_types') }}" class="btn btn-outline--secondary">@lang('Cancel')</a>
                         </div>
                     </form>
                 </div>

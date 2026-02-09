@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller
 {
-    public function dashboard()
+    public function dashboardOld()
     {
         $pageTitle = 'Dashboard';
 
@@ -50,6 +50,83 @@ class AdminController extends Controller
         $widget['active_seat_locks']        = \App\Models\SeatLock::where('expires_at', '>', Carbon::now())->count();
         $widget['total_commissions']        = \App\Models\BookedTicket::where('status', Status::ENABLE)->whereNotNull('passenger_id')->sum('commission_amount');
 
+        // New Dashboard V2 Metrics
+        // Today's Snapshot
+        $today = Carbon::today();
+        $widget['today_revenue'] = \App\Models\BookedTicket::whereDate('created_at', $today)
+            ->where('status', Status::ENABLE)
+            ->whereNotNull('passenger_id')
+            ->sum('commission_amount') + 
+            \App\Models\Deposit::whereDate('created_at', $today)
+            ->successful()
+            ->sum('amount');
+        $widget['today_bookings'] = \App\Models\BookedTicket::whereDate('created_at', $today)
+            ->where('status', Status::ENABLE)
+            ->count();
+        $widget['active_users_today'] = \App\Models\Passenger::whereDate('created_at', $today)->count() +
+            Owner::whereDate('created_at', $today)->count();
+
+        // Platform Revenue - Trend Calculations
+        $lastMonthStart = Carbon::now()->subMonth()->startOfMonth();
+        $lastMonthEnd = Carbon::now()->subMonth()->endOfMonth();
+        $thisMonthStart = Carbon::now()->startOfMonth();
+        $thisMonthEnd = Carbon::now()->endOfMonth();
+
+        $lastMonthCommission = \App\Models\BookedTicket::whereBetween('created_at', [$lastMonthStart, $lastMonthEnd])
+            ->where('status', Status::ENABLE)
+            ->whereNotNull('passenger_id')
+            ->sum('commission_amount');
+        $thisMonthCommission = \App\Models\BookedTicket::whereBetween('created_at', [$thisMonthStart, $thisMonthEnd])
+            ->where('status', Status::ENABLE)
+            ->whereNotNull('passenger_id')
+            ->sum('commission_amount');
+
+        if ($lastMonthCommission > 0) {
+            $widget['commission_change'] = round((($thisMonthCommission - $lastMonthCommission) / $lastMonthCommission) * 100, 1);
+        } else {
+            $widget['commission_change'] = $thisMonthCommission > 0 ? 100 : 0;
+        }
+
+        $lastMonthPayments = Deposit::whereBetween('created_at', [$lastMonthStart, $lastMonthEnd])
+            ->successful()
+            ->sum('amount');
+        $thisMonthPayments = Deposit::whereBetween('created_at', [$thisMonthStart, $thisMonthEnd])
+            ->successful()
+            ->sum('amount');
+
+        if ($lastMonthPayments > 0) {
+            $widget['payments_change'] = round((($thisMonthPayments - $lastMonthPayments) / $lastMonthPayments) * 100, 1);
+        } else {
+            $widget['payments_change'] = $thisMonthPayments > 0 ? 100 : 0;
+        }
+
+        // Platform Infrastructure
+        $widget['total_fleet_types'] = \App\Models\FleetType::where('owner_id', 0)->count();
+        $widget['total_seat_layouts'] = \App\Models\SeatLayout::count();
+
+        // Top Performers (Top 5 Owners by Revenue)
+        $topOwners = \App\Models\BookedTicket::select('owner_id')
+            ->selectRaw('COUNT(*) as booking_count')
+            ->selectRaw('SUM(ticket_count * price) as revenue')
+            ->where('status', Status::ENABLE)
+            ->whereNotNull('passenger_id')
+            ->whereBetween('created_at', [$thisMonthStart, $thisMonthEnd])
+            ->groupBy('owner_id')
+            ->orderByDesc('revenue')
+            ->limit(5)
+            ->with('owner:id,fullname,username')
+            ->get();
+
+        $totalRevenue = $topOwners->sum('revenue');
+        $topOwners = $topOwners->map(function ($item) use ($totalRevenue) {
+            return [
+                'name' => $item->owner->fullname ?? 'Unknown',
+                'booking_count' => $item->booking_count,
+                'revenue' => $item->revenue,
+                'percentage' => $totalRevenue > 0 ? round(($item->revenue / $totalRevenue) * 100, 1) : 0
+            ];
+        });
+
         // user Browsing, Country, Operating Log
         $ownerLoginData = OwnerLogin::where('created_at', '>=', Carbon::now()->subDays(30))->get(['browser', 'os', 'country']);
 
@@ -72,7 +149,7 @@ class AdminController extends Controller
         $latestOwners  = Owner::latest()->limit(6)->get();
         $latestB2CBookings = \App\Models\BookedTicket::whereNotNull('passenger_id')->with(['passenger', 'trip.owner'])->latest()->limit(6)->get();
 
-        return view('admin.dashboard', compact('pageTitle', 'widget', 'chart', 'deposit', 'latestOwners', 'latestSales', 'latestB2CBookings'));
+        return view('admin.dashboard', compact('pageTitle', 'widget', 'chart', 'deposit', 'latestOwners', 'latestSales', 'latestB2CBookings', 'topOwners'));
     }
 
     public function bookingChart(Request $request)
@@ -165,6 +242,183 @@ class AdminController extends Controller
         ];
 
         return response()->json($report);
+    }
+
+    public function dashboard()
+    {
+        $pageTitle = 'Dashboard';
+
+        $widget['total_owners']             = Owner::count();
+        $widget['verified_owners']          = Owner::active()->count();
+        $widget['email_unverified_owners']  = Owner::emailUnverified()->count();
+        $widget['mobile_unverified_owners'] = Owner::mobileUnverified()->count();
+        $widget['tickets']                  = SupportTicket::count();
+
+        $widget['active_packages']  = Package::active()->count();
+        $widget['sold_packages']    = SoldPackage::where('status', '!=', Status::PAYMENT_INCOMPLETE)->count();
+        $widget['total_seals']      = Deposit::successful()->sum('amount');
+
+        // Aggregator Specific KPIs
+        $widget['total_passengers']    = \App\Models\Passenger::count();
+        $widget['total_trips']         = \App\Models\Trip::count();
+        $widget['active_trips']        = \App\Models\Trip::active()->count();
+        $widget['total_bookings']      = \App\Models\BookedTicket::where('status', Status::ENABLE)->count();
+        $widget['b2c_bookings']        = \App\Models\BookedTicket::where('status', Status::ENABLE)->whereNotNull('passenger_id')->count();
+        $widget['counter_bookings']    = \App\Models\BookedTicket::where('status', Status::ENABLE)->whereNull('passenger_id')->count();
+        $widget['total_routes']        = \App\Models\Route::count();
+        $widget['total_counters']      = \App\Models\Counter::count();
+
+        // Aggregator Financials & Ops
+        $widget['pending_settlements']      = \App\Models\Settlement::where('status', 0)->count();
+        $widget['pending_settlement_sum']   = \App\Models\Settlement::where('status', 0)->sum('net_payout');
+        $widget['pending_verifications']    = \App\Models\OperatorVerification::where('status', 0)->count();
+        $widget['active_seat_locks']        = \App\Models\SeatLock::where('expires_at', '>', Carbon::now())->count();
+        $widget['total_commissions']        = \App\Models\BookedTicket::where('status', Status::ENABLE)->whereNotNull('passenger_id')->sum('commission_amount');
+
+        // New Dashboard V2 Metrics
+        // Today's Snapshot
+        $today = Carbon::today();
+        $widget['today_revenue'] = \App\Models\BookedTicket::whereDate('created_at', $today)
+            ->where('status', Status::ENABLE)
+            ->whereNotNull('passenger_id')
+            ->sum('commission_amount') + 
+            \App\Models\Deposit::whereDate('created_at', $today)
+            ->successful()
+            ->sum('amount');
+        $widget['today_bookings'] = \App\Models\BookedTicket::whereDate('created_at', $today)
+            ->where('status', Status::ENABLE)
+            ->count();
+        $widget['active_users_today'] = \App\Models\Passenger::whereDate('created_at', $today)->count() +
+            Owner::whereDate('created_at', $today)->count();
+
+        // Platform Revenue - Trend Calculations
+        $lastMonthStart = Carbon::now()->subMonth()->startOfMonth();
+        $lastMonthEnd = Carbon::now()->subMonth()->endOfMonth();
+        $thisMonthStart = Carbon::now()->startOfMonth();
+        $thisMonthEnd = Carbon::now()->endOfMonth();
+
+        $lastMonthCommission = \App\Models\BookedTicket::whereBetween('created_at', [$lastMonthStart, $lastMonthEnd])
+            ->where('status', Status::ENABLE)
+            ->whereNotNull('passenger_id')
+            ->sum('commission_amount');
+        $thisMonthCommission = \App\Models\BookedTicket::whereBetween('created_at', [$thisMonthStart, $thisMonthEnd])
+            ->where('status', Status::ENABLE)
+            ->whereNotNull('passenger_id')
+            ->sum('commission_amount');
+
+        if ($lastMonthCommission > 0) {
+            $widget['commission_change'] = round((($thisMonthCommission - $lastMonthCommission) / $lastMonthCommission) * 100, 1);
+        } else {
+            $widget['commission_change'] = $thisMonthCommission > 0 ? 100 : 0;
+        }
+
+        $lastMonthPayments = Deposit::whereBetween('created_at', [$lastMonthStart, $lastMonthEnd])
+            ->successful()
+            ->sum('amount');
+        $thisMonthPayments = Deposit::whereBetween('created_at', [$thisMonthStart, $thisMonthEnd])
+            ->successful()
+            ->sum('amount');
+
+        if ($lastMonthPayments > 0) {
+            $widget['payments_change'] = round((($thisMonthPayments - $lastMonthPayments) / $lastMonthPayments) * 100, 1);
+        } else {
+            $widget['payments_change'] = $thisMonthPayments > 0 ? 100 : 0;
+        }
+
+        // Platform Infrastructure
+        $widget['total_fleet_types'] = \App\Models\FleetType::where('owner_id', 0)->count();
+        $widget['total_seat_layouts'] = \App\Models\SeatLayout::count();
+
+        // Top Performers (Top 5 Owners by Revenue)
+        $topOwners = \App\Models\BookedTicket::select('owner_id')
+            ->selectRaw('COUNT(*) as booking_count')
+            ->selectRaw('SUM(ticket_count * price) as revenue')
+            ->where('status', Status::ENABLE)
+            ->whereNotNull('passenger_id')
+            ->whereBetween('created_at', [$thisMonthStart, $thisMonthEnd])
+            ->groupBy('owner_id')
+            ->orderByDesc('revenue')
+            ->limit(5)
+            ->with('owner:id,fullname,username')
+            ->get();
+
+        $totalRevenue = $topOwners->sum('revenue');
+        $topOwners = $topOwners->map(function ($item) use ($totalRevenue) {
+            return [
+                'name' => $item->owner->fullname ?? 'Unknown',
+                'booking_count' => $item->booking_count,
+                'revenue' => $item->revenue,
+                'percentage' => $totalRevenue > 0 ? round(($item->revenue / $totalRevenue) * 100, 1) : 0
+            ];
+        });
+
+        // user Browsing, Country, Operating Log
+        $ownerLoginData = OwnerLogin::where('created_at', '>=', Carbon::now()->subDays(30))->get(['browser', 'os', 'country']);
+
+        $chart['owner_browser_counter'] = $ownerLoginData->groupBy('browser')->map(function ($item, $key) {
+            return collect($item)->count();
+        });
+        $chart['owner_os_counter'] = $ownerLoginData->groupBy('os')->map(function ($item, $key) {
+            return collect($item)->count();
+        });
+        $chart['owner_country_counter'] = $ownerLoginData->groupBy('country')->map(function ($item, $key) {
+            return collect($item)->count();
+        })->sort()->reverse()->take(5);
+
+        $deposit['total_deposit_amount']   = Deposit::successful()->sum('amount');
+        $deposit['total_deposit_pending']  = Deposit::pending()->count();
+        $deposit['total_deposit_rejected'] = Deposit::rejected()->count();
+        $deposit['total_deposit_charge']   = Deposit::successful()->sum('charge');
+
+        $latestSales   = SoldPackage::with('owner')->where('status', 1)->where('ends_at', '>', Carbon::now())->orderByDesc('ends_at')->latest()->limit(6)->get();
+        $latestOwners  = Owner::latest()->limit(6)->get();
+        $latestB2CBookings = \App\Models\BookedTicket::whereNotNull('passenger_id')->with(['passenger', 'trip.owner'])->latest()->limit(6)->get();
+
+        return view('admin.dashboard_v2', compact('pageTitle', 'widget', 'chart', 'deposit', 'latestOwners', 'latestSales', 'latestB2CBookings', 'topOwners'));
+    }
+
+    public function dashboardBookingChart(Request $request)
+    {
+        $diffInDays = Carbon::parse($request->start)->diffInDays(Carbon::parse($request->end));
+        $groupBy = $diffInDays > 30 ? 'months' : 'days';
+        $format = $diffInDays > 30 ? '%M-%Y'  : '%d-%M-%Y';
+
+        if ($groupBy == 'days') {
+            $dates = $this->getAllDates($request->start, $request->end);
+        } else {
+            $dates = $this->getAllMonths($request->start, $request->end);
+        }
+
+        $b2cBookings = \App\Models\BookedTicket::whereNotNull('passenger_id')
+            ->where('status', Status::ENABLE)
+            ->whereDate('created_at', '>=', $request->start)
+            ->whereDate('created_at', '<=', $request->end)
+            ->selectRaw('COUNT(*) AS count')
+            ->selectRaw("DATE_FORMAT(created_at, '{$format}') as created_on")
+            ->groupBy('created_on')
+            ->get();
+
+        $counterBookings = \App\Models\BookedTicket::whereNull('passenger_id')
+            ->where('status', Status::ENABLE)
+            ->whereDate('created_at', '>=', $request->start)
+            ->whereDate('created_at', '<=', $request->end)
+            ->selectRaw('COUNT(*) AS count')
+            ->selectRaw("DATE_FORMAT(created_at, '{$format}') as created_on")
+            ->groupBy('created_on')
+            ->get();
+
+        $b2cData = [];
+        $counterData = [];
+        foreach ($dates as $date) {
+            $b2cData[] = $b2cBookings->where('created_on', $date)->first()?->count ?? 0;
+            $counterData[] = $counterBookings->where('created_on', $date)->first()?->count ?? 0;
+        }
+
+        return response()->json([
+            'categories' => $dates,
+            'b2c' => $b2cData,
+            'counter' => $counterData
+        ]);
     }
 
     private function getAllDates($startDate, $endDate)

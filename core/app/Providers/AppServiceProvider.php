@@ -49,7 +49,7 @@ class AppServiceProvider extends ServiceProvider
         $viewShare['emptyMessage']       = 'Data not found';
         view()->share($viewShare);
 
-        view()->composer(['admin.partials.sidenav', 'owner.partials.sidenav'], function ($view) {
+        view()->composer(['admin.partials.sidenav', 'admin.partials.sidenav_custom'], function ($view) {
             $view->with([
                 'bannedOwnersCount'           => Owner::banned()->count(),
                 'emailUnverifiedOwnersCount'  => Owner::emailUnverified()->count(),

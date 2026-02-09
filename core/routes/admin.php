@@ -28,8 +28,10 @@ Route::namespace('Auth')->group(function () {
 Route::middleware('admin')->group(function () {
     Route::controller('AdminController')->group(function () {
         Route::get('dashboard', 'dashboard')->name('dashboard');
+        Route::get('dashboard/old', 'dashboardOld')->name('dashboard.old');
         Route::get('chart/deposit', 'depositAndReport')->name('chart.deposit');
         Route::get('chart/booking', 'bookingChart')->name('chart.booking');
+        Route::get('dashboard/booking/chart', 'dashboardBookingChart')->name('dashboard.booking.chart');
         Route::get('profile', 'profile')->name('profile');
         Route::post('profile', 'profileUpdate')->name('profile.update');
         Route::get('password', 'password')->name('password');
