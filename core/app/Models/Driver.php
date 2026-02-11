@@ -16,6 +16,22 @@ class Driver extends Authenticatable
         'remember_token',
     ];
 
+    protected $casts = [
+        'license_expiry_date' => 'date',
+        'permissions' => 'array',
+    ];
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 1);
+    }
+
+    public function scopeExpiringSoon($query)
+    {
+        return $query->where('license_expiry_date', '>', now())
+            ->where('license_expiry_date', '<=', now()->addDays(30));
+    }
+
     public function fullname(): Attribute
     {
         return new Attribute(
