@@ -100,17 +100,23 @@ class TripGenerationService
         $trip->search_priority = $schedule->search_priority ?? 50;
         $trip->trip_status = $schedule->trip_status ?? 'draft';
         $trip->status = $schedule->status;
+        $trip->cancellation_policy_id = $schedule->cancellation_policy_id;
+        $trip->vehicle_id = $schedule->vehicle_id;
+        $trip->amenities = $schedule->amenities;
 
         $trip->save();
 
-        // Handle amenities if needed (mapping relation)
-        // If TripAmenity model exists, we should populate it from $schedule->amenities
-        if ($schedule->amenities && count($schedule->amenities) > 0) {
-            foreach ($schedule->amenities as $amenity) {
-                \App\Models\TripAmenity::create([
-                    'trip_id' => $trip->id,
-                    'amenity' => $amenity
-                ]);
+        // Handle amenities (legacy sync)
+        if ($schedule->amenities && is_array($schedule->amenities)) {
+            \App\Models\TripAmenity::where('trip_id', $trip->id)->delete();
+            foreach ($schedule->amenities as $amenityId) {
+                $template = \App\Models\AmenityTemplate::find($amenityId);
+                if($template) {
+                    \App\Models\TripAmenity::create([
+                        'trip_id' => $trip->id,
+                        'amenity' => $template->key ?? $template->label,
+                    ]);
+                }
             }
         }
 

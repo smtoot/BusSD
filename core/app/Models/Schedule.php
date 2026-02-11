@@ -30,6 +30,7 @@ class Schedule extends Model
         'inventory_allocation',
         'inventory_count',
         'cancellation_policy',
+        'cancellation_policy_id',
         'trip_type',
         'trip_category',
         'bus_type',

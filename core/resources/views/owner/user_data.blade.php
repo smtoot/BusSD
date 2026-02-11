@@ -33,9 +33,9 @@
                                     <div class="form-group">
                                         <label class="form-label">@lang('Mobile')</label>
                                         <div class="input-group ">
-                                            <span class="input-group-text mobile-code"></span>
-                                            <input type="hidden" name="mobile_code">
-                                            <input type="hidden" name="country_code">
+                                            <span class="input-group-text mobile-code">+249</span>
+                                            <input type="hidden" name="mobile_code" value="249">
+                                            <input type="hidden" name="country_code" value="SD">
                                             <input type="number" name="mobile" value="{{ old('mobile') }}"
                                                 class="form-control checkUser" required>
                                         </div>
@@ -74,9 +74,12 @@
     <script>
         "use strict";
         (function($) {
-            @if ($mobileCode)
-                $(`option[data-code={{ $mobileCode }}]`).attr('selected', '');
-            @endif
+            const defaultCountry = 'SD';
+            
+            // Set default if not already set (e.g. for user_data flow)
+            if (!$('select[name=country]').val()) {
+                $(`option[data-code=${defaultCountry}]`).attr('selected', '');
+            }
 
             $('select[name=country]').on('change', function() {
                 $('input[name=mobile_code]').val($('select[name=country] :selected').data('mobile_code'));
@@ -87,9 +90,12 @@
                 checkUser(value, name);
             });
 
-            $('input[name=mobile_code]').val($('select[name=country] :selected').data('mobile_code'));
-            $('input[name=country_code]').val($('select[name=country] :selected').data('code'));
-            $('.mobile-code').text('+' + $('select[name=country] :selected').data('mobile_code'));
+            // Initial trigger to sync mobile code display
+            if($('select[name=country] :selected').length){
+                 $('select[name=country]').trigger('change');
+            } else {
+                $('select[name=country]').val('Sudan').trigger('change');
+            }
 
             $('.checkUser').on('focusout', function(e) {
                 var value = $(this).val();

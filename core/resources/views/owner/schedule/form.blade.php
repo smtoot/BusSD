@@ -20,6 +20,83 @@
             font-weight: 600;
             color: #555;
         }
+        .inherited-amenity-badge {
+            background: #f1faff;
+            border: 1px solid #cceeff;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            color: #007bff;
+        }
+        .inherited-amenity-badge i {
+            font-size: 1.5rem;
+        }
+        .inherited-amenity-badge span {
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .amenity-item {
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 0;
+        }
+        .amenity-box {
+            background: #fff;
+            border: 1px solid #e9ecef;
+            padding: 15px 10px;
+            border-radius: 10px;
+            text-align: center;
+            transition: all 0.2s ease-in-out;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .amenity-box i {
+            font-size: 1.8rem;
+            color: #6c757d;
+        }
+        .amenity-box span {
+            font-size: 0.85rem;
+            color: #495057;
+            font-weight: 500;
+        }
+        input[type="checkbox"]:checked + .amenity-item .amenity-box {
+            border-color: #28c76f;
+            background-color: #f0fff5;
+            box-shadow: 0 4px 12px rgba(40, 199, 111, 0.15);
+        }
+        input[type="checkbox"]:checked + .amenity-item .amenity-box i,
+        input[type="checkbox"]:checked + .amenity-item .amenity-box span {
+            color: #28c76f;
+        }
+        .policy-card {
+            cursor: pointer;
+            width: 100%;
+        }
+        .policy-card .card-content {
+            border: 2px solid #e9ecef;
+            padding: 15px;
+            border-radius: 10px;
+            transition: all 0.2s;
+            height: 100%;
+        }
+        .policy-card .card-content h6 {
+            margin-bottom: 5px;
+            color: #333;
+        }
+        input[type="radio"]:checked + .policy-card .card-content {
+            border-color: #ea5455;
+            background-color: #fff9f9;
+        }
     </style>
     <div class="row">
         <div class="col-lg-12">
@@ -97,10 +174,10 @@
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label><i class="fas fa-id-card me-1"></i> @lang('Default Vehicle (Optional)')</label>
-                                    <select class="select2 form-control" name="vehicle_id">
+                                    <select class="select2 form-control vehicle-select" name="vehicle_id">
                                         <option value="0">@lang('Assign per instance')</option>
                                         @foreach ($vehicles as $vehicle)
-                                            <option value="{{ $vehicle->id }}" @selected(old('vehicle_id', @$schedule->vehicle_id) == $vehicle->id)>
+                                            <option value="{{ $vehicle->id }}" data-fleet-type="{{ $vehicle->fleet_type_id }}" @selected(old('vehicle_id', @$schedule->vehicle_id) == $vehicle->id)>
                                                 {{ $vehicle->registration_no }} ({{ $vehicle->nick_name }})
                                             </option>
                                         @endforeach
@@ -226,11 +303,22 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label><i class="fas fa-undo-alt me-1"></i> @lang('Cancellation Policy')</label>
-                                    <select class="form-control" name="cancellation_policy" required>
-                                        <option value="flexible" @selected(old('cancellation_policy', @$schedule->cancellation_policy) == 'flexible')>@lang('Flexible (Full refund up to 2h before)')</option>
-                                        <option value="moderate" @selected(old('cancellation_policy', @$schedule->cancellation_policy) == 'moderate')>@lang('Moderate (50% refund up to 12h before)')</option>
-                                        <option value="strict" @selected(old('cancellation_policy', @$schedule->cancellation_policy) == 'strict')>@lang('Strict (No refund)')</option>
-                                    </select>
+                                    <div class="row g-3">
+                                        @forelse($policies as $policy)
+                                            <div class="col-md-6">
+                                                <input type="radio" name="cancellation_policy_id" value="{{ $policy->id }}" id="policy-{{ $policy->id }}" class="d-none"
+                                                    @checked(old('cancellation_policy_id', @$schedule->cancellation_policy_id) == $policy->id)>
+                                                <label class="policy-card" for="policy-{{ $policy->id }}">
+                                                    <div class="card-content">
+                                                        <h6>{{ $policy->name }}</h6>
+                                                        <small class="text-muted d-block" style="font-size: 0.75rem;">{{ $policy->description }}</small>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        @empty
+                                            <div class="col-12"><div class="alert alert-warning py-2 small">@lang('No policies configured')</div></div>
+                                        @endforelse
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -281,20 +369,49 @@
                             </div>
 
                             <div class="col-12 mt-2">
+                                {{-- Vehicle Amenities (Inherited from Vehicle) --}}
+                                <div class="form-group mb-4">
+                                    <label class="fw-bold mb-2">
+                                        <i class="las la-bus me-1 text--primary"></i>
+                                        @lang('Inherited Vehicle Amenities') 
+                                        <span class="badge badge--info ms-2">@lang('Read-only')</span>
+                                    </label>
+                                    
+                                    <div id="inheritedAmenitiesDisplay" class="inherited-amenities-wrapper bg-light p-3 rounded" style="display:none;">
+                                        <div class="row g-2" id="inheritedAmenitiesGrid">
+                                            {{-- Populated via JS --}}
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="noVehicleSelectedMessage" class="alert alert-light border py-2">
+                                        <small class="text-muted"><i class="las la-info-circle me-1"></i> @lang('Select a vehicle in General Information to see its built-in features')</small>
+                                    </div>
+                                </div>
+
+                                {{-- Trip Service Options --}}
                                 <div class="form-group">
-                                    <label><i class="fas fa-concierge-bell me-1"></i> @lang('Amenities')</label>
-                                    <div class="row mt-2">
-                                        @foreach($availableAmenities as $key => $amenity)
-                                            <div class="col-md-3 col-6 mb-2">
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox" name="amenities[]" value="{{ $key }}" id="amenity_{{ $key }}"
-                                                        @if(is_array(old('amenities', @$schedule->amenities)) && in_array($key, old('amenities', @$schedule->amenities))) checked @endif>
-                                                    <label class="form-check-label" for="amenity_{{ $key }}">
-                                                        <i class="fa {{ $amenity['icon'] }} me-1 text--primary"></i> {{ __($amenity['label']) }}
-                                                    </label>
-                                                </div>
+                                    <label class="fw-bold mb-2">
+                                        <i class="las la-concierge-bell me-1 text--primary"></i>
+                                        @lang('Trip Service Options')
+                                        <span class="badge badge--success ms-2">@lang('Configurable')</span>
+                                    </label>
+                                    <div class="row g-3">
+                                        @forelse($tripAmenities as $amenity)
+                                            <div class="col-md-3 col-6">
+                                                <input type="checkbox" name="amenities[]" value="{{ $amenity->id }}" id="amenity-{{ $amenity->id }}" class="d-none"
+                                                    @if(is_array(old('amenities', @$schedule->amenities)) && in_array($amenity->id, old('amenities', @$schedule->amenities))) checked @endif>
+                                                <label class="amenity-item" for="amenity-{{ $amenity->id }}">
+                                                    <div class="amenity-box">
+                                                        <i class="{{ $amenity->icon }}"></i>
+                                                        <span>{{ $amenity->label }}</span>
+                                                    </div>
+                                                </label>
                                             </div>
-                                        @endforeach
+                                        @empty
+                                            <div class="col-12">
+                                                <p class="text-muted small">@lang('No service options available')</p>
+                                            </div>
+                                        @endforelse
                                     </div>
                                 </div>
                             </div>
@@ -401,6 +518,61 @@
                 $('#starting_point').html(`<option value="${source_id}" selected>${source}</option>`).trigger('change');
                 $('#destination_point').html(`<option value="${destination_id}" selected>${destination}</option>`).trigger('change');
             });
+
+            // Vehicle Amenities Display Logic
+            @php
+                $vehiclesData = $vehicles->map(function($v) {
+                    return [
+                        'id' => $v->id,
+                        'amenities' => $v->amenities->map(function($a) {
+                            return [
+                                'id' => $a->id,
+                                'label' => $a->label,
+                                'icon' => $a->icon
+                            ];
+                        })
+                    ];
+                });
+            @endphp
+            const vehiclesData = @json($vehiclesData);
+
+            $('select[name="vehicle_id"]').on('change', function() {
+                const vehicleId = $(this).val();
+                if(!vehicleId || vehicleId == "0") {
+                    $('#inheritedAmenitiesDisplay').hide();
+                    $('#noVehicleSelectedMessage').show();
+                    return;
+                }
+
+                const vehicle = vehiclesData.find(v => v.id == vehicleId);
+                if(!vehicle || !vehicle.amenities || vehicle.amenities.length === 0) {
+                    $('#inheritedAmenitiesDisplay').hide();
+                    $('#noVehicleSelectedMessage').html(
+                        '<small class="text-muted"><i class="las la-info-circle me-1"></i> @lang("This vehicle has no built-in amenities")</small>'
+                    ).show();
+                    return;
+                }
+
+                let html = '';
+                vehicle.amenities.forEach(function(amenity) {
+                    html += `
+                        <div class="col-6 col-md-3 col-lg-2">
+                            <div class="inherited-amenity-badge">
+                                <i class="${amenity.icon}"></i>
+                                <span>${amenity.label}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                $('#inheritedAmenitiesGrid').html(html);
+                $('#noVehicleSelectedMessage').hide();
+                $('#inheritedAmenitiesDisplay').fadeIn();
+            });
+
+            @if(old('vehicle_id', @$schedule->vehicle_id))
+                $('select[name="vehicle_id"]').trigger('change');
+            @endif
 
         })(jQuery);
     </script>

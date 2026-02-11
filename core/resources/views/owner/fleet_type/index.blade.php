@@ -114,4 +114,4 @@
 
     @push('breadcrumb-plugins')
     <x-search-form />
-@endsection
+    @endpush

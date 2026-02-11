@@ -1,6 +1,6 @@
 <!-- meta tags and other links -->
 <!DOCTYPE html>
-<html lang="{{ config('app.locale') }}" @if(config('app.locale') == 'ar') dir="rtl" @endif>
+<html lang="{{ config('app.locale') }}" @if (isRTL()) dir="rtl" @endif>
 
 <head>
     <meta charset="UTF-8">
@@ -20,6 +20,11 @@
     <link rel="stylesheet" href="{{ asset('assets/global/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/admin/css/app.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/admin/css/manager_custom.css') }}">
+
+    @if (isRTL())
+        <link rel="stylesheet" href="{{ asset('assets/admin/css/rtl.css') }}">
+    @endif
+
 
     @stack('style')
 </head>

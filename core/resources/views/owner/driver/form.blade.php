@@ -31,9 +31,9 @@
                                 <div class="form-group">
                                     <label>@lang('Phone Number')</label>
                                     <div class="input-group">
-                                        <span class="input-group-text mobile-code"></span>
-                                        <input type="hidden" name="mobile_code">
-                                        <input type="hidden" name="country_code">
+                                        <span class="input-group-text mobile-code">+249</span>
+                                        <input type="hidden" name="mobile_code" value="249">
+                                        <input type="hidden" name="country_code" value="SD">
                                         <input type="number" name="mobile"
                                             value="{{ old('mobile', @$user->mobile) }}"
                                             class="form-control checkUser" placeholder="@lang('Mobile Number')" required>
@@ -161,7 +161,8 @@
                                         value="{{ old('zip', @$user->zip) }}">
                                 </div>
                             </div>
-                            <div class="col-md-12">
+
+                            <div class="col-md-6">
                                 <div class="form-group">
                                     <label>@lang('Country')</label>
                                     <select name="country" class="form-control select2" required>
@@ -182,24 +183,18 @@
                 {{-- Permissions Segment --}}
                 <div class="card mb-4">
                     <div class="card-header bg--info">
-                        <h5 class="text-white"><i class="las la-shield-alt"></i> @lang('Custom Permissions (Optional)')</h5>
+                        <h5 class="text-white"><i class="las la-shield-alt"></i> @lang('Driver Operations Permissions')</h5>
                     </div>
                     <div class="card-body">
                         <div class="row">
                             @php
                                 $permissionList = [
-                                    'fleet_management' => 'Fleet Management',
-                                    'staff_management' => 'Staff Management',
-                                    'trip_management' => 'Trip Management',
-                                    'ticket_management' => 'Ticket Management',
-                                    'booking_management' => 'Booking Management',
-                                    'sales_reports' => 'Sales Reports',
-                                    'financial_management' => 'Financial Management',
-                                    'boarding_management' => 'Boarding Management',
+                                    'trip_manifest' => 'View Trip Manifest',
+                                    'passenger_checkin' => 'Passenger Check-in',
                                 ];
                             @endphp
                             @foreach ($permissionList as $key => $val)
-                                <div class="col-xl-3 col-lg-4 col-sm-6 mb-3">
+                                <div class="col-xl-6 col-lg-6 col-sm-6 mb-3">
                                     <div class="form-check form-check-inline custom--check">
                                         <input type="checkbox" name="permissions[]" value="{{ $key }}"
                                             id="{{ $key }}" class="form-check-input"
@@ -247,8 +242,13 @@
             "use strict"
 
             const mobileCode = '{{ @$mobileCode }}';
+            // Default to Sudan (SD) if no mobile code is provided
+            const defaultCountry = 'SD';
+            
             if (mobileCode) {
                 $(`option[data-code=${mobileCode}]`).attr('selected', '');
+            } else if (!'{{ @$user->id }}') {
+                $(`option[data-code=${defaultCountry}]`).attr('selected', '');
             }
 
             $('select[name=country]').on('change', function() {
@@ -257,13 +257,12 @@
                 $('.mobile-code').text('+' + $('select[name=country] :selected').data('mobile_code'));
             });
 
-            $('input[name=mobile_code]').val($('select[name=country] :selected').data('mobile_code'));
-            $('input[name=country_code]').val($('select[name=country] :selected').data('code'));
-            $('.mobile-code').text('+' + $('select[name=country] :selected').data('mobile_code'));
-
-            // Set default mobile code on load
+            // Initial trigger to sync mobile code display
             if($('select[name=country] :selected').length){
                  $('select[name=country]').trigger('change');
+            } else if (!'{{ @$user->id }}') {
+                // If adding new, select Sudan by default
+                $('select[name=country]').val('Sudan').trigger('change');
             }
 
         })(jQuery)

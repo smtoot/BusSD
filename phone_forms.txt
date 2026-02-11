@@ -1,0 +1,30 @@
+core/resources/views/owner/driver/form.blade.php:                                        <input type="hidden" name="mobile_code">
+core/resources/views/owner/driver/form.blade.php:                                        <input type="hidden" name="mobile_code" value="249">
+core/resources/views/owner/driver/form.blade.php:                                            <option data-mobile_code="{{ $country->dial_code }}"
+core/resources/views/owner/driver/form.blade.php:                $('input[name=mobile_code]').val($('select[name=country] :selected').data('mobile_code'));
+core/resources/views/owner/driver/form.blade.php:                $('.mobile-code').text('+' + $('select[name=country] :selected').data('mobile_code'));
+core/resources/views/owner/counter-manager/form.blade.php:                                                <input type="hidden" name="mobile_code">
+core/resources/views/owner/counter-manager/form.blade.php:                                                    <option data-mobile_code="{{ $country->dial_code }}"
+core/resources/views/owner/counter-manager/form.blade.php:                $('input[name=mobile_code]').val($('select[name=country] :selected').data('mobile_code'));
+core/resources/views/owner/counter-manager/form.blade.php:                $('.mobile-code').text('+' + $('select[name=country] :selected').data('mobile_code'));
+core/resources/views/owner/counter-manager/form.blade.php:            $('input[name=mobile_code]').val($('select[name=country] :selected').data('mobile_code'));
+core/resources/views/owner/counter-manager/form.blade.php:            $('.mobile-code').text('+' + $('select[name=country] :selected').data('mobile_code'));
+core/resources/views/owner/co-owner/form.blade.php:                                                <input type="hidden" name="mobile_code">
+core/resources/views/owner/co-owner/form.blade.php:                                                    <option data-mobile_code="{{ $country->dial_code }}"
+core/resources/views/owner/co-owner/form.blade.php:                $('input[name=mobile_code]').val($('select[name=country] :selected').data('mobile_code'));
+core/resources/views/owner/co-owner/form.blade.php:                $('.mobile-code').text('+' + $('select[name=country] :selected').data('mobile_code'));
+core/resources/views/owner/co-owner/form.blade.php:            $('input[name=mobile_code]').val($('select[name=country] :selected').data('mobile_code'));
+core/resources/views/owner/co-owner/form.blade.php:            $('.mobile-code').text('+' + $('select[name=country] :selected').data('mobile_code'));
+core/resources/views/owner/supervisor/form.blade.php:                                                <input type="hidden" name="mobile_code">
+core/resources/views/owner/supervisor/form.blade.php:                                                    <option data-mobile_code="{{ $country->dial_code }}"
+core/resources/views/owner/supervisor/form.blade.php:                $('input[name=mobile_code]').val($('select[name=country] :selected').data('mobile_code'));
+core/resources/views/owner/supervisor/form.blade.php:                $('.mobile-code').text('+' + $('select[name=country] :selected').data('mobile_code'));
+core/resources/views/owner/supervisor/form.blade.php:            $('input[name=mobile_code]').val($('select[name=country] :selected').data('mobile_code'));
+core/resources/views/owner/supervisor/form.blade.php:            $('.mobile-code').text('+' + $('select[name=country] :selected').data('mobile_code'));
+core/resources/views/owner/user_data.blade.php:                                                <option data-mobile_code="{{ $country->dial_code }}"
+core/resources/views/owner/user_data.blade.php:                                            <input type="hidden" name="mobile_code">
+core/resources/views/owner/user_data.blade.php:                $('input[name=mobile_code]').val($('select[name=country] :selected').data('mobile_code'));
+core/resources/views/owner/user_data.blade.php:                $('.mobile-code').text('+' + $('select[name=country] :selected').data('mobile_code'));
+core/resources/views/owner/user_data.blade.php:            $('input[name=mobile_code]').val($('select[name=country] :selected').data('mobile_code'));
+core/resources/views/owner/user_data.blade.php:            $('.mobile-code').text('+' + $('select[name=country] :selected').data('mobile_code'));
+core/resources/views/owner/user_data.blade.php:                        mobile_code: $('.mobile-code').text().substr(1),

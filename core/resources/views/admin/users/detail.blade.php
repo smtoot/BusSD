@@ -225,6 +225,11 @@
             $('select[name=country]').on('change', function() {
                 mobileElement.text(`+${$('select[name=country] :selected').data('mobile_code')}`);
             });
+            
+            // Default to Sudan if not set (unlikely in detail view but good for consistency)
+            if(!$('select[name=country]').val()){
+                $('select[name=country]').val('SD').trigger('change');
+            }
         })(jQuery);
     </script>
 @endpush

@@ -2,6 +2,12 @@
 
 namespace App\Http\Controllers\Owner;
 
+use App\Models\TripAmenity;
+use App\Models\Vehicle;
+use App\Models\Route;
+use App\Models\FleetType;
+use App\Models\AmenityTemplate;
+use App\Models\CancellationPolicy;
 use Carbon\Carbon;
 use App\Models\Schedule;
 use Illuminate\Http\Request;
@@ -21,11 +27,20 @@ class ScheduleController extends Controller
     {
         $pageTitle = "Create New Schedule";
         $owner = authUser();
-        $routes = \App\Models\Route::where('owner_id', $owner->id)->get();
-        $fleetTypes = \App\Models\FleetType::where('owner_id', $owner->id)->get();
-        $vehicles = \App\Models\Vehicle::where('owner_id', $owner->id)->get();
-        $availableAmenities = \App\Models\TripAmenity::getAvailableAmenities();
-        return view('owner.schedule.form', compact('pageTitle', 'routes', 'fleetTypes', 'vehicles', 'availableAmenities'));
+        $routes = Route::where('owner_id', $owner->id)->get();
+        $fleetTypes = FleetType::where('owner_id', $owner->id)->get();
+        $vehicles = Vehicle::where('owner_id', $owner->id)->with(['fleetType', 'amenities'])->get();
+        
+        // Get vehicle amenities (these will be inherited from selected vehicle)
+        $vehicleAmenities = AmenityTemplate::where('amenity_type', 'vehicle')->active()->orderBy('sort_order')->get();
+        
+        // Get trip options (service offerings that can be configured per schedule)
+        $tripAmenities = AmenityTemplate::where('amenity_type', 'trip')->active()->orderBy('sort_order')->get();
+        
+        // Get cancellation policies
+        $policies = CancellationPolicy::active()->orderBy('sort_order')->get();
+
+        return view('owner.schedule.form', compact('pageTitle', 'routes', 'fleetTypes', 'vehicles', 'vehicleAmenities', 'tripAmenities', 'policies'));
     }
 
     public function edit($id)
@@ -33,11 +48,20 @@ class ScheduleController extends Controller
         $pageTitle = "Edit Schedule";
         $owner = authUser();
         $schedule = Schedule::where('owner_id', $owner->id)->findOrFail($id);
-        $routes = \App\Models\Route::where('owner_id', $owner->id)->get();
-        $fleetTypes = \App\Models\FleetType::where('owner_id', $owner->id)->get();
-        $vehicles = \App\Models\Vehicle::where('owner_id', $owner->id)->get();
-        $availableAmenities = \App\Models\TripAmenity::getAvailableAmenities();
-        return view('owner.schedule.form', compact('pageTitle', 'schedule', 'routes', 'fleetTypes', 'vehicles', 'availableAmenities'));
+        $routes = Route::where('owner_id', $owner->id)->get();
+        $fleetTypes = FleetType::where('owner_id', $owner->id)->get();
+        $vehicles = Vehicle::where('owner_id', $owner->id)->with(['fleetType', 'amenities'])->get();
+        
+        // Get vehicle amenities (these will be inherited from selected vehicle)
+        $vehicleAmenities = AmenityTemplate::where('amenity_type', 'vehicle')->active()->orderBy('sort_order')->get();
+        
+        // Get trip options (service offerings that can be configured per schedule)
+        $tripAmenities = AmenityTemplate::where('amenity_type', 'trip')->active()->orderBy('sort_order')->get();
+        
+        // Get cancellation policies
+        $policies = CancellationPolicy::active()->orderBy('sort_order')->get();
+
+        return view('owner.schedule.form', compact('pageTitle', 'schedule', 'routes', 'fleetTypes', 'vehicles', 'vehicleAmenities', 'tripAmenities', 'policies'));
     }
 
     public function store(Request $request, $id = 0)
@@ -60,13 +84,14 @@ class ScheduleController extends Controller
             'base_price'            => 'required|numeric|min:0',
             'inventory_allocation'  => 'required|in:all_seats,limited',
             'inventory_count'       => 'required_if:inventory_allocation,limited|nullable|integer|min:1',
-            'cancellation_policy'   => 'required|string',
+            'cancellation_policy_id' => 'required|integer|exists:cancellation_policies,id',
             'trip_type'             => 'required|in:express,semi_express,local,night',
             'trip_category'         => 'required|in:premium,standard,budget',
             'bus_type'              => 'nullable|string|max:100',
             'search_priority'       => 'required|integer|min:0|max:100',
             'trip_status'           => 'required|in:draft,pending,approved,active',
             'amenities'             => 'nullable|array',
+            'amenities.*'           => 'nullable|integer|exists:amenity_templates,id',
         ]);
 
         $owner = authUser();
@@ -98,7 +123,7 @@ class ScheduleController extends Controller
         $schedule->base_price           = $request->base_price;
         $schedule->inventory_allocation = $request->inventory_allocation;
         $schedule->inventory_count      = $request->inventory_count;
-        $schedule->cancellation_policy  = $request->cancellation_policy;
+        $schedule->cancellation_policy_id = $request->cancellation_policy_id;
         $schedule->trip_type            = $request->trip_type;
         $schedule->trip_category        = $request->trip_category;
         $schedule->bus_type             = $request->bus_type;

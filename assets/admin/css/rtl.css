@@ -220,3 +220,190 @@
     text-align: right !important;
     direction: rtl !important;
 }
+
+/* Breadcrumb Separator Fix */
+[dir="rtl"] .breadcrumb-item+.breadcrumb-item::before {
+    float: right !important;
+    padding-left: 0.5rem !important;
+    padding-right: 0 !important;
+    content: "/" !important;
+    /* Ensure it's not mirrored if not desired, or use a neutral separator */
+}
+
+/* Input Group Rounding Fix (Bootstrap 5) */
+[dir="rtl"] .input-group> :not(:first-child):not(.dropdown-menu):not(.valid-tooltip):not(.valid-feedback):not(.invalid-tooltip):not(.invalid-feedback) {
+    margin-right: -1px !important;
+    margin-left: 0 !important;
+    border-top-left-radius: 0.375rem !important;
+    border-bottom-left-radius: 0.375rem !important;
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+
+[dir="rtl"] .input-group> :not(:last-child):not(.dropdown-toggle):not(.dropdown-menu):not(.form-floating) {
+    border-top-right-radius: 0.375rem !important;
+    border-bottom-right-radius: 0.375rem !important;
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+}
+
+/* Table Header Alignment */
+[dir="rtl"] .custom-data-table thead th,
+[dir="rtl"] .table thead th {
+    text-align: right !important;
+}
+
+/* Pagination Icons */
+[dir="rtl"] .pagination .page-link i {
+    transform: rotate(180deg) !important;
+}
+
+/* Float Fixes */
+[dir="rtl"] .float-end {
+    float: left !important;
+}
+
+[dir="rtl"] .float-start {
+    float: right !important;
+}
+
+/* Text Alignment Utilities */
+[dir="rtl"] .text-end {
+    text-align: left !important;
+}
+
+[dir="rtl"] .text-start {
+    text-align: right !important;
+}
+
+/* Sidebar Toggle Fix */
+[dir="rtl"] .navbar-search__btn {
+    left: 0 !important;
+    right: auto !important;
+}
+
+/* Bootstrap 5 Utility Flipping */
+[dir="rtl"] .me-1 {
+    margin-right: 0 !important;
+    margin-left: 0.25rem !important;
+}
+
+[dir="rtl"] .me-2 {
+    margin-right: 0 !important;
+    margin-left: 0.5rem !important;
+}
+
+[dir="rtl"] .me-3 {
+    margin-right: 0 !important;
+    margin-left: 1rem !important;
+}
+
+[dir="rtl"] .me-4 {
+    margin-right: 0 !important;
+    margin-left: 1.5rem !important;
+}
+
+[dir="rtl"] .me-5 {
+    margin-right: 0 !important;
+    margin-left: 3rem !important;
+}
+
+[dir="rtl"] .me-auto {
+    margin-right: 0 !important;
+    margin-left: auto !important;
+}
+
+[dir="rtl"] .ms-1 {
+    margin-left: 0 !important;
+    margin-right: 0.25rem !important;
+}
+
+[dir="rtl"] .ms-2 {
+    margin-left: 0 !important;
+    margin-right: 0.5rem !important;
+}
+
+[dir="rtl"] .ms-3 {
+    margin-left: 0 !important;
+    margin-right: 1rem !important;
+}
+
+[dir="rtl"] .ms-4 {
+    margin-left: 0 !important;
+    margin-right: 1.5rem !important;
+}
+
+[dir="rtl"] .ms-5 {
+    margin-left: 0 !important;
+    margin-right: 3rem !important;
+}
+
+[dir="rtl"] .ms-auto {
+    margin-left: 0 !important;
+    margin-right: auto !important;
+}
+
+[dir="rtl"] .pe-1 {
+    padding-right: 0 !important;
+    padding-left: 0.25rem !important;
+}
+
+[dir="rtl"] .pe-2 {
+    padding-right: 0 !important;
+    padding-left: 0.5rem !important;
+}
+
+[dir="rtl"] .pe-3 {
+    padding-right: 0 !important;
+    padding-left: 1rem !important;
+}
+
+[dir="rtl"] .pe-4 {
+    padding-right: 0 !important;
+    padding-left: 1.5rem !important;
+}
+
+[dir="rtl"] .pe-5 {
+    padding-right: 0 !important;
+    padding-left: 3rem !important;
+}
+
+[dir="rtl"] .ps-1 {
+    padding-left: 0 !important;
+    padding-right: 0.25rem !important;
+}
+
+[dir="rtl"] .ps-2 {
+    padding-left: 0 !important;
+    padding-right: 0.5rem !important;
+}
+
+[dir="rtl"] .ps-3 {
+    padding-left: 0 !important;
+    padding-right: 1rem !important;
+}
+
+[dir="rtl"] .ps-4 {
+    padding-left: 0 !important;
+    padding-right: 1.5rem !important;
+}
+
+[dir="rtl"] .ps-5 {
+    padding-left: 0 !important;
+    padding-right: 3rem !important;
+}
+
+/* Border radius utilities */
+[dir="rtl"] .rounded-start {
+    border-top-right-radius: 0.375rem !important;
+    border-bottom-right-radius: 0.375rem !important;
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+}
+
+[dir="rtl"] .rounded-end {
+    border-top-left-radius: 0.375rem !important;
+    border-bottom-left-radius: 0.375rem !important;
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
