@@ -5,25 +5,25 @@
         <div class="col-xxl-3 col-sm-6">
             <x-widget style="6" link="{{ route('manager.sold.tickets.todays') }}" icon="las las la-calendar-day"
                 title="TODAY'S"
-                value="{{ @$owner->general_settings->cur_sym ?? gs('cur_sym') }}{{ showAmount($dailySale->total_sales, currencyFormat: false) }}"
+                value="{{ gs('cur_sym') }}{{ showAmount($dailySale->total_sales, currencyFormat: false) }}"
                 bg="success" />
         </div>
         <div class="col-xxl-3 col-sm-6">
             <x-widget style="6" link="{{ route('manager.sold.tickets.all') }}" icon="las la-calendar"
                 title="THIS MONTH"
-                value="{{ @$owner->general_settings->cur_sym ?? gs('cur_sym') }}{{ showAmount(collect(array_values($monthlySale))->sum(), currencyFormat: false) }}"
+                value="{{ gs('cur_sym') }}{{ showAmount(collect(array_values($monthlySale))->sum(), currencyFormat: false) }}"
                 bg="primary" />
         </div>
         <div class="col-xxl-3 col-sm-6">
             <x-widget style="6" link="{{ route('manager.sold.tickets.all') }}" icon="las la-calendar-week"
                 title="THIS YEAR"
-                value="{{ @$owner->general_settings->cur_sym ?? gs('cur_sym') }}{{ showAmount(collect(array_values($yearlySale))->sum(), currencyFormat: false) }}"
+                value="{{ gs('cur_sym') }}{{ showAmount(collect(array_values($yearlySale))->sum(), currencyFormat: false) }}"
                 bg="1" />
         </div>
         <div class="col-xxl-3 col-sm-6">
             <x-widget style="6" link="{{ route('manager.sold.tickets.all') }}" icon="las la-calendar-check"
                 title="ALL TIME"
-                value="{{ @$owner->general_settings->cur_sym ?? gs('cur_sym') }}{{ showAmount(@$allSale->total_sales, currencyFormat: false) }}"
+                value="{{ gs('cur_sym') }}{{ showAmount(@$allSale->total_sales, currencyFormat: false) }}"
                 bg="3" />
         </div>
     </div>
@@ -47,19 +47,17 @@
         </div>
     </div>
     <div class="row mt-4">
-        <div class="col-xl-6 mb-30">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title"> @lang('Sales Report For ' . date('F'))</h5>
-                    <div id="apex-line"> </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-xl-6 mb-30">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">@lang('Sales Report For ' . date('Y'))</h5>
-                    <div id="apex-bar-chart"> </div>
+        <div class="col-xl-12">
+            <div class="card bg--white p-4 text-center">
+                <h3 class="mb-4">@lang('Welcome to Your Daily Operations')</h3>
+                <p class="lead">@lang('Use the links above to view your sales and manage your trips easily.')</p>
+                <div class="mt-4">
+                    <a href="{{ route('manager.trip.index') }}" class="btn btn--primary btn-lg mx-2">
+                        <i class="la la-radiation-alt"></i> @lang('Manage Trips')
+                    </a>
+                    <a href="{{ route('manager.sold.tickets.todays') }}" class="btn btn--success btn-lg mx-2">
+                        <i class="la la-ticket"></i> @lang('Today\'s Sales')
+                    </a>
                 </div>
             </div>
         </div>
@@ -101,7 +99,7 @@
             dataLabels: {
                 enabled: false,
                 formatter: function(val, opt) {
-                    return `{{ @$owner->general_settings->cur_sym ?? gs('cur_sym') }}${val}`
+                    return `{{ gs('cur_sym') }}${val}`
                 },
                 offsetX: 0,
             },
@@ -115,7 +113,7 @@
             tooltip: {
                 y: {
                     formatter: function(val, opt) {
-                        return `{{ @$owner->general_settings->cur_sym ?? gs('cur_sym') }}${val}`
+                        return `{{ gs('cur_sym') }}${val}`
                     },
                 }
             },
@@ -137,7 +135,7 @@
             },
             yaxis: {
                 title: {
-                    text: "Amount in {{ @$owner->general_settings->cur_text ?? gs('cur_text') }}",
+                    text: "Amount in {{ gs('cur_text') }}",
                     style: {
                         color: '#7c97bb',
                         fontWeight: '400',
@@ -199,7 +197,7 @@
             },
             yaxis: {
                 title: {
-                    text: "Amount in {{ @$owner->general_settings->cur_text ?? gs('cur_text') }}",
+                    text: "Amount in {{ gs('cur_text') }}",
                     style: {
                         color: '#7c97bb',
                         fontWeight: '400',
@@ -212,7 +210,7 @@
             tooltip: {
                 y: {
                     formatter: function(val) {
-                        return "{{ @$owner->general_settings->cur_sym ?? gs('cur_sym') }}" + val
+                        return "{{ gs('cur_sym') }}" + val
                     }
                 }
             }

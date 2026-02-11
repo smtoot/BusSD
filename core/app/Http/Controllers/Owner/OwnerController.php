@@ -83,9 +83,7 @@ class OwnerController extends Controller
         $widget['today_revenue']    = $owner->bookedTickets()->where('status', 1)->whereDate('created_at', $today)->sum(\DB::raw('price * ticket_count'));
         $widget['today_bookings']   = $owner->bookedTickets()->where('status', 1)->whereDate('created_at', $today)->count();
         $widget['today_passengers'] = $owner->bookedTickets()->where('status', 1)->whereDate('created_at', $today)->sum('ticket_count');
-        $widget['today_trips']      = $owner->trips()->active()->where(function ($q) use ($today) {
-            $q->whereNull('day_off')->orWhereJsonDoesntContain('day_off', $today->dayOfWeek);
-        })->count();
+        $widget['today_trips']      = $owner->trips()->active()->whereDate('date', $today)->count();
 
         // B2C specific metrics
         $thisMonth = Carbon::now()->startOfMonth();
@@ -203,11 +201,11 @@ class OwnerController extends Controller
         $report['created_on']   = $data->pluck('created_on');
         $report['data']     = [
             [
-                'name' => 'B2C (App)',
+                'name' => __('B2C (App)'),
                 'data' => $data->pluck('b2c')
             ],
             [
-                'name' => 'Counter',
+                'name' => __('Counter'),
                 'data' => $data->pluck('counter')
             ]
         ];
@@ -320,16 +318,12 @@ class OwnerController extends Controller
     {
         $request->validate([
             'company_name' => 'required|string|',
-            'cur_text'     => 'required|string|',
-            'cur_sym'      => 'required|string|max:10',
         ]);
 
         $owner = authUser('owner');
 
         $owner->general_settings = [
             'company_name' => $request->company_name,
-            'cur_text' => $request->cur_text,
-            'cur_sym' => $request->cur_sym,
         ];
         $owner->save();
 

@@ -1,38 +1,122 @@
 @extends('owner.layouts.app')
 @section('panel')
+    {{-- Statistics Cards --}}
+    <div class="row mb-4">
+        {{-- ... statistics cards remain same ... --}}
+        <div class="col-lg-4 col-md-6">
+            <div class="card bg--primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-white mb-1">@lang('Total Vehicles')</h6>
+                            <h3 class="text-white mb-0">{{ $totalVehicles }}</h3>
+                        </div>
+                        <div class="dashboard-icon">
+                            <i class="las la-bus" style="font-size: 3rem; opacity: 0.5;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 col-md-6">
+            <div class="card bg--success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-white mb-1">@lang('Active Vehicles')</h6>
+                            <h3 class="text-white mb-0">{{ $activeVehicles }}</h3>
+                        </div>
+                        <div class="dashboard-icon">
+                            <i class="las la-check-circle" style="font-size: 3rem; opacity: 0.5;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 col-md-6">
+            <div class="card bg--info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-white mb-1">@lang('Total Capacity')</h6>
+                            <h3 class="text-white mb-0">{{ $totalCapacity }}</h3>
+                        </div>
+                        <div class="dashboard-icon">
+                            <i class="las la-users" style="font-size: 3rem; opacity: 0.5;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Inactive Vehicles Warning --}}
+    @if($totalVehicles > $activeVehicles)
+    <div class="alert alert-warning d-flex align-items-center" role="alert">
+        <i class="las la-exclamation-triangle me-2" style="font-size: 1.5rem;"></i>
+        <div>
+            @lang('You have') {{ $totalVehicles - $activeVehicles }} @lang('inactive vehicle(s) that won\'t appear in trip planning.')
+        </div>
+    </div>
+    @endif
+
+    {{-- Vehicles Table --}}
     <div class="row">
         <div class="col-lg-12">
             <div class="card">
                 <div class="card-body p-0">
                     <div class="table-responsive--sm table-responsive">
-                        <table class="table--light style--two table custom-data-table">
+                        <table class="table--light style--two table">
                             <thead>
                                 <tr>
-                                    <th>@lang('Name')</th>
-                                    <th>@lang('Brand Name')</th>
-                                    <th>@lang('Model No.')</th>
-                                    <th>@lang('Registration No.')</th>
-                                    <th>@lang('Fleet Type')</th>
+                                    <th>@lang('Vehicle Name')</th>
+                                    <th>@lang('Model')</th>
+                                    <th>@lang('License Plate')</th>
+                                    <th>@lang('Total Seats')</th>
                                     <th>@lang('Status')</th>
-                                    <th>@lang('Action')</th>
+                                    <th>@lang('Actions')</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($vehicles ?? [] as $vehicle)
                                     <tr>
-                                        <td>{{ __($vehicle->nick_name) }}</td>
-                                        <td>{{ __($vehicle->brand_name) }}</td>
-                                        <td>{{ $vehicle->model_no }}</td>
-                                        <td>{{ $vehicle->registration_no }}</td>
-                                        <td>{{ $vehicle->fleetType->name }}</td>
-                                        <td>@php echo $vehicle->statusBadge; @endphp</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <i class="las la-bus text-muted me-2" style="font-size: 1.5rem;"></i>
+                                                <div>
+                                                    <strong>{{ __($vehicle->nick_name) }}</strong>
+                                                    @if($vehicle->is_vip)
+                                                        <span class="badge badge--warning ms-2">VIP</span>
+                                                    @endif
+                                                    <br>
+                                                    <small class="text-muted">{{ $vehicle->fleetType->name }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <strong>{{ $vehicle->brand_name }}</strong><br>
+                                            <small class="text-muted">{{ $vehicle->model_no }}</small>
+                                        </td>
+                                        <td>
+                                            <code>{{ $vehicle->registration_no }}</code>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <i class="las la-user text-muted me-1"></i>
+                                                {{ $vehicle->capacity() }} @lang('seats')
+                                            </div>
+                                        </td>
+                                        <td>
+                                            @php echo $vehicle->statusBadge; @endphp
+                                        </td>
                                         <td>
                                             <div class="button--group">
-                                                <button data-action="{{ route('owner.vehicle.store', $vehicle->id) }}"
-                                                    data-title="@lang('Edit Vehicle')" data-vehicle="{{ $vehicle }}"
-                                                    class="btn btn-sm btn-outline--primary editBtn">
-                                                    <i class="la la-pencil"></i>@lang('Edit')
-                                                </button>
+                                                <a href="{{ route('owner.vehicle.edit', $vehicle->id) }}" class="btn btn-sm btn-outline--primary">
+                                                    <i class="la la-pencil"></i> @lang('Edit')
+                                                </a>
+                                                
                                                 @if ($vehicle->status == Status::DISABLE)
                                                     <button class="btn btn-sm btn-outline--success confirmationBtn"
                                                         data-question="@lang('Are you sure to enable this vehicle?')"
@@ -67,138 +151,13 @@
         </div>
     </div>
 
-    <div id="vehicleModal" class="modal fade">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"></h5>
-                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                        <i class="las la-times"></i>
-                    </button>
-                </div>
-                <form method="POST">
-                    @csrf
-                    <div class="modal-body">
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="form-group">
-                                    <label>@lang('Nick Name')</label>
-                                    <input type="text" name="nick_name" class="form-control" required />
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>@lang('Registration Number')</label>
-                                    <input type="text" name="registration_no" class="form-control" required />
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>@lang('Engine Number')</label>
-                                    <input type="text" name="engine_no" class="form-control" required />
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>@lang('Model Number')</label>
-                                    <input type="text" name="model_no" class="form-control" required />
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>@lang('Chassis Number')</label>
-                                    <input type="text" name="chasis_no" class="form-control" required />
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>@lang('Owner Name')</label>
-                                    <input type="text" name="owner_name" class="form-control" required />
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>@lang('Owner Phone Number')</label>
-                                    <input type="text" name="owner_phone" class="form-control" required />
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>@lang('Brand Name')</label>
-                                    <input type="text" name="brand_name" class="form-control" required />
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>@lang('Fleet Type')</label>
-                                    <select class="custom-select select2" data-minimum-results-for-search="-1"
-                                        name="fleet_type" required>
-                                        <option selected value="">@lang('Select One')</option>
-                                        @foreach ($fleetTypes as $fleetType)
-                                            <option value="{{ $fleetType->id }}">{{ $fleetType->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn--primary w-100 h-45">@lang('Submit')</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
     <x-confirmation-modal />
 @endsection
 
 @push('breadcrumb-plugins')
-    <x-search-form />
-    <button class="btn btn-sm btn-outline--primary addBtn" data-action="{{ route('owner.vehicle.store') }}"
-        data-title="@lang('Add New Vehicle')">
-        <i class="fas fa-plus"></i> @lang('Add New')
-    </button>
+    <x-search-form placeholder="{{ __('Search...') }}" />
+    <a href="{{ route('owner.vehicle.create') }}" class="btn btn-sm btn--primary">
+        <i class="fas fa-plus"></i> @lang('Add New Vehicle')
+    </a>
 @endpush
 
-@push('script')
-    <script>
-        (function($) {
-            'use strict';
-
-            let modal = $('#vehicleModal')
-            let vehicle = '';
-            let action = '';
-            let title = '';
-
-            $('.addBtn').on('click', function() {
-                vehicle = '';
-                action = $(this).data('action');
-                title = $(this).data('title');
-                openModal();
-            });
-
-            $('.editBtn').on('click', function() {
-                vehicle = $(this).data('vehicle');
-                action = $(this).data('action');
-                title = $(this).data('title');
-                openModal();
-            });
-
-            function openModal() {
-                modal.find('form').attr('action', action);
-                modal.find('.modal-title').text(title);
-                modal.find('[name=nick_name]').val(vehicle.nick_name ?? '');
-                modal.find('[name=registration_no]').val(vehicle.registration_no ?? '');
-                modal.find('[name=engine_no]').val(vehicle.engine_no ?? '');
-                modal.find('[name=model_no]').val(vehicle.model_no ?? '');
-                modal.find('[name=chasis_no]').val(vehicle.chasis_no ?? '');
-                modal.find('[name=owner_name]').val(vehicle.owner_name ?? '');
-                modal.find('[name=owner_phone]').val(vehicle.owner_phone ?? '');
-                modal.find('[name=brand_name]').val(vehicle.brand_name ?? '');
-                modal.find('[name=fleet_type]').val(vehicle.fleet_type_id ?? '').change();
-                modal.modal('show');
-            }
-        })(jQuery)
-    </script>
-@endpush

@@ -5,6 +5,7 @@
         ],
         "title": "Trips",
         "icon": "la la-bus",
+        "permission": "boarding_management",
         "route_name": "supervisor.trips",
         "menu_active": "supervisor.trips"
     }

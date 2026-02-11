@@ -37,7 +37,7 @@
                         <div class="form-group">
                             <label>@lang('Price for Source to Destination')</label>
                             <div class="input-group">
-                                <span class="input-group-text">{{ @$owner->general_settings->cur_sym }}</span>
+                                <span class="input-group-text">{{ gs('cur_sym') }}</span>
                                 <input type="text" class="form-control numeric-validation main_price" name="main_price"
                                     required />
                             </div>

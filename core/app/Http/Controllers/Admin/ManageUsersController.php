@@ -18,49 +18,49 @@ class ManageUsersController extends Controller
 {
     public function allUsers()
     {
-        $pageTitle = 'All Owners';
+        $pageTitle = __('All Owners');
         $users = $this->userData();
         return view('admin.users.list', compact('pageTitle', 'users'));
     }
 
     public function activeUsers()
     {
-        $pageTitle = 'Active Owners';
+        $pageTitle = __('Active Owners');
         $users = $this->userData('active');
         return view('admin.users.list', compact('pageTitle', 'users'));
     }
 
     public function bannedUsers()
     {
-        $pageTitle = 'Banned Owners';
+        $pageTitle = __('Banned Owners');
         $users = $this->userData('banned');
         return view('admin.users.list', compact('pageTitle', 'users'));
     }
 
     public function emailUnverifiedUsers()
     {
-        $pageTitle = 'Email Unverified Owners';
+        $pageTitle = __('Email Unverified Owners');
         $users = $this->userData('emailUnverified');
         return view('admin.users.list', compact('pageTitle', 'users'));
     }
 
     public function emailVerifiedUsers()
     {
-        $pageTitle = 'Email Verified Owners';
+        $pageTitle = __('Email Verified Owners');
         $users = $this->userData('emailVerified');
         return view('admin.users.list', compact('pageTitle', 'users'));
     }
 
     public function mobileUnverifiedUsers()
     {
-        $pageTitle = 'Mobile Unverified Owners';
+        $pageTitle = __('Mobile Unverified Owners');
         $users = $this->userData('mobileUnverified');
         return view('admin.users.list', compact('pageTitle', 'users'));
     }
 
     public function mobileVerifiedUsers()
     {
-        $pageTitle = 'Mobile Verified Owner';
+        $pageTitle = __('Mobile Verified Owner');
         $users = $this->userData('mobileVerified');
         return view('admin.users.list', compact('pageTitle', 'users'));
     }
@@ -78,7 +78,7 @@ class ManageUsersController extends Controller
     public function detail($id)
     {
         $user = Owner::findOrFail($id);
-        $pageTitle = 'Owners Detail - ' . $user->username;
+        $pageTitle = __('Owners Detail') . ' - ' . $user->username;
 
         $widget['activePackage'] = @SoldPackage::active()->where('ends_at', '>', Carbon::now())->orderByDesc('ends_at')->where('owner_id', $user->id)->first()->package->name;
         $widget['activePackageCount'] = SoldPackage::where('owner_id', $user->id)->where('ends_at', '>', Carbon::now())->orderByDesc('ends_at')->count();
@@ -111,7 +111,7 @@ class ManageUsersController extends Controller
 
         $exists = Owner::where('mobile', $request->mobile)->where('dial_code', $dialCode)->where('id', '!=', $user->id)->exists();
         if ($exists) {
-            $notify[] = ['error', 'The mobile number already exists.'];
+            $notify[] = ['error', __('The mobile number already exists.')];
             return back()->withNotify($notify);
         }
 
@@ -131,7 +131,7 @@ class ManageUsersController extends Controller
         $user->b2c_commission = $request->b2c_commission;
         $user->save();
 
-        $notify[] = ['success', 'Owner details updated successfully'];
+        $notify[] = ['success', __('Owner details updated successfully')];
         return back()->withNotify($notify);
     }
 
@@ -150,11 +150,11 @@ class ManageUsersController extends Controller
             ]);
             $user->status = Status::USER_BAN;
             $user->ban_reason = $request->reason;
-            $notify[] = ['success', 'Owner banned successfully'];
+            $notify[] = ['success', __('Owner banned successfully')];
         } else {
             $user->status = Status::USER_ACTIVE;
             $user->ban_reason = null;
-            $notify[] = ['success', 'Owner unbanned successfully'];
+            $notify[] = ['success', __('Owner unbanned successfully')];
         }
         $user->save();
         return back()->withNotify($notify);
@@ -165,10 +165,10 @@ class ManageUsersController extends Controller
     {
         $user = Owner::findOrFail($id);
         if (!gs('en') && !gs('sn') && !gs('pn')) {
-            $notify[] = ['warning', 'Notification options are disabled currently'];
+            $notify[] = ['warning', __('Notification options are disabled currently')];
             return to_route('admin.users.detail', $user->id)->withNotify($notify);
         }
-        $pageTitle = 'Send Notification to ' . $user->username;
+        $pageTitle = __('Send Notification to') . ' ' . $user->username;
         return view('admin.users.notification_single', compact('pageTitle', 'user'));
     }
 
@@ -182,7 +182,7 @@ class ManageUsersController extends Controller
         ]);
 
         if (!gs('en') && !gs('sn') && !gs('pn')) {
-            $notify[] = ['warning', 'Notification options are disabled currently'];
+            $notify[] = ['warning', __('Notification options are disabled currently')];
             return to_route('admin.dashboard')->withNotify($notify);
         }
 
@@ -192,13 +192,13 @@ class ManageUsersController extends Controller
     public function showNotificationAllForm()
     {
         if (!gs('en') && !gs('sn') && !gs('pn')) {
-            $notify[] = ['warning', 'Notification options are disabled currently'];
+            $notify[] = ['warning', __('Notification options are disabled currently')];
             return to_route('admin.dashboard')->withNotify($notify);
         }
 
         $notifyToUser = Owner::notifyToUser();
         $users        = Owner::active()->count();
-        $pageTitle    = 'Notification to Verified Owners';
+        $pageTitle    = __('Notification to Verified Owners');
 
         if (session()->has('SEND_NOTIFICATION') && !request()->email_sent) {
             session()->forget('SEND_NOTIFICATION');
@@ -221,12 +221,12 @@ class ManageUsersController extends Controller
             'number_of_days'               => 'required_if:being_sent_to,notLoginUsers|integer|gte:0',
             'image'                        => ["nullable", 'image', new FileTypeValidate(['jpg', 'jpeg', 'png'])],
         ], [
-            'number_of_days.required_if'               => "Number of days field is required",
-            'number_of_top_deposited_user.required_if' => "Number of top deposited user field is required",
+            'number_of_days.required_if'               => __("Number of days field is required"),
+            'number_of_top_deposited_user.required_if' => __("Number of top deposited user field is required"),
         ]);
 
         if (!gs('en') && !gs('sn') && !gs('pn')) {
-            $notify[] = ['warning', 'Notification options are disabled currently'];
+            $notify[] = ['warning', __('Notification options are disabled currently')];
             return to_route('admin.dashboard')->withNotify($notify);
         }
 
@@ -258,7 +258,7 @@ class ManageUsersController extends Controller
     public function notificationLog($id)
     {
         $user = Owner::findOrFail($id);
-        $pageTitle = 'Notifications Sent to ' . $user->username;
+        $pageTitle = __('Notifications Sent to') . ' ' . $user->username;
         $logs = NotificationLog::where('owner_id', $id)->with('owner')->orderBy('id', 'desc')->paginate(getPaginate());
         return view('admin.reports.notification_history', compact('pageTitle', 'logs', 'user'));
     }

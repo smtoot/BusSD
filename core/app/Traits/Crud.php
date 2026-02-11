@@ -119,6 +119,11 @@ trait Crud
         $user->city         = $request->city;
         $user->state        = $request->state;
         $user->zip          = $request->zip;
+        if ($request->has('permissions')) {
+            $user->permissions = json_encode($request->permissions);
+        } else {
+            $user->permissions = null;
+        }
         $user->save();
 
         $notify[] = ['success', $message];

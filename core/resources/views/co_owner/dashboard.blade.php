@@ -118,7 +118,7 @@
 
         let dwChart = barChart(
             document.querySelector("#dwChartArea"),
-            @json(__(@$owner->general_settings->cur_text)),
+            @json(__(gs('cur_text'))),
             [{
                 name: 'Sold',
                 data: []
@@ -181,7 +181,7 @@
                         value: {
                             show: true,
                             formatter: function(val) {
-                                return `{{ @$owner->general_settings->cur_sym }}${val}`
+                                return `{{ gs('cur_sym') }}${val}`
                             }
                         }
                     }
@@ -202,7 +202,7 @@
                     size: 0
                 },
                 formatter: function(seriesName, opts) {
-                    return seriesName + ":  {{ @$owner->general_settings->cur_sym }}" + opts.w.globals
+                    return seriesName + ":  {{ gs('cur_sym') }}" + opts.w.globals
                         .series[opts.seriesIndex]
                 },
                 itemMargin: {

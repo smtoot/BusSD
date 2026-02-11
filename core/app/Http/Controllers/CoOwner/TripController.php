@@ -58,8 +58,7 @@ class TripController extends Controller
             'from'       => 'required|integer|gt:0',
             'to'         => 'required|integer|gt:0',
             'schedule'   => 'required|integer|gt:0|exists:schedules,id',
-            'day_off'    => 'nullable|array|min:1',
-            'day_off.*'  => 'nullable|integer|in:0,1,2,3,4,5,6'
+
         ]);
 
         $owner = authUser('co-owner')->owner;
@@ -77,7 +76,7 @@ class TripController extends Controller
         $trip->schedule_id       = $request->schedule;
         $trip->starting_point    = $request->from;
         $trip->destination_point = $request->to;
-        $trip->day_off           = $request->day_off ?? [];
+
         $trip->save();
 
         $notify[] = ['success', $message];

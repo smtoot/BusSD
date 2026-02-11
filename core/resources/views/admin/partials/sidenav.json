@@ -77,6 +77,33 @@
             }
         ]
     },
+    "trip_settings": {
+        "title": "Trip Settings",
+        "icon": "las la-cogs",
+        "menu_active": "admin.cancellation.policy*|admin.amenity.template*",
+        "submenu": [
+            {
+                "keyword": [
+                    "Cancellation Policies",
+                    "Refund Policies",
+                    "Manage Policies"
+                ],
+                "title": "Cancellation Policies",
+                "route_name": "admin.cancellation.policy.index",
+                "menu_active": "admin.cancellation.policy.index"
+            },
+            {
+                "keyword": [
+                    "Amenity Templates",
+                    "Amenities",
+                    "Manage Amenities"
+                ],
+                "title": "Amenity Templates",
+                "route_name": "admin.amenity.template.index",
+                "menu_active": "admin.amenity.template.index"
+            }
+        ]
+    },
     "manage_bookings": {
         "title": "Manage Bookings",
         "icon": "las la-ticket-alt",

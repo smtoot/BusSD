@@ -13,6 +13,10 @@
         <div class="sidebar__menu-wrapper">
             <ul class="sidebar__menu">
                 @foreach ($sideBarLinks as $key => $data)
+                    @if (@$data->permission && !authUser()->hasPermission($data->permission))
+                        @continue
+                    @endif
+
                     @if (@$data->header)
                         <li class="sidebar__menu-header">{{ __($data->header) }}</li>
                     @endif

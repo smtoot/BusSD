@@ -43,20 +43,20 @@ class TripSearchController extends Controller
 
         $pickupId = $request->pickup_id;
         $destinationId = $request->destination_id;
-        $date = Carbon::parse($request->date)->format('m/d/Y');
-        $dayOfWeek = Carbon::parse($request->date)->format('l');
+        $searchDate = Carbon::parse($request->date)->format('Y-m-d');
+        $formatDate = Carbon::parse($request->date)->format('m/d/Y');
 
         $query = Trip::active()
-            ->whereJsonDoesntContain('day_off', $dayOfWeek)
+            ->where('date', $searchDate)
             ->whereHas('route', function($q) use ($pickupId, $destinationId) {
                 $q->active()
-                  ->whereJsonContains('stoppages', (string)$pickupId)
-                  ->whereJsonContains('stoppages', (string)$destinationId);
+                  ->where('stoppages', 'like', '%"id": ' . $pickupId . '%')
+                  ->where('stoppages', 'like', '%"id": ' . $destinationId . '%');
             })
-            ->with(['route', 'fleetType', 'schedule', 'owner', 'bookedTickets' => function($q) use ($date) {
-                $q->where('date_of_journey', $date)->whereIn('status', [1, 2]); 
-            }, 'seatLocks' => function($q) use ($date) {
-                $q->where('date_of_journey', $date)->where('expires_at', '>', now());
+            ->with(['route', 'fleetType', 'schedule', 'owner', 'bookedTickets' => function($q) use ($formatDate) {
+                $q->where('date_of_journey', $formatDate)->whereIn('status', [1, 2]); 
+            }, 'seatLocks' => function($q) use ($formatDate) {
+                $q->where('date_of_journey', $formatDate)->where('expires_at', '>', now());
             }]);
 
         // Filter by Fleet Type
@@ -68,10 +68,10 @@ class TripSearchController extends Controller
         if ($request->departure_time_start || $request->departure_time_end) {
             $query->whereHas('schedule', function($q) use ($request) {
                 if ($request->departure_time_start) {
-                    $q->where('start_from', '>=', $request->departure_time_start);
+                    $q->where('starts_from', '>=', $request->departure_time_start);
                 }
                 if ($request->departure_time_end) {
-                    $q->where('start_from', '<=', $request->departure_time_end);
+                    $q->where('starts_from', '<=', $request->departure_time_end);
                 }
             });
         }
@@ -80,8 +80,14 @@ class TripSearchController extends Controller
         $results = [];
         foreach ($trips as $trip) {
             $stoppages = $trip->route->stoppages;
-            $pickupIndex = array_search((string)$pickupId, $stoppages);
-            $destinationIndex = array_search((string)$destinationId, $stoppages);
+            
+            // Extract IDs if it's an array of objects
+            $stoppageIds = array_map(function($item) {
+                return is_array($item) ? (string)$item['id'] : (string)$item;
+            }, $stoppages);
+
+            $pickupIndex = array_search((string)$pickupId, $stoppageIds);
+            $destinationIndex = array_search((string)$destinationId, $stoppageIds);
 
             if ($pickupIndex === false || $destinationIndex === false || $pickupIndex >= $destinationIndex) {
                 continue;
@@ -96,9 +102,11 @@ class TripSearchController extends Controller
             }
             $availableSeats = max(0, $totalSeats - ($bookedSeatsCount + $lockedSeatsCount));
 
-            // Fetch Price (Segment based)
+            // Fetch Price (Segment based) - Priority to trip base_price if template/instance has it
             $fare = 0;
-            if($trip->route->ticketPrice) {
+            if ($trip->base_price > 0) {
+                $fare = (float) $trip->base_price;
+            } elseif($trip->route->ticketPrice) {
                 $priceRecord = $trip->route->ticketPrice->prices()
                     ->whereJsonContains('source_destination', [(string)$pickupId, (string)$destinationId])
                     ->first();
@@ -121,13 +129,13 @@ class TripSearchController extends Controller
                 'owner_name' => (string) ($trip->owner->general_settings->company_name ?? ($trip->owner->lastname ?: $trip->owner->username)), 
                 'owner_logo' => $trip->owner->image ? url(getFilePath('ownerProfile') . '/' . $trip->owner->image) : null,
                 'owner_rating' => round($ownerRating, 1),
-                'bus_type' => (string) $trip->fleetType->name,
-                'departure_time' => (string) $trip->schedule->start_from,
-                'arrival_time' => (string) $trip->schedule->end_at,
+                'bus_type' => (string) ($trip->bus_type ?: $trip->fleetType->name),
+                'departure_time' => (string) $trip->schedule->starts_from,
+                'arrival_time' => (string) $trip->schedule->ends_at,
                 'fare' => (float) $fare,
                 'available_seats' => (int) $availableSeats,
                 'route_name' => (string) $trip->route->name,
-                'raw_time' => $trip->schedule->start_from, // used for sorting
+                'raw_time' => $trip->schedule->starts_from, // used for sorting
             ];
         }
 
@@ -166,11 +174,12 @@ class TripSearchController extends Controller
         }
 
         $trip = Trip::active()->with(['fleetType', 'fleetType.seatLayout'])->findOrFail($id);
-        $date = Carbon::parse($request->date)->format('m/d/Y');
+        $date = Carbon::parse($request->date)->format('Y-m-d');
+        $formatDate = Carbon::parse($request->date)->format('m/d/Y');
 
         // Fetch all booked seats (confirmed or pending payment)
         $bookedSeats = $trip->bookedTickets()
-            ->where('date_of_journey', $date)
+            ->where('date_of_journey', $formatDate)
             ->whereIn('status', [1, 2])
             ->get()
             ->pluck('seats')

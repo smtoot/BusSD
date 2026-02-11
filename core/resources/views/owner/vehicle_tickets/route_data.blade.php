@@ -6,7 +6,7 @@
                 <div class="form-group">
                     <label for="point-{{ $loop->iteration }}">{{ $sd[0]->name }} - {{ $sd[1]->name }}</label>
                     <div class="input-group">
-                        <span class="input-group-text">{{ @$owner->general_settings->cur_sym }}</span>
+                        <span class="input-group-text">{{ gs('cur_sym') }}</span>
                         <input type="text" name="price[{{ $sd[0]->id }}-{{ $sd[1]->id }}]" id="point-{{ $loop->iteration }}" class="form-control prices-auto numeric-validation" required />
                     </div>
                     <div class="price-wrapper"></div>

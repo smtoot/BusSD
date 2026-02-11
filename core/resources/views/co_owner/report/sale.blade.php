@@ -79,7 +79,7 @@
                                         <td>{{ $sale->counterManager->fullname }}</td>
                                         <td>{{ $sale->trip->title }}</td>
                                         <td>
-                                            {{ $owner->general_settings->cur_sym }}
+                                            {{ gs('cur_sym') }}
                                             {{ showAmount($sale->ticket_count * $sale->price, currencyFormat: false) }}
                                         </td>
                                         <td>

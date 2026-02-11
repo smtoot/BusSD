@@ -49,25 +49,93 @@ class FleetController extends Controller
 
     public function vehicle()
     {
-        $pageTitle  = 'All Vehicles';
+        $pageTitle  = 'Fleet Management';
         $owner      = authUser();
-        $vehicles   = Vehicle::searchable(['nick_name', 'owner_phone', 'engine_no', 'chasis_no'])->where('owner_id', $owner->id)->orderByDesc('id')->paginate(getPaginate());
-        $fleetTypes = FleetType::active()->where('owner_id', 0)->orderByDesc('id')->get(); // Show admin-defined fleet types
-        return view('owner.vehicle.index', compact('pageTitle', 'vehicles', 'owner', 'fleetTypes'));
+        
+        // Get vehicles with fleet type and amenities
+        $vehicles   = Vehicle::with(['fleetType', 'amenities'])
+            ->searchable(['nick_name', 'owner_phone', 'engine_no', 'chasis_no', 'registration_no'])
+            ->where('owner_id', $owner->id)
+            ->orderByDesc('id')
+            ->paginate(getPaginate());
+        
+        // Calculate statistics
+        $totalVehicles = Vehicle::where('owner_id', $owner->id)->count();
+        $activeVehicles = Vehicle::where('owner_id', $owner->id)->active()->count();
+        $totalCapacity = Vehicle::where('owner_id', $owner->id)
+            ->active()
+            ->get()
+            ->sum(function($vehicle) {
+                return $vehicle->capacity();
+            });
+        
+        $fleetTypes = FleetType::active()->where('owner_id', 0)->orderByDesc('id')->get();
+        
+        // Get vehicle amenities (built-in features)
+        $amenities = \App\Models\AmenityTemplate::where('amenity_type', 'vehicle')
+            ->active()
+            ->orderBy('sort_order')
+            ->get();
+        
+        return view('owner.vehicle.index', compact(
+            'pageTitle',
+            'vehicles',
+            'owner',
+            'fleetTypes',
+            'amenities',
+            'totalVehicles',
+            'activeVehicles',
+            'totalCapacity'
+        ));
+    }
+
+    public function vehicleCreate()
+    {
+        $pageTitle  = 'Add New Vehicle';
+        $owner      = authUser();
+        $fleetTypes = FleetType::active()->where('owner_id', 0)->orderByDesc('id')->get();
+        // Get vehicle amenities (built-in features)
+        $amenities = \App\Models\AmenityTemplate::where('amenity_type', 'vehicle')
+            ->active()
+            ->orderBy('sort_order')
+            ->get();
+            
+        return view('owner.vehicle.form', compact('pageTitle', 'fleetTypes', 'amenities'));
+    }
+
+    public function vehicleEdit($id)
+    {
+        $pageTitle = 'Edit Vehicle';
+        $owner     = authUser();
+        $vehicle   = Vehicle::where('owner_id', $owner->id)->with('amenities')->findOrFail($id);
+        $fleetTypes = FleetType::active()->where('owner_id', 0)->orderByDesc('id')->get();
+        // Get vehicle amenities (built-in features)
+        $amenities = \App\Models\AmenityTemplate::where('amenity_type', 'vehicle')
+            ->active()
+            ->orderBy('sort_order')
+            ->get();
+            
+        return view('owner.vehicle.form', compact('pageTitle', 'vehicle', 'fleetTypes', 'amenities'));
     }
 
     public function vehicleStore(Request $request, $id = 0)
     {
         $request->validate([
-            'nick_name'       => 'required|string|max:255',
-            'registration_no' => 'required|string|max:255|unique:vehicles,registration_no,' . $id,
-            'engine_no'       => 'required|string|max:255|unique:vehicles,engine_no,' . $id,
-            'model_no'        => 'required|string|max:255',
-            'chasis_no'       => 'required|string|max:255|unique:vehicles,chasis_no,' . $id,
-            'owner_name'      => 'required|string|max:255',
-            'owner_phone'     => 'required|string|max:255',
-            'brand_name'      => 'required|string|max:255',
-            'fleet_type'      => 'required|integer|exists:fleet_types,id',
+            'nick_name'                => 'required|string|max:255',
+            'registration_no'          => 'required|string|max:255|unique:vehicles,registration_no,' . $id,
+            'engine_no'                => 'required|string|max:255|unique:vehicles,engine_no,' . $id,
+            'model_no'                 => 'required|string|max:255',
+            'chasis_no'                => 'required|string|max:255|unique:vehicles,chasis_no,' . $id,
+            'owner_name'               => 'required|string|max:255',
+            'owner_phone'              => 'required|string|max:255',
+            'brand_name'               => 'required|string|max:255',
+            'fleet_type'               => 'required|integer|exists:fleet_types,id',
+            'insurance_policy_number'  => 'nullable|string|max:255',
+            'year_of_manufacture'      => 'nullable|integer|min:1900|max:' . (date('Y') + 1),
+            'total_seats'              => 'nullable|integer|min:1|max:100',
+            'is_vip'                   => 'nullable|boolean',
+            'amenities'                => 'nullable|array',
+            'amenities.*'              => 'exists:amenity_templates,id',
         ]);
 
         $owner = authUser();
@@ -80,19 +148,30 @@ class FleetController extends Controller
             $message           = 'Vehicle created successfully';
         }
 
-        $vehicle->fleet_type_id   = $request->fleet_type;
-        $vehicle->nick_name       = $request->nick_name;
-        $vehicle->registration_no = $request->registration_no;
-        $vehicle->engine_no       = $request->engine_no;
-        $vehicle->model_no        = $request->model_no;
-        $vehicle->chasis_no       = $request->chasis_no;
-        $vehicle->owner_name      = $request->owner_name;
-        $vehicle->owner_phone     = $request->owner_phone;
-        $vehicle->brand_name      = $request->brand_name;
+        $vehicle->fleet_type_id            = $request->fleet_type;
+        $vehicle->nick_name                = $request->nick_name;
+        $vehicle->registration_no          = $request->registration_no;
+        $vehicle->engine_no                = $request->engine_no;
+        $vehicle->model_no                 = $request->model_no;
+        $vehicle->chasis_no                = $request->chasis_no;
+        $vehicle->owner_name               = $request->owner_name;
+        $vehicle->owner_phone              = $request->owner_phone;
+        $vehicle->brand_name               = $request->brand_name;
+        $vehicle->insurance_policy_number  = $request->insurance_policy_number;
+        $vehicle->year_of_manufacture      = $request->year_of_manufacture;
+        $vehicle->total_seats              = $request->total_seats;
+        $vehicle->is_vip                   = $request->has('is_vip') ? 1 : 0;
         $vehicle->save();
 
+        // Sync amenities (only vehicle-type amenities)
+        if ($request->has('amenities')) {
+            $vehicle->amenities()->sync($request->amenities);
+        } else {
+            $vehicle->amenities()->detach();
+        }
+
         $notify[] = ['success', $message];
-        return back()->withNotify($notify);
+        return to_route('owner.vehicle.index')->withNotify($notify);
     }
 
     public function changeVehicleStatus($id)

@@ -13,7 +13,7 @@ class ReportController extends Controller
 {
     public function transaction(Request $request, $userId = null)
     {
-        $pageTitle = 'Transaction Logs';
+        $pageTitle = __('Transaction Logs');
         $remarks = Transaction::distinct('remark')->orderBy('remark')->get('remark');
         $transactions = Transaction::searchable(['trx', 'owner:username'])->filter(['trx_type', 'remark'])->dateFilter()->orderBy('id', 'desc')->with('owner');
         if ($userId) {
@@ -26,35 +26,35 @@ class ReportController extends Controller
 
     public function loginHistory(Request $request)
     {
-        $pageTitle = 'Owner Login History';
+        $pageTitle = __('Owner Login History');
         $loginLogs = OwnerLogin::orderBy('id', 'desc')->searchable(['owner:username'])->dateFilter()->with('owner')->paginate(getPaginate());
         return view('admin.reports.logins', compact('pageTitle', 'loginLogs'));
     }
 
     public function loginIpHistory($ip)
     {
-        $pageTitle = 'Login by - ' . $ip;
+        $pageTitle = __('Login by') . ' - ' . $ip;
         $loginLogs = OwnerLogin::where('owner_ip', $ip)->orderBy('id', 'desc')->with('owner')->paginate(getPaginate());
         return view('admin.reports.logins', compact('pageTitle', 'loginLogs', 'ip'));
     }
 
     public function notificationHistory(Request $request)
     {
-        $pageTitle = 'Notification History';
+        $pageTitle = __('Notification History');
         $logs = NotificationLog::orderBy('id', 'desc')->searchable(['owner:username'])->dateFilter()->with('owner')->paginate(getPaginate());
         return view('admin.reports.notification_history', compact('pageTitle', 'logs'));
     }
 
     public function emailDetails($id)
     {
-        $pageTitle = 'Email Details';
+        $pageTitle = __('Email Details');
         $email = NotificationLog::findOrFail($id);
         return view('admin.reports.email_details', compact('pageTitle', 'email'));
     }
 
     public function sales()
     {
-        $pageTitle = 'Sales History';
+        $pageTitle = __('Sales History');
         $sales = SoldPackage::searchable(['order_number', 'owner:username'])
             ->with(['owner', 'deposit'])
             ->orderByDesc('id')
@@ -65,7 +65,7 @@ class ReportController extends Controller
 
     public function b2cPerformance()
     {
-        $pageTitle = 'B2C Platform Performance';
+        $pageTitle = __('B2C Platform Performance');
         
         // Use Transaction table to aggregate commissions (charge) for B2C sales
         $commissions = Transaction::where('remark', 'b2c_ticket_sale')
@@ -82,7 +82,7 @@ class ReportController extends Controller
 
     public function tripFeedback()
     {
-        $pageTitle = 'Passenger Feedbacks';
+        $pageTitle = __('Passenger Feedbacks');
         $remarks = \App\Models\TripRating::distinct('rating')->orderBy('rating')->get('rating');
         $feedbacks = \App\Models\TripRating::with(['passenger', 'trip', 'trip.owner'])->orderBy('id', 'desc')->paginate(getPaginate());
         return view('admin.reports.feedback', compact('pageTitle', 'feedbacks', 'remarks'));
@@ -90,7 +90,7 @@ class ReportController extends Controller
 
     public function revenueLedger(Request $request)
     {
-        $pageTitle = 'Revenue Ledger (Commissions)';
+        $pageTitle = __('Revenue Ledger (Commissions)');
         $transactions = Transaction::where('remark', 'b2c_ticket_sale')
             ->searchable(['trx', 'owner:username'])
             ->dateFilter()
@@ -107,7 +107,7 @@ class ReportController extends Controller
 
     public function settlementLedger(Request $request)
     {
-        $pageTitle = 'Operator Settlement Ledger';
+        $pageTitle = __('Operator Settlement Ledger');
         $owners = \App\Models\Owner::searchable(['username', 'email'])
             ->withSum(['transactions as total_operator_earnings' => function($query) {
                 $query->where('remark', 'b2c_ticket_sale');

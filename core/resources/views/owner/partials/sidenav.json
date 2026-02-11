@@ -37,6 +37,12 @@
             }
         ]
     },
+    "bookings": {
+        "title": "Bookings",
+        "icon": "las la-ticket-alt",
+        "route_name": "owner.bookings.index",
+        "menu_active": "owner.bookings*"
+    },
     "manage_transport": {
         "title": "Operational Assets",
         "icon": "las la-bus-alt",
@@ -61,7 +67,12 @@
                 "menu_active": "owner.counter.index"
             },
             {
-                "title": "Schedules & Trips",
+                "title": "Schedule Templates",
+                "route_name": "owner.trip.schedule.index",
+                "menu_active": "owner.trip.schedule.*"
+            },
+            {
+                "title": "Trip Instances",
                 "route_name": "owner.trip.index",
                 "menu_active": "owner.trip.index"
             },

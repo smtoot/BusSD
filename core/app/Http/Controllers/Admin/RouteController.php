@@ -11,7 +11,7 @@ class RouteController extends Controller
 {
     public function index()
     {
-        $pageTitle = 'All Routes';
+        $pageTitle = __('All Routes');
         $routes = Route::query()
             ->with(['owner', 'startingPoint', 'destinationPoint'])
             ->withCount('trips')
@@ -26,7 +26,7 @@ class RouteController extends Controller
     public function show($id)
     {
         $route = Route::with(['owner', 'startingPoint', 'destinationPoint', 'trips', 'trips.owner', 'trips.schedule'])->findOrFail($id);
-        $pageTitle = 'Route Detail - ' . $route->name;
+        $pageTitle = __('Route Detail') . ' - ' . $route->name;
         
         // Fetch counter details for stoppages if stored as IDs
         $stoppageIds = $route->stoppages ?? [];
@@ -37,7 +37,7 @@ class RouteController extends Controller
 
     public function create()
     {
-        $pageTitle = 'Create New Route';
+        $pageTitle = __('Create New Route');
         $counters = Counter::active()->orderByDesc('id')->get();
         return view('admin.routes.create', compact('pageTitle', 'counters'));
     }
@@ -53,11 +53,11 @@ class RouteController extends Controller
             'stoppages' => 'nullable|array|min:1',
             'stoppages.*' => 'nullable|integer|gt:0|exists:counters,id'
         ], [
-            'stoppages.*.numeric' => 'Invalid Stoppage Field'
+            'stoppages.*.numeric' => __('Invalid Stoppage Field')
         ]);
 
         if ($request->starting_point == $request->destination_point) {
-            $notify[] = ['error', 'Starting point and destination point can\'t be the same.'];
+            $notify[] = ['error', __('Starting point and destination point can\'t be the same.')];
             return back()->withNotify($notify);
         }
 
@@ -81,13 +81,13 @@ class RouteController extends Controller
         $route->time = $request->time;
         $route->save();
 
-        $notify[] = ['success', 'Route created successfully'];
+        $notify[] = ['success', __('Route created successfully')];
         return back()->withNotify($notify);
     }
 
     public function edit($id)
     {
-        $pageTitle = 'Edit Route';
+        $pageTitle = __('Edit Route');
         $route = Route::findOrFail($id);
         $stoppagesData = $route->stoppages ?? [];
 
@@ -164,7 +164,7 @@ class RouteController extends Controller
         $route->time = $request->time;
         $route->save();
 
-        $notify[] = ['success', 'Route updated successfully'];
+        $notify[] = ['success', __('Route updated successfully')];
         return back()->withNotify($notify);
     }
 
@@ -173,7 +173,7 @@ class RouteController extends Controller
         $route = Route::findOrFail($id);
         $route->delete();
 
-        $notify[] = ['success', 'Route deleted successfully'];
+        $notify[] = ['success', __('Route deleted successfully')];
         return back()->withNotify($notify);
     }
 }

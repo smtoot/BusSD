@@ -4,12 +4,13 @@ namespace App\Models;
 
 use App\Constants\Status;
 use App\Traits\GlobalStatus;
+use App\Traits\HasPermissions;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class CoOwner extends Authenticatable
 {
-    use GlobalStatus;
+    use GlobalStatus, HasPermissions;
 
     protected $hidden = [
         'password',

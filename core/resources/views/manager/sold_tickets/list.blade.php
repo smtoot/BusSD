@@ -33,7 +33,7 @@
                                         <td>{{ __($soldTicket->trip->title) }}</td>
                                         <td>{{ $soldTicket->ticket_count }}</td>
                                         <td>
-                                            {{ @$owner->general_settings->cur_sym ?? gs('cur_sym') }}
+                                            {{ gs('cur_sym') }}
                                             {{ showAmount($soldTicket->ticket_count * $soldTicket->price, currencyFormat: false) }}
                                         </td>
                                         <td>

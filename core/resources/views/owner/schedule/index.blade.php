@@ -8,9 +8,11 @@
                         <table class="table--light style--two table custom-data-table">
                             <thead>
                                 <tr>
-                                    <th>@lang('Start From')</th>
-                                    <th>@lang('Ends At')</th>
-                                    <th>@lang('Duration')</th>
+                                    <th>@lang('Name')</th>
+                                    <th>@lang('Route')</th>
+                                    <th>@lang('Fleet Type')</th>
+                                    <th>@lang('Schedule')</th>
+                                    <th>@lang('Recurrence')</th>
                                     <th>@lang('Status')</th>
                                     <th>@lang('Action')</th>
                                 </tr>
@@ -18,28 +20,70 @@
                             <tbody>
                                 @forelse($schedules ?? [] as $schedule)
                                     <tr>
-                                        <td>{{ showDateTime($schedule->starts_from, 'h:i a') }}</td>
-                                        <td>{{ showDateTime($schedule->ends_at, 'h:i a') }}</td>
-                                        <td>{{ timeDifference($schedule->starts_from, $schedule->ends_at) }}</td>
+                                        <td>
+                                            <span class="fw-bold text--primary">{{ __($schedule->name) }}</span>
+                                            <br>
+                                            <small class="text-muted">
+                                                <i class="fas fa-layer-group me-1"></i> {{ __($schedule->trip_type) }} |
+                                                <i class="fas fa-medal me-1 ml-1"></i> {{ __($schedule->trip_category) }}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <span class="fw-bold">{{ optional($schedule->route)->name }}</span>
+                                            <br>
+                                            <small class="text-muted">
+                                                <span class="text--success">{{ optional($schedule->startingPoint)->name }}</span>
+                                                <i class="fas fa-long-arrow-alt-right mx-1"></i>
+                                                <span class="text--danger">{{ optional($schedule->destinationPoint)->name }}</span>
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge--light text--dark border">
+                                                <i class="fas fa-bus me-1"></i> {{ optional($schedule->fleetType)->name }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="text--dark fw-bold">
+                                                {{ showDateTime($schedule->starts_from, 'h:i a') }} - {{ showDateTime($schedule->ends_at, 'h:i a') }}
+                                            </div>
+                                            <small class="text-muted">
+                                                <i class="far fa-clock me-1"></i> {{ $schedule->duration_hours }}h {{ $schedule->duration_minutes }}m
+                                            </small>
+                                        </td>
+                                        <td>
+                                            @if($schedule->recurrence_type == 'daily')
+                                                <span class="badge badge--success shadow-sm">
+                                                    <i class="fas fa-redo me-1"></i> @lang('Daily')
+                                                </span>
+                                            @else
+                                                <span class="badge badge--info shadow-sm">
+                                                    <i class="fas fa-calendar-alt me-1"></i> @lang('Weekly')
+                                                </span>
+                                                <br>
+                                                <small class="text-muted fw-bold">
+                                                    @php
+                                                        $days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                                                        $selectedDays = array_map(function($d) use ($days) { return __($days[$d]); }, $schedule->recurrence_days ?? []);
+                                                        echo implode(', ', $selectedDays);
+                                                    @endphp
+                                                </small>
+                                            @endif
+                                        </td>
                                         <td>@php echo $schedule->statusBadge; @endphp</td>
                                         <td>
                                             <div class="button--group">
-                                                <button class="btn btn-sm btn-outline--primary editBtn"
-                                                    data-action="{{ route('owner.trip.schedule.store', $schedule->id) }}"
-                                                    data-title="@lang('Edit Schedule')"
-                                                    data-starts_from="{{ showDateTime($schedule->starts_from, 'H:i') }}"
-                                                    data-ends_at="{{ showDateTime($schedule->ends_at, 'H:i') }}">
+                                                <a href="{{ route('owner.trip.schedule.edit', $schedule->id) }}" class="btn btn-sm btn-outline--primary">
                                                     <i class="la la-pencil"></i> @lang('Edit')
-                                                </button>
+                                                </a>
                                                 @if ($schedule->status == Status::DISABLE)
                                                     <button class="btn btn-sm btn-outline--success confirmationBtn"
-                                                        data-question="@lang('Are you sure to enable this schedule?')"
+                                                        data-question="@lang('Are you sure to enable this schedule template?')"
                                                         data-action="{{ route('owner.trip.schedule.status', $schedule->id) }}">
                                                         <i class="la la-eye"></i>@lang('Enable')
                                                     </button>
                                                 @else
                                                     <button class="btn btn-sm btn-outline--danger confirmationBtn"
-                                                        data-question="@lang('Are you sure to disable this schedule?')"
+                                                        data-question="@lang('Are you sure to disable this schedule template?')"
                                                         data-action="{{ route('owner.trip.schedule.status', $schedule->id) }}">
                                                         <i class="la la-eye-slash"></i>@lang('Disable')
                                                     </button>
@@ -64,93 +108,11 @@
             </div>
         </div>
     </div>
-
-    <div id="scheduleModal" class="modal fade">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"></h5>
-                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                        <i class="las la-times"></i>
-                    </button>
-                </div>
-                <form method="POST">
-                    @csrf
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label>@lang('Starts From')</label>
-                            <input type="text" class="form-control clockpicker" placeholder="--:--" name="starts_from"
-                                autocomplete="off">
-                        </div>
-                        <div class="form-group">
-                            <label>@lang('Ends At')</label>
-                            <input type="text" class="form-control clockpicker" placeholder="--:--" name="ends_at"
-                                autocomplete="off">
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn--primary w-100 h-45">@lang('Submit')</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
     <x-confirmation-modal />
 @endsection
 
 @push('breadcrumb-plugins')
-    <button class="btn btn-sm btn-outline--primary addBtn" data-action="{{ route('owner.trip.schedule.store') }}"
-        data-title="@lang('Add New Schedule')">
-        <i class="fas fa-plus"></i> @lang('Add New')
-    </button>
-@endpush
-
-@push('script-lib')
-    <script src="{{ asset('assets/global/js/bootstrap-clockpicker.min.js') }}"></script>
-@endpush
-
-@push('style-lib')
-    <link rel="stylesheet" href="{{ asset('assets/global/css/bootstrap-clockpicker.min.css') }}">
-@endpush
-
-@push('script')
-    <script>
-        (function($) {
-            'use strict';
-
-            let modal = $('#scheduleModal');
-
-            $('.addBtn').on('click', function() {
-                modal.find('.modal-title').text($(this).data('title'));
-                modal.find('form').attr('action', $(this).data('action'));
-                modal.find('[name=starts_from]').val('');
-                modal.find('[name=ends_at]').val('');
-                modal.modal('show');
-            });
-
-            $('.editBtn').on('click', function() {
-                modal.find('.modal-title').text($(this).data('title'));
-                modal.find('form').attr('action', $(this).data('action'));
-                modal.find('[name=starts_from]').val($(this).data('starts_from'));
-                modal.find('[name=ends_at]').val($(this).data('ends_at'));
-                modal.modal('show');
-            });
-
-            $('.clockpicker').clockpicker({
-                placement: 'bottom',
-                align: 'left',
-                donetext: 'Done',
-                autoclose: true,
-            });
-        })(jQuery)
-    </script>
-@endpush
-
-@push('style')
-    <style>
-        .clockpicker-popover {
-            z-index: 9999 !important;
-        }
-    </style>
+    <a href="{{ route('owner.trip.schedule.create') }}" class="btn btn-sm btn-outline--primary">
+        <i class="fas fa-plus"></i> @lang('Add New Template')
+    </a>
 @endpush

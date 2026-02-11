@@ -14,10 +14,6 @@ class VehicleTicketController extends Controller
     public function index()
     {
         $owner = authUser('co-owner')->owner;
-        if (!isset($owner->general_settings->cur_sym) && (!isset($owner->general_settings->cur_text))) {
-            $notify[] = ['error', 'Please set your currency first'];
-            return back()->withNotify($notify);
-        }
         $ticketPrices = TicketPrice::where('owner_id', $owner->id)
             ->with(['route', 'fleetType'])
             ->whereHas('fleetType')

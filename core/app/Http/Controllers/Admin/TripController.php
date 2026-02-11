@@ -11,7 +11,7 @@ class TripController extends Controller
 {
     public function index()
     {
-        $pageTitle = 'All Trips';
+        $pageTitle = __('All Trips');
         $trips = Trip::query()
             ->with(['owner', 'route', 'schedule', 'fleetType'])
             ->searchable(['title'])
@@ -26,7 +26,7 @@ class TripController extends Controller
     public function show($id)
     {
         $trip = Trip::with(['owner', 'route', 'schedule', 'fleetType', 'vehicle', 'startingPoint', 'destinationPoint'])->findOrFail($id);
-        $pageTitle = 'Trip Detail - ' . $trip->title;
+        $pageTitle = __('Trip Detail') . ' - ' . $trip->title;
         return view('admin.trips.show', compact('pageTitle', 'trip'));
     }
 
@@ -46,14 +46,14 @@ class TripController extends Controller
 
         $callback = function() use ($trips) {
             $file = fopen('php://output', 'w');
-            fputcsv($file, ['ID', 'Title', 'Owner', 'Route', 'Status']);
+            fputcsv($file, [__('ID'), __('Title'), __('Owner'), __('Route'), __('Status')]);
             foreach ($trips as $trip) {
                 fputcsv($file, [
                     $trip->id,
                     $trip->title,
                     @$trip->owner->username,
                     @$trip->route->name,
-                    $trip->status ? 'Active' : 'Inactive'
+                    $trip->status ? __('Active') : __('Inactive')
                 ]);
             }
             fclose($file);

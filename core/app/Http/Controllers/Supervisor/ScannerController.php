@@ -21,7 +21,8 @@ class ScannerController extends Controller
             'pnr' => 'required|string'
         ]);
 
-        $ticket = BookedTicket::where('pnr', $request->pnr) // Assuming PNR is the unique identifier, or ID. But BookTicket has no PNR column by default? Let's check BookedTicket Structure. 
+        $owner = authUser('supervisor')->owner;
+        $ticket = $owner->bookedTickets()->where('pnr', $request->pnr) // Assuming PNR is the unique identifier, or ID. But BookTicket has no PNR column by default? Let's check BookedTicket Structure. 
                                // Actually, in many systems 'PNR' is just the ID or a specific column. 
                                // Let's check the BookedTicket model or schema again. I recall BookedTicket often uses ID or a PNR field. 
                                // Wait, checking BookedTicket model earlier (step 1759) didn't show PNR in fillable/casts, but didn't show columns.
@@ -42,7 +43,7 @@ class ScannerController extends Controller
         // I will assume the input is the Ticket ID (which is the PNR in simple systems).
         
         if(!$ticket){
-             $ticket = BookedTicket::find($request->pnr);
+             $ticket = $owner->bookedTickets()->find($request->pnr);
         }
 
         if (!$ticket) {
@@ -61,14 +62,16 @@ class ScannerController extends Controller
     
     public function result($id)
     {
-        $ticket = BookedTicket::with(['trip', 'passenger', 'trip.route', 'trip.schedule'])->findOrFail($id);
+        $owner = authUser('supervisor')->owner;
+        $ticket = $owner->bookedTickets()->with(['trip', 'passenger', 'trip.route', 'trip.schedule'])->findOrFail($id);
         $pageTitle = 'Ticket Details';
         return view('supervisor.scanner.result', compact('ticket', 'pageTitle'));
     }
 
     public function board(Request $request, $id)
     {
-        $ticket = BookedTicket::findOrFail($id);
+        $owner = authUser('supervisor')->owner;
+        $ticket = $owner->bookedTickets()->findOrFail($id);
         if ($ticket->is_boarded) {
              $notify[] = ['info', 'Passenger already boarded.'];
              return back()->withNotify($notify);

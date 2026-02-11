@@ -41,8 +41,8 @@ class ManagerController extends Controller
         $routes   = $owner->routes()->active()
             ->searchable(['name'])
             ->whereJsonContains('stoppages', $sdArray)
-            ->with(['ticketPrice', 'ticketPrice.prices', 'trips' => function ($trip) use ($dayOff) {
-                return $trip->where('status', 1)->whereJsonDoesntContain('day_off', $dayOff);
+            ->with(['ticketPrice', 'ticketPrice.prices', 'trips' => function ($trip) use ($request) {
+                return $trip->where('status', 1)->whereDate('date', Carbon::parse($request->date_of_journey));
             }, 'trips.schedule', 'trips.bookedTickets' => function ($q) use ($request) {
                 return $q->where('date_of_journey', $request->date_of_journey);
             }])
@@ -165,12 +165,7 @@ class ManagerController extends Controller
         $owner = authUser('manager')->owner;
         $trip = $owner->trips()->findOrFail($id);
 
-        if (!empty($trip->day_off)) {
-            if (in_array($dayOff, $trip->day_off)) {
-                $notify[] = ['error', 'The trip is not available for ' . $dateOfJourney->format('l')];
-                return back()->withNotify($notify);
-            }
-        }
+
 
         $trip = Trip::find($id);
         $route = $trip->route;
@@ -338,6 +333,7 @@ class ManagerController extends Controller
         $soldTickets = $owner->bookedTickets()
             ->searchable(['id'])
             ->with('trip', 'trip.route', 'counterManager')
+            ->where('counter_manager_id', $manager->id)
             ->whereDate('created_at', Carbon::today())
             ->orderByDesc('id')
             ->paginate(getPaginate());
@@ -381,6 +377,7 @@ class ManagerController extends Controller
             ->searchable(['id'])
             ->filter(['trip:route_id', 'trip_id', 'date_of_journey'])
             ->with('trip', 'trip.route', 'counterManager')
+            ->where('counter_manager_id', $manager->id)
             ->orderByDesc('id');
 
         if (request()->created_at) {
@@ -403,6 +400,7 @@ class ManagerController extends Controller
         $soldTickets = $owner->canceledTickets()
             ->searchable(['id'])
             ->with('trip', 'trip.route', 'counterManager')
+            ->where('counter_manager_id', $manager->id)
             ->orderByDesc('id')
             ->paginate(getPaginate());
 

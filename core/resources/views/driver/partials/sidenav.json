@@ -5,6 +5,7 @@
         ],
         "title": "Trips",
         "icon": "la la-bus",
+        "permission": "trip_management",
         "route_name": "driver.trips",
         "menu_active": "driver.trips"
     }

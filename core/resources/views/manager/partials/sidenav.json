@@ -3,8 +3,8 @@
         "keyword": [
             "booked ticket"
         ],
-        "title": "Booked Ticket",
-        "icon": "la la-ticket",
+        "title": "Daily Report",
+        "icon": "la la-home",
         "route_name": "manager.dashboard",
         "menu_active": "manager.dashboard"
     },
@@ -13,8 +13,9 @@
             "manage trips",
             "trips"
         ],
-        "title": "Trips",
-        "icon": "la la-radiation-alt",
+        "title": "Manage Trips",
+        "icon": "la la-bus",
+        "permission": "trip_management",
         "route_name": "manager.trip.index",
         "menu_active": "manager.trip*"
     },
@@ -22,14 +23,16 @@
         "keyword": [
             "statistics"
         ],
-        "title": "Statistics",
+        "title": "Sales History",
         "icon": "la la-chart-bar",
+        "permission": "sales_reports",
         "route_name": "manager.statistics",
         "menu_active": "manager.statistics"
     },
     "sold_tickets": {
-        "title": "Sold Tickets",
+        "title": "Daily Sales",
         "icon": "la la-money-bill-wave",
+        "permission": "sales_reports",
         "menu_active": [
             "manager.sold.tickets*"
         ],
@@ -40,7 +43,7 @@
                     "todays tickets",
                     "todays sold tickets"
                 ],
-                "title": "Today's",
+                "title": "Today",
                 "route_name": "manager.sold.tickets.todays",
                 "menu_active": "manager.sold.tickets.todays"
             },
@@ -50,7 +53,7 @@
                     "all time tickets",
                     "all time sold tickets"
                 ],
-                "title": "All Time",
+                "title": "Archive",
                 "route_name": "manager.sold.tickets.all",
                 "menu_active": "manager.sold.tickets.all"
             },

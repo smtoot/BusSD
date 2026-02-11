@@ -29,6 +29,7 @@
     "staff": {
         "title": "Manage Staff",
         "icon": "la la-users-cog",
+        "permission": "staff_management",
         "menu_active": [
             "co-owner.driver*",
             "co-owner.supervisor*",
@@ -36,13 +37,21 @@
         ],
         "submenu": [
             {
-                "keyword": ["supervisor", "manage staff", "manage supervisors"],
+                "keyword": [
+                    "supervisor",
+                    "manage staff",
+                    "manage supervisors"
+                ],
                 "title": "Supervisors",
                 "route_name": "co-owner.supervisor.index",
                 "menu_active": "co-owner.supervisor*"
             },
             {
-                "keyword": ["driver", "manage staff", "manage driver"],
+                "keyword": [
+                    "driver",
+                    "manage staff",
+                    "manage driver"
+                ],
                 "title": "Drivers",
                 "route_name": "co-owner.driver.index",
                 "menu_active": "co-owner.driver*"
@@ -61,9 +70,13 @@
         ]
     },
     "manage_transport": {
-        "keyword": ["transport", "manage transport"],
+        "keyword": [
+            "transport",
+            "manage transport"
+        ],
         "title": "Manage Transport",
         "icon": "las la-bus-alt",
+        "permission": "trip_management",
         "route_name": "co-owner.manage.transport",
         "menu_active": [
             "co-owner.manage.transport",
@@ -75,9 +88,13 @@
         ]
     },
     "sales_report": {
-        "keyword": ["sales report", "sales log"],
+        "keyword": [
+            "sales report",
+            "sales log"
+        ],
         "title": "Sales Report",
         "icon": "las la-chart-bar",
+        "permission": "sales_reports",
         "route_name": "co-owner.report.sale.index",
         "menu_active": "co-owner.report.sale*"
     }

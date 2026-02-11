@@ -20,10 +20,6 @@ class BusTicketController extends Controller
 
     public function prices()
     {
-        if (!isset($this->co_owner->owner->general_settings->currency_symbol) && (!isset($this->co_owner->owner->general_settings->currency_symbol))) {
-            $notify[] = ['error', 'Please Set Your Currency Settings From General Setting'];
-            return back()->withNotify($notify);
-        }
         $page_title     = 'All Ticket Price List';
         $empty_message  = 'No Ticket Price Found';
         $ticket_prices  = $this->co_owner->owner->ticketPrices()

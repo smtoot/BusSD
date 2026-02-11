@@ -11,16 +11,6 @@
                             <input class="form-control" type="text" name="company_name" required
                                 value="{{ @$owner->general_settings->company_name }}">
                         </div>
-                        <div class="form-group ">
-                            <label>@lang('Currency')</label>
-                            <input class="form-control" type="text" name="cur_text" required
-                                value="{{ @$owner->general_settings->cur_text }}">
-                        </div>
-                        <div class="form-group ">
-                            <label>@lang('Currency Symbol')</label>
-                            <input class="form-control" type="text" name="cur_sym" required
-                                value="{{ @$owner->general_settings->cur_sym }}">
-                        </div>
                         <button type="submit" class="btn btn--primary h-45 w-100">@lang('Submit')</button>
                     </form>
                 </div>

@@ -81,7 +81,7 @@
 
 @push('breadcrumb-plugins')
     <div class="d-flex flex-wrap justify-content-end gap-2 align-items-center">
-        <x-search-form placeholder="Trip Name" />
+        <x-search-form placeholder="{{ __('Trip Name') }}" />
         
         <form action="" method="GET" class="form-inline">
             <div class="input-group">

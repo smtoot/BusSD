@@ -3,12 +3,13 @@
 namespace App\Models;
 
 use App\Traits\GlobalStatus;
+use App\Traits\HasPermissions;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class Supervisor extends Authenticatable
 {
-    use GlobalStatus;
+    use GlobalStatus, HasPermissions;
 
     protected $hidden = [
         'password',

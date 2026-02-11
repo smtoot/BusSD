@@ -23,7 +23,7 @@
                                             {{ __($counter->name) }}
                                         </td>
                                         <td>{{ __($counter->city) }}</td>
-                                        <td>{{ @$counter->counterManager->fullname ?? 'N/A' }}</td>
+                                        <td>{{ @$counter->counterManager->fullname ?? __('N/A') }}</td>
                                         <td>{{ $counter->mobile }}</td>
                                         <td>@php echo $counter->statusBadge; @endphp</td>
                                         <td>
@@ -118,7 +118,7 @@
 
 @push('breadcrumb-plugins')
     <x-search-form />
-    <button class="btn btn-sm btn-outline--primary addBtn" data-action="{{ route('owner.counter.store') }}"
+    <button class="btn btn-sm btn--success addBtn" data-action="{{ route('owner.counter.store') }}"
         data-title="@lang('Add New Counter')">
         <i class="las la-plus"></i>@lang('Add New')
     </button>

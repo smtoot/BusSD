@@ -124,6 +124,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'demo'                  => Demo::class,
             'registration.complete' => RegistrationStep::class,
             'maintenance'           => MaintenanceMode::class,
+            'checkPermission'       => \App\Http\Middleware\CheckPermission::class,
         ]);
 
         $middleware->validateCsrfTokens(

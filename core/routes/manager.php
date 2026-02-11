@@ -34,17 +34,29 @@ Route::middleware('manager')->namespace('Manager')->group(function () {
     });
 
     Route::middleware(['check.plan:manager'])->group(function () {
-        Route::controller('ManagerController')->group(function(){
-            Route::get('trips', 'trips')->name('trip.index');
-            Route::get('sell/ticket/book/{ticketPriceId}/{id}', 'book')->name('sell.book');
-            Route::get('sellbydate/ticket/book/{id}', 'bookByDate')->name('sell.book.bydate');
-            Route::post('sell/ticket/book/{id}', 'booked')->name('sell.book.booked');
-            Route::get('sell/ticket/print/{id}', 'ticketPrint')->name('sell.ticket.print');
-            Route::get('trip/ticket/get-ticket-price', 'getTicketPrice')->name('ticket.get-price');
-            Route::get('sold-tickets/todays', 'todaysSold')->name('sold.tickets.todays');
-            Route::get('sold-tickets/alltime', 'allSold')->name('sold.tickets.all');
-            Route::get('sold-tickets/canceled', 'cancelledSold')->name('sold.tickets.canceled');
-            Route::post('sold-tickets/cancel/{id}', 'cancelSold')->name('sold.tickets.cancel');
+        Route::middleware('checkPermission:booking_management')->group(function () {
+            Route::controller('ManagerController')->group(function () {
+                Route::get('sell/ticket/book/{ticketPriceId}/{id}', 'book')->name('sell.book');
+                Route::get('sellbydate/ticket/book/{id}', 'bookByDate')->name('sell.book.bydate');
+                Route::post('sell/ticket/book/{id}', 'booked')->name('sell.book.booked');
+                Route::get('sell/ticket/print/{id}', 'ticketPrint')->name('sell.ticket.print');
+                Route::get('trip/ticket/get-ticket-price', 'getTicketPrice')->name('ticket.get-price');
+            });
+        });
+
+        Route::middleware('checkPermission:trip_management')->group(function () {
+            Route::controller('ManagerController')->group(function () {
+                Route::get('trips', 'trips')->name('trip.index');
+            });
+        });
+
+        Route::middleware('checkPermission:sales_reports')->group(function () {
+            Route::controller('ManagerController')->group(function () {
+                Route::get('sold-tickets/todays', 'todaysSold')->name('sold.tickets.todays');
+                Route::get('sold-tickets/alltime', 'allSold')->name('sold.tickets.all');
+                Route::get('sold-tickets/canceled', 'cancelledSold')->name('sold.tickets.canceled');
+                Route::post('sold-tickets/cancel/{id}', 'cancelSold')->name('sold.tickets.cancel');
+            });
         });
     });
 });

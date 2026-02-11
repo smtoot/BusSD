@@ -33,7 +33,7 @@ class SupervisorController extends Controller
     public function viewTrips($id)
     {
         $supervisor = authUser('supervisor');
-        $trip = Trip::with(['route', 'fleetType', 'schedule', 'bookedTickets' => function ($q) {
+        $trip = $supervisor->owner->trips()->with(['route', 'fleetType', 'schedule', 'bookedTickets' => function ($q) {
             return $q->where('date_of_journey', Carbon::now()->format('Y-m-d'))->with('passenger');
         }])->findOrFail($id);
 

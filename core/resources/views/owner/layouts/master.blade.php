@@ -20,6 +20,7 @@
 
     <link rel="stylesheet" href="{{ asset('assets/global/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/admin/css/app.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/manager_custom.css') }}">
     @if(isRTL())
         <link rel="stylesheet" href="{{ asset('assets/admin/css/rtl.css') }}">
     @endif

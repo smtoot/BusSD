@@ -14,6 +14,7 @@
                                     <th>@lang('Trip')</th>
                                     <th>@lang('Passenger/Counter')</th>
                                     <th>@lang('Amount')</th>
+                                    <th>@lang('Boarding')</th>
                                     <th>@lang('Status')</th>
                                     <th>@lang('Action')</th>
                                 </tr>
@@ -49,6 +50,15 @@
                                         </td>
                                         <td>
                                             <span class="fw-bold">{{ showAmount($booking->price) }}</span>
+                                        </td>
+                                        <td>
+                                            @if($booking->is_boarded)
+                                                <span class="badge badge--success">@lang('Boarded')</span>
+                                                <br>
+                                                <small class="text-muted">{{ showDateTime($booking->boarded_at, 'h:i A') }}</small>
+                                            @else
+                                                <span class="badge badge--dark">@lang('Not Boarded')</span>
+                                            @endif
                                         </td>
                                         <td>
                                             @if($booking->status == 1)
@@ -87,7 +97,7 @@
 
 @push('breadcrumb-plugins')
     <div class="d-flex flex-wrap justify-content-end gap-2 align-items-center">
-        <x-search-form placeholder="PNR / Email / Username" />
+        <x-search-form placeholder="{{ __('PNR / Email / Username') }}" />
         <a href="{{ route('admin.bookings.export') }}" class="btn btn-outline--primary"><i class="las la-download"></i> @lang('Export')</a>
     </div>
 @endpush

@@ -11,21 +11,21 @@ class BookingController extends Controller
 {
     public function index()
     {
-        $pageTitle = 'All Bookings';
+        $pageTitle = __('All Bookings');
         $bookings = $this->bookingData();
         return view('admin.bookings.index', compact('pageTitle', 'bookings'));
     }
 
     public function b2cBookings()
     {
-        $pageTitle = 'B2C Bookings';
+        $pageTitle = __('B2C Bookings');
         $bookings = $this->bookingData('b2c');
         return view('admin.bookings.index', compact('pageTitle', 'bookings'));
     }
 
     public function counterBookings()
     {
-        $pageTitle = 'Counter Bookings';
+        $pageTitle = __('Counter Bookings');
         $bookings = $this->bookingData('counter');
         return view('admin.bookings.index', compact('pageTitle', 'bookings'));
     }
@@ -49,7 +49,7 @@ class BookingController extends Controller
     public function show($id)
     {
         $booking = BookedTicket::with(['owner', 'trip', 'trip.route', 'trip.fleetType', 'passenger', 'counterManager', 'counterManager.counter'])->findOrFail($id);
-        $pageTitle = 'Booking Detail - ' . $booking->trx;
+        $pageTitle = __('Booking Detail') . ' - ' . $booking->trx;
         return view('admin.bookings.show', compact('pageTitle', 'booking'));
     }
 
@@ -64,7 +64,7 @@ class BookingController extends Controller
 
         $callback = function() use ($bookings) {
             $file = fopen('php://output', 'w');
-            fputcsv($file, ['PNR', 'Operator', 'Trip', 'Passenger/Counter', 'Seats', 'Amount', 'Date', 'Status']);
+            fputcsv($file, [__('PNR'), __('Operator'), __('Trip'), __('Passenger/Counter'), __('Seats'), __('Amount'), __('Date'), __('Status')]);
             foreach ($bookings as $booking) {
                 $user = $booking->passenger ? ($booking->passenger->firstname . ' ' . $booking->passenger->lastname) : (@$booking->counterManager->fullname . ' (Counter)');
                 fputcsv($file, [
@@ -75,7 +75,7 @@ class BookingController extends Controller
                     is_array($booking->seats) ? implode(', ', $booking->seats) : $booking->seats,
                     $booking->price,
                     $booking->created_at,
-                    $booking->status == 1 ? 'Confirmed' : ($booking->status == 3 ? 'Cancelled' : 'Pending')
+                    $booking->status == 1 ? __('Confirmed') : ($booking->status == 3 ? __('Cancelled') : __('Pending'))
                 ]);
             }
             fclose($file);

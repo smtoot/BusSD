@@ -63,7 +63,7 @@
 
 @push('breadcrumb-plugins')
     <div class="d-flex flex-wrap justify-content-end gap-2 align-items-center">
-        <x-search-form placeholder="Nick Name / Reg No" />
+        <x-search-form placeholder="{{ __('Nick Name / Reg No') }}" />
         <a href="{{ route('admin.fleet.export') }}" class="btn btn-outline--primary"><i class="las la-download"></i> @lang('Export')</a>
     </div>
 @endpush

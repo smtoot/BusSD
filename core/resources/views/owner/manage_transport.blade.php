@@ -31,7 +31,7 @@
                             }
                         @endphp
                         <x-widget style="2" link="{{ route($item->route_name, $params) }}" icon="{{ $item->icon }}"
-                            heading="{{ $item->title }}" subheading="{{ $item->subtitle }}" cover_cursor=1
+                            heading="{{ __($item->title) }}" subheading="{{ __($item->subtitle) }}" cover_cursor=1
                             icon_style="fill" color="primary" />
                     </div>
                 @endforeach

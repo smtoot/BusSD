@@ -11,34 +11,40 @@
                         <input type="hidden" name="price" />
                         <input type="hidden" name="seat_number" />
 
-                        <h5 class=" text-center">@lang('Passenger Details')</h5>
+                        <h4 class="text-center mb-4">@lang('Passenger Details')</h4>
 
-                        <div class="form-group">
-                            <label>@lang('Date of Journey')</label>
-                            <input name="date_of_journey" type="text" class="form-control" required>
+                        <div class="form-group mb-4">
+                            <label class="h5">@lang('Date of Journey')</label>
+                            <input name="date_of_journey" type="text" class="form-control form-control-lg" required>
                         </div>
-                        <div class="form-group">
-                            <label>@lang('Pickup Point')</label>
-                            <select class="select2 form-control" name="pick_up_point" required>
-                                <option selected value="">@lang('Select One')</option>
-                                @foreach ($stoppages as $item)
-                                    <option value="{{ $item->id }}">{{ $item->name }}</option>
-                                @endforeach
-                            </select>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-4">
+                                    <label class="h5">@lang('Pickup Point')</label>
+                                    <select class="select2 form-control form-control-lg" name="pick_up_point" required>
+                                        <option selected value="">@lang('Select One')</option>
+                                        @foreach ($stoppages as $item)
+                                            <option value="{{ $item->id }}">{{ $item->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-4">
+                                    <label class="h5">@lang('Dropping Point')</label>
+                                    <select class="select2 form-control form-control-lg" name="dropping_point" required>
+                                        <option selected value="">@lang('Select One')</option>
+                                        @foreach ($stoppages as $item)
+                                            <option value="{{ $item->id }}">{{ $item->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>@lang('Dropping Point')</label>
-                            <select class="select2 form-control" name="dropping_point" required>
-                                <option selected value="">@lang('Select One')</option>
-                                @foreach ($stoppages as $item)
-                                    <option value="{{ $item->id }}">{{ $item->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="booked-seat-details my-3 d-none">
-                            <label>@lang('Selected Seats')</label>
-                            <ul class="list-group seat-details-animate">
-                                <li class="list-group-item bg--primary">@lang('Seat Details')</li>
+                        <div class="booked-seat-details my-4 d-none">
+                            <label class="h5">@lang('Selected Seats')</label>
+                            <ul class="list-group seat-details-animate shadow-sm">
+                                <li class="list-group-item bg--primary h6">@lang('Seat Details')</li>
                             </ul>
                         </div>
                         <div class="form-group">
@@ -198,7 +204,7 @@
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     {{ $stoppages[0]->name }} - {{ $stoppages[1]->name }}
                                     <span class="font-weight-bolder">
-                                        {{ showAmount($item->price, currencyFormat: false) }}{{ @$owner->general_settings->cur_sym ?? gs('cur_sym') }}
+                                        {{ showAmount($item->price, currencyFormat: false) }}{{ gs('cur_sym') }}
                                     </span>
                                 </li>
                             @endif
@@ -252,30 +258,30 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <h5 class="text--info mb-2">@lang('Check off days before booking')</h5>
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item d-flex justify-content-between">
-                            @lang('Step 1') <span>@lang('Select date of journey')</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between">
-                            @lang('Step 2') <span>@lang('Select pickup point')</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between">
-                            @lang('Step 3') <span>@lang('Select dropping point')</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between">
-                            @lang('Step 4') <span>@lang('Select one or more seats')</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between">
-                            @lang('Step 5') <span>@lang('Fill up passenger\'s details')</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between">
-                            @lang('Step 6') <span>@lang('Click or tap on book button')</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between">
-                            @lang('Step 7') <span> <i class="la la-print"></i> @lang('Ticket')</span>
-                        </li>
-                    </ul>
+                    <h5 class="text--info text-center mb-4">@lang('Check off days before booking')</h5>
+                    <div class="row text-center gy-4">
+                        <div class="col-4">
+                            <div class="p-2 border rounded bg-light">
+                                <p class="small text-muted mb-1">@lang('Step 1')</p>
+                                <p class="fw-bold mb-0">@lang('Date')</p>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-2 border rounded bg-light">
+                                <p class="small text-muted mb-1">@lang('Step 2')</p>
+                                <p class="fw-bold mb-0">@lang('Route')</p>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-2 border rounded bg-light">
+                                <p class="small text-muted mb-1">@lang('Step 3')</p>
+                                <p class="fw-bold mb-0">@lang('Seats')</p>
+                            </div>
+                        </div>
+                        <div class="col-12 mt-3">
+                            <p class="mb-0 text-primary fw-bold">@lang('Fill passenger info & Click Book!')</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -12,7 +12,7 @@ class PassengerController extends Controller
 {
     public function index()
     {
-        $pageTitle = "Manage Passengers";
+        $pageTitle = __("Manage Passengers");
 
         $passengers = Passenger::query()
             ->withCount(['bookedTickets as total_bookings' => function($q) {
@@ -64,7 +64,7 @@ class PassengerController extends Controller
 
     public function show($id)
     {
-        $pageTitle = "Passenger Details";
+        $pageTitle = __("Passenger Details");
         $passenger = Passenger::with(['bookedTickets' => function($q) {
             $q->with('trip', 'trip.route')->orderByDesc('id');
         }])->findOrFail($id);
@@ -94,7 +94,7 @@ class PassengerController extends Controller
         $passenger->status = 0;
         $passenger->save();
 
-        $notify[] = ['success', 'Passenger banned successfully'];
+        $notify[] = ['success', __('Passenger banned successfully')];
         return back()->withNotify($notify);
     }
 
@@ -104,7 +104,7 @@ class PassengerController extends Controller
         $passenger->status = 1;
         $passenger->save();
 
-        $notify[] = ['success', 'Passenger unbanned successfully'];
+        $notify[] = ['success', __('Passenger unbanned successfully')];
         return back()->withNotify($notify);
     }
 
@@ -144,14 +144,14 @@ class PassengerController extends Controller
 
             // Add header row
             fputcsv($file, [
-                'ID',
-                'Name',
-                'Email',
-                'Mobile',
-                'Total Bookings',
-                'Total Spent',
-                'Status',
-                'Registered Date'
+                __('ID'),
+                __('Name'),
+                __('Email'),
+                __('Mobile'),
+                __('Total Bookings'),
+                __('Total Spent'),
+                __('Status'),
+                __('Registered Date')
             ]);
 
             // Add data rows
@@ -163,7 +163,7 @@ class PassengerController extends Controller
                     $passenger->mobile,
                     $passenger->total_bookings ?? 0,
                     number_format($passenger->total_spent ?? 0, 2),
-                    $passenger->status ? 'Active' : 'Banned',
+                    $passenger->status ? __('Active') : __('Banned'),
                     $passenger->created_at->format('Y-m-d'),
                 ]);
             }

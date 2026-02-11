@@ -83,7 +83,7 @@
                             @endif
                             @if(request('status'))
                                 <span class="badge badge--warning me-1">
-                                    <i class="las la-check-circle"></i> {{ request('status') == '1' ? 'Confirmed' : 'Cancelled' }}
+                                    <i class="las la-check-circle"></i> {{ request('status') == '1' ? __('Confirmed') : __('Cancelled') }}
                                     <a href="{{ route('owner.report.sale.b2c', array_diff_key(request()->all(), ['status' => ''])) }}" class="text-white ms-1">×</a>
                                 </span>
                             @endif
@@ -194,12 +194,26 @@
 (function ($) {
     "use strict";
 
+    // Define Arabic language for datepicker if not exists
+    $.fn.datepicker.language['ar'] = {
+        days: ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'],
+        daysShort: ['أحد', 'اثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'],
+        daysMin: ['ح', 'ن', 'ث', 'ر', 'خ', 'ج', 'س'],
+        months: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'],
+        monthsShort: ['ينا', 'فبر', 'مار', 'أبر', 'ماي', 'يون', 'يول', 'أغس', 'سبت', 'أكت', 'نوف', 'ديس'],
+        today: 'اليوم',
+        clear: 'مسح',
+        dateFormat: 'yyyy-mm-dd',
+        timeFormat: 'hh:ii aa',
+        firstDay: 6
+    };
+
     // Initialize date range picker
     if ($('.date-range').length) {
         $('.date-range').datepicker({
             range: true,
             multipleDatesSeparator: " - ",
-            language: 'en',
+            language: '{{ app()->getLocale() == "ar" ? "ar" : "en" }}',
             dateFormat: 'yyyy-mm-dd',
             autoClose: false
         });

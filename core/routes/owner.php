@@ -150,17 +150,31 @@ Route::middleware('owner')->name('owner.')->group(function () {
 
                 route::prefix('vehicle')->name('vehicle.')->group(function () {
                     Route::get('', 'vehicle')->name('index');
+                    Route::get('create', 'vehicleCreate')->name('create');
+                    Route::get('edit/{id}', 'vehicleEdit')->name('edit');
                     Route::post('store/{id?}', 'vehicleStore')->name('store');
                     Route::post('status/{id}', 'changeVehicleStatus')->name('status');
                 });
             });
-
+            
+            //Bookings Manage
+            Route::controller('BookingController')->prefix('bookings')->name('bookings.')->group(function () {
+                Route::get('', 'index')->name('index');
+                Route::get('manage/{id}', 'manage')->name('manage');
+                Route::post('check-in/{id}', 'checkin')->name('checkin');
+            });
+            
             //Trip Manage
             Route::controller('TripController')->prefix('trip')->name('trip.')->group(function () {
                 Route::get('', 'index')->name('index');
                 Route::get('form/{id?}', 'form')->name('form');
                 Route::post('store/{id?}', 'store')->name('store');
                 Route::post('status/{id}', 'changeTripStatus')->name('status');
+
+                // New API endpoints for redBus features
+                Route::get('pricing-preview', 'getPricingPreview')->name('pricing.preview');
+                Route::get('available-vehicles', 'getAvailableVehicles')->name('available.vehicles');
+                Route::get('show/{id}', 'show')->name('show');
 
             //Trip Manage - Routes
             Route::prefix('route')->name('route.')->group(function () {
@@ -185,8 +199,10 @@ Route::middleware('owner')->name('owner.')->group(function () {
             });
 
             //Trip Manage - Schedules
-            Route::controller('ScheduleController')->prefix('trip/schedules')->name('trip.schedule.')->group(function () {
+            Route::controller('ScheduleController')->prefix('trip-schedules')->name('trip.schedule.')->group(function () {
                 Route::get('', 'index')->name('index');
+                Route::get('create', 'create')->name('create');
+                Route::get('edit/{id}', 'edit')->name('edit');
                 Route::post('store/{id?}', 'store')->name('store');
                 Route::post('status/{id}', 'changeStatus')->name('status');
             });

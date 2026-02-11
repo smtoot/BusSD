@@ -14,10 +14,6 @@ class VehicleTicketController extends Controller
     public function index()
     {
         $owner = authUser();
-        if (!isset($owner->general_settings->cur_sym) && (!isset($owner->general_settings->cur_text))) {
-            $notify[] = ['error', 'Please set your currency first'];
-            return back()->withNotify($notify);
-        }
         $ticketPrices = TicketPrice::where('owner_id', $owner->id)
             ->with(['route', 'fleetType'])
             ->whereHas('fleetType')
@@ -118,10 +114,19 @@ class VehicleTicketController extends Controller
             ->where('fleet_type_id', $request->fleet_type_id)
             ->first();
         if (!$ticketPrice) {
+            // Get route and its stoppages for inline pricing
+            $route = Route::where('owner_id', $owner->id)->active()->findOrFail($request->route_id);
+            $stoppages = array_values($route->stoppages);
+            $stoppageCombinations = stoppageCombination($stoppages, 2);
+            
             return response()->json([
-                'error' => 'Ticket price not added for this fleet-route combination yet. Please add ticket price before creating a trip.'
+                'needs_pricing' => true,
+                'route' => $route,
+                'stoppages' => $stoppageCombinations
             ]);
         }
+        
+        return response()->json(['success' => true]);
     }
 
     public function getRouteData(Request $request)

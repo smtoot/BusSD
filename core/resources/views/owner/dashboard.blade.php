@@ -243,15 +243,15 @@
             startDate: start,
             endDate: end,
             ranges: {
-                'Today': [moment(), moment()],
-                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                'Last 15 Days': [moment().subtract(14, 'days'), moment()],
-                'Last 30 Days': [moment().subtract(30, 'days'), moment()],
-                'This Month': [moment().startOf('month'), moment().endOf('month')],
-                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
-                'Last 6 Months': [moment().subtract(6, 'months').startOf('month'), moment().endOf('month')],
-                'This Year': [moment().startOf('year'), moment().endOf('year')],
+                '{{ __("Today") }}': [moment(), moment()],
+                '{{ __("Yesterday") }}': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                '{{ __("Last 7 Days") }}': [moment().subtract(6, 'days'), moment()],
+                '{{ __("Last 15 Days") }}': [moment().subtract(14, 'days'), moment()],
+                '{{ __("Last 30 Days") }}': [moment().subtract(30, 'days'), moment()],
+                '{{ __("This Month") }}': [moment().startOf('month'), moment().endOf('month')],
+                '{{ __("Last Month") }}': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+                '{{ __("Last 6 Months") }}': [moment().subtract(6, 'months').startOf('month'), moment().endOf('month')],
+                '{{ __("This Year") }}': [moment().startOf('year'), moment().endOf('year')],
             },
             maxDate: moment()
         }
@@ -274,8 +274,8 @@
             },
             colors: ['#ef5050', '#1f2937'],
             series: [
-                { name: 'B2C (App)', data: [] },
-                { name: 'Counter', data: [] }
+                { name: '{{ __("B2C (App)") }}', data: [] },
+                { name: '{{ __("Counter") }}', data: [] }
             ],
             xaxis: {
                 categories: [],

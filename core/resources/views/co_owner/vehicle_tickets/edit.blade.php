@@ -24,7 +24,7 @@
                                             </label>
                                             <div class="input-group mb-3">
                                                 <span class="input-group-text">
-                                                    {{ $owner->general_settings->cur_sym }}
+                                                    {{ gs('cur_sym') }}
                                                 </span>
                                                 <input type="number" name="price" id="point-{{ $loop->iteration }}"
                                                     class="form-control prices-auto"
@@ -40,7 +40,7 @@
                                             </label>
                                             <div class="input-group mb-3">
                                                 <span class="input-group-text">
-                                                    {{ $owner->general_settings->cur_sym }}
+                                                    {{ gs('cur_sym') }}
                                                 </span>
                                                 <input type="number" name="price" id="point-{{ $loop->iteration }}"
                                                     class="form-control prices-auto" value="{{ getAmount($item->price) }}"

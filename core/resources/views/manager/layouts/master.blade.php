@@ -1,6 +1,6 @@
 <!-- meta tags and other links -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ config('app.locale') }}" @if(config('app.locale') == 'ar') dir="rtl" @endif>
 
 <head>
     <meta charset="UTF-8">
@@ -8,7 +8,7 @@
     <title>{{ gs()->siteName($pageTitle ?? '') }}</title>
 
     <link rel="shortcut icon" type="image/png" href="{{ siteFavicon() }}">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('assets/global/css/bootstrap.min.css') }}">
 
     <link rel="stylesheet" href="{{ asset('assets/admin/css/vendor/bootstrap-toggle.min.css') }}">
@@ -19,6 +19,7 @@
 
     <link rel="stylesheet" href="{{ asset('assets/global/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/admin/css/app.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/manager_custom.css') }}">
 
     @stack('style')
 </head>

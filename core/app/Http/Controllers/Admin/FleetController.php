@@ -12,7 +12,7 @@ class FleetController extends Controller
 {
     public function vehicles()
     {
-        $pageTitle = 'All Vehicles';
+        $pageTitle = __('All Vehicles');
         $vehicles = Vehicle::query()
             ->with(['owner', 'fleetType'])
             ->searchable(['nick_name', 'register_no'])
@@ -26,13 +26,13 @@ class FleetController extends Controller
     public function vehicleShow($id)
     {
         $vehicle = Vehicle::with(['owner', 'fleetType', 'fleetType.seatLayout'])->findOrFail($id);
-        $pageTitle = 'Vehicle Detail - ' . $vehicle->nick_name;
+        $pageTitle = __('Vehicle Detail') . ' - ' . $vehicle->nick_name;
         return view('admin.fleet.vehicle_show', compact('pageTitle', $vehicle));
     }
 
     public function fleetTypes()
     {
-        $pageTitle = 'All Fleet Types';
+        $pageTitle = __('All Fleet Types');
         $fleetTypes = FleetType::query()
             ->with(['owner', 'seatLayout'])
             ->searchable(['name'])
@@ -45,7 +45,7 @@ class FleetController extends Controller
 
     public function seatLayouts()
     {
-        $pageTitle = 'All Seat Layouts';
+        $pageTitle = __('All Seat Layouts');
         $seatLayouts = SeatLayout::query()
             ->with(['owner'])
             ->searchable(['name'])
@@ -65,27 +65,27 @@ class FleetController extends Controller
 
         $schema = json_decode($request->schema, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
-            $notify[] = ['error', 'Invalid JSON format'];
+            $notify[] = ['error', __('Invalid JSON format')];
             return back()->withNotify($notify);
         }
 
         if (!isset($schema['meta']['grid']['rows']) || !isset($schema['layout'])) {
-            $notify[] = ['error', 'Invalid schema structure'];
+            $notify[] = ['error', __('Invalid schema structure')];
             return back()->withNotify($notify);
         }
 
         // Validate grid size limits
         if ($schema['meta']['grid']['rows'] > 50 || $schema['meta']['grid']['cols'] > 20) {
-            $notify[] = ['error', 'Grid size exceeds limits (max 50 rows, 20 cols)'];
+            $notify[] = ['error', __('Grid size exceeds limits (max 50 rows, 20 cols)')];
             return back()->withNotify($notify);
         }
 
         if ($id) {
             $seatLayout = SeatLayout::findOrFail($id);
-            $message    = 'Seat layout template updated successfully';
+            $message    = __('Seat layout template updated successfully');
         } else {
             $seatLayout = new SeatLayout();
-            $message    = 'Seat layout template created successfully';
+            $message    = __('Seat layout template created successfully');
         }
 
         $seatLayout->owner_id = 0; // Admin Managed
@@ -113,7 +113,7 @@ class FleetController extends Controller
 
         $callback = function() use ($vehicles) {
             $file = fopen('php://output', 'w');
-            fputcsv($file, ['ID', 'Nick Name', 'Reg No', 'Owner', 'Fleet Type', 'Status']);
+            fputcsv($file, [__('ID'), __('Nick Name'), __('Reg No'), __('Owner'), __('Fleet Type'), __('Status')]);
             foreach ($vehicles as $vehicle) {
                 fputcsv($file, [
                     $vehicle->id,
@@ -121,7 +121,7 @@ class FleetController extends Controller
                     $vehicle->register_no,
                     @$vehicle->owner->username,
                     @$vehicle->fleetType->name,
-                    $vehicle->status ? 'Active' : 'Inactive'
+                    $vehicle->status ? __('Active') : __('Inactive')
                 ]);
             }
             fclose($file);
@@ -133,7 +133,7 @@ class FleetController extends Controller
     // Fleet Type CRUD Methods (Admin-defined global fleet types)
     public function createFleetType()
     {
-        $pageTitle = 'Create Fleet Type';
+        $pageTitle = __('Create Fleet Type');
         $seatLayouts = SeatLayout::active()->where('owner_id', 0)->orderByDesc('id')->get();
         return view('admin.fleet.create_fleet_type', compact('pageTitle', 'seatLayouts'));
     }
@@ -148,9 +148,9 @@ class FleetController extends Controller
             'seats.*' => 'required|integer|gt:0',
             'has_ac' => 'required|integer|in:' . \App\Constants\Status::YES . ',' . \App\Constants\Status::NO,
         ], [
-            'seats.*.required' => 'Seat number for all deck is required',
-            'seats.*.numeric' => 'Seat number for all deck is must be a number',
-            'seats.*.gt:0' => 'Seat number for all deck is must be greater than 0',
+            'seats.*.required' => __('Seat number for all deck is required'),
++            'seats.*.numeric' => __('Seat number for all deck is must be a number'),
++            'seats.*.gt:0' => __('Seat number for all deck is must be greater than 0'),
         ]);
 
         $fleetType = new FleetType();
@@ -162,13 +162,13 @@ class FleetController extends Controller
         $fleetType->has_ac = $request->has_ac;
         $fleetType->save();
 
-        $notify[] = ['success', 'Fleet type created successfully'];
+        $notify[] = ['success', __('Fleet type created successfully')];
         return back()->withNotify($notify);
     }
 
     public function editFleetType($id)
     {
-        $pageTitle = 'Edit Fleet Type';
+        $pageTitle = __('Edit Fleet Type');
         $fleetType = FleetType::findOrFail($id);
         $seatLayouts = SeatLayout::active()->where('owner_id', 0)->orderByDesc('id')->get();
         return view('admin.fleet.edit_fleet_type', compact('pageTitle', 'fleetType', 'seatLayouts'));
@@ -184,9 +184,9 @@ class FleetController extends Controller
             'seats.*' => 'required|integer|gt:0',
             'has_ac' => 'required|integer|in:' . \App\Constants\Status::YES . ',' . \App\Constants\Status::NO,
         ], [
-            'seats.*.required' => 'Seat number for all deck is required',
-            'seats.*.numeric' => 'Seat number for all deck is must be a number',
-            'seats.*.gt:0' => 'Seat number for all deck is must be greater than 0',
+            'seats.*.required' => __('Seat number for all deck is required'),
++            'seats.*.numeric' => __('Seat number for all deck is must be a number'),
++            'seats.*.gt:0' => __('Seat number for all deck is must be greater than 0'),
         ]);
 
         $fleetType = FleetType::findOrFail($id);
@@ -197,7 +197,7 @@ class FleetController extends Controller
         $fleetType->has_ac = $request->has_ac;
         $fleetType->save();
 
-        $notify[] = ['success', 'Fleet type updated successfully'];
+        $notify[] = ['success', __('Fleet type updated successfully')];
         return back()->withNotify($notify);
     }
 
@@ -206,7 +206,7 @@ class FleetController extends Controller
         $fleetType = FleetType::findOrFail($id);
         $fleetType->delete();
 
-        $notify[] = ['success', 'Fleet type deleted successfully'];
+        $notify[] = ['success', __('Fleet type deleted successfully')];
         return back()->withNotify($notify);
     }
 }

@@ -354,5 +354,91 @@
 
     /* Empty data styling */
     .empty-thumb img { opacity: 0.6; }
+    /* Overlay & Spinners */
+    #overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(255,255,255,0.7); z-index: 9999; display: none;
+        justify-content: center; align-items: center;
+    }
+    .cv-spinner { height: 100%; display: flex; justify-content: center; align-items: center; }
+    .spinner {
+        width: 44px; height: 44px; border: 4px solid #f3f3f3;
+        border-top: 4px solid #ef5050; border-radius: 50%; animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    /* ===================== PREMIUM FORM SECTIONS ===================== */
+    .section-header {
+        background-color: #f1f5f9;
+        padding: 14px 18px;
+        border-radius: 10px;
+        border-left: 5px solid #ef5050;
+        margin-bottom: 30px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+    .section-header h6 {
+        margin: 0;
+        font-weight: 700;
+        color: #111827;
+        font-size: 0.95rem;
+        letter-spacing: -0.01em;
+    }
+    .section-header i {
+        font-size: 1.1rem;
+        width: 24px;
+        text-align: center;
+    }
+    .form-group label {
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .form-control:focus {
+        border-color: #ef5050;
+        box-shadow: 0 0 0 3px rgba(239, 80, 80, 0.1);
+    }
+    .amenities-grid {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 18px;
+        box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
+    }
+    .amenity-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        background: #fdfdfd;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        height: 100%;
+    }
+    .amenity-checkbox:hover {
+        background: #f9fafb;
+        border-color: #d1d5db;
+        transform: translateY(-1px);
+    }
+    .amenity-checkbox input[type="checkbox"]:checked + .amenity-label {
+        color: #ef5050;
+        font-weight: 600;
+    }
+    .amenity-icon {
+        color: #6b7280;
+        font-size: 1rem;
+    }
+
+    [dir="rtl"] .section-header {
+        border-left: none;
+        border-right: 4px solid #ef5050;
+    }
 </style>
 @endpush

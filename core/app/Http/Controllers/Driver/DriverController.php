@@ -31,7 +31,8 @@ class DriverController extends Controller
 
     public function viewTrips($id)
     {
-        $trip = Trip::with(['route', 'fleetType', 'schedule', 'bookedTickets' => function ($q) {
+        $driver = authUser('driver');
+        $trip = $driver->owner->trips()->with(['route', 'fleetType', 'schedule', 'bookedTickets' => function ($q) {
             return $q->where('date_of_journey', Carbon::now()->format('Y-m-d'))->with('passenger');
         }])->findOrFail($id);
 

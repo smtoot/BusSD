@@ -116,30 +116,38 @@
                                             </select>
                                         </div>
                                     </div>
-                                    @if (!@$user)
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    <label>@lang('Password')</label>
-                                                    <small class="text--warning">
-                                                        <i class="las la-info-circle"></i> <i>@lang('Default "123456"')</i>
-                                                    </small>
-                                                </div>
-                                                <input class="form-control" type="password" name="password" value="123456">
-                                                <small class="text--danger">
-                                                    <i class="las la-info-circle"></i>
-                                                    <i>@lang('Password must not be less than 6 characters.')</i>
-                                                </small>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label>@lang('Confirm Password')</label>
-                                                <input type="password" class="form-control" name="password_confirmation"
-                                                    value="123456">
-                                            </div>
-                                        </div>
                                     @endif
+
+                                    <div class="col-md-12">
+                                        <hr>
+                                        <h6 class="mb-3">@lang('Permissions') (Optional - Overrides Default)</h6>
+                                        <div class="row">
+                                            @php
+                                                $permissionList = [
+                                                    'fleet_management' => 'Fleet Management',
+                                                    'staff_management' => 'Staff Management',
+                                                    'trip_management' => 'Trip Management',
+                                                    'ticket_management' => 'Ticket Management',
+                                                    'booking_management' => 'Booking Management',
+                                                    'sales_reports' => 'Sales Reports',
+                                                    'financial_management' => 'Financial Management',
+                                                    'boarding_management' => 'Boarding Management',
+                                                ];
+                                            @endphp
+                                            @foreach ($permissionList as $key => $val)
+                                                <div class="col-xl-3 col-lg-4 col-sm-6 mb-3">
+                                                    <div class="form-check form-check-inline custom--check">
+                                                        <input type="checkbox" name="permissions[]" value="{{ $key }}"
+                                                            id="{{ $key }}" class="form-check-input"
+                                                            @checked(@$user->permissions && in_array($key, json_decode($user->permissions, true)))>
+                                                        <label class="form-check-label"
+                                                            for="{{ $key }}">@lang($val)</label>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+
                                     <div class="col-md-12">
                                         <button type="submit"
                                             class="btn btn--primary w-100 h-45">@lang('Submit')</button>

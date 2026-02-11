@@ -57,7 +57,7 @@
                         <li class="list-group-item d-flex justify-content-between">
                             <span class="fw-bold">@lang('Price/Ticket')</span>
                             <span class="fw-bold text--cyan">
-                                {{ $owner->general_settings->cur_sym }}{{ showAmount($sale->price, currencyFormat: false) }}
+                                {{ gs('cur_sym') }}{{ showAmount($sale->price, currencyFormat: false) }}
                             </span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between">
@@ -71,7 +71,7 @@
                         <li class="list-group-item d-flex justify-content-between">
                             <span class="fw-bold">@lang('Total Amount')</span>
                             <span class="fw-bold text--danger">
-                                {{ $owner->general_settings->cur_sym }}{{ showAmount($sale->ticket_count * $sale->price, currencyFormat: false) }}
+                                {{ gs('cur_sym') }}{{ showAmount($sale->ticket_count * $sale->price, currencyFormat: false) }}
                             </span>
                         </li>
                     </ul>

@@ -31,13 +31,18 @@ Route::middleware('supervisor')->namespace('Supervisor')->group(function () {
         Route::post('profile', 'profileUpdate')->name('profile.update');
         Route::get('password', 'password')->name('password');
         Route::post('password', 'passwordUpdate')->name('password.update');
-        Route::get('trips', 'trips')->name('trips');
     });
 
-    Route::controller('ScannerController')->prefix('scanner')->name('scanner.')->group(function(){
-        Route::get('/', 'index')->name('index');
-        Route::post('/verify', 'verify')->name('verify');
-        Route::get('/result/{id}', 'result')->name('result');
-        Route::post('/board/{id}', 'board')->name('board');
+    Route::middleware('checkPermission:boarding_management')->group(function () {
+        Route::controller('SupervisorController')->group(function () {
+            Route::get('trips', 'trips')->name('trips');
+        });
+
+        Route::controller('ScannerController')->prefix('scanner')->name('scanner.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/verify', 'verify')->name('verify');
+            Route::get('/result/{id}', 'result')->name('result');
+            Route::post('/board/{id}', 'board')->name('board');
+        });
     });
 });

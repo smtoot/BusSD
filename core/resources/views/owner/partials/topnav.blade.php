@@ -250,7 +250,6 @@
                     </div>
                 `);
             } else {
-                let html = '';
                 notifications.forEach(notification => {
                     html += `
                         <div class="notification-item border-bottom px-3 py-3" style="cursor: pointer;" onclick="window.location.href='{{ route("owner.report.sale.b2c") }}'">
@@ -259,7 +258,7 @@
                                     <i class="las la-ticket-alt text--success" style="font-size: 24px;"></i>
                                 </div>
                                 <div class="notification-content flex-grow-1">
-                                    <p class="mb-1"><strong>${notification.passenger_name}</strong> booked <strong>${notification.seats} seat(s)</strong></p>
+                                    <p class="mb-1"><strong>${notification.passenger_name}</strong> {{ __('booked') }} <strong>${notification.seats} {{ __('seat(s)') }}</strong></p>
                                     <p class="mb-1 text-muted" style="font-size: 13px;">${notification.trip_title}</p>
                                     <div class="d-flex justify-content-between align-items-center mt-2">
                                         <span class="badge badge--success">{{ gs('cur_sym') }}${notification.amount}</span>

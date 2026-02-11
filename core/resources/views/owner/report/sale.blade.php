@@ -79,7 +79,7 @@
                                         <td>{{ sprintf('%06d', $sale->id) }}</td>
                                         <td>
                                             @if($sale->passenger_id)
-                                                <span class="badge badge--info">App Booking</span>
+                                                <span class="badge badge--info">@lang('App Booking')</span>
                                             @else
                                                 {{ $sale->counterManager->fullname ?? 'N/A' }}
                                             @endif
@@ -134,19 +134,32 @@
             const datePicker = $('.date-range').daterangepicker({
                 autoUpdateInput: false,
                 locale: {
-                    cancelLabel: 'Clear'
+                    format: 'MMM D, YYYY',
+                    applyLabel: '{{ __("Apply") }}',
+                    cancelLabel: '{{ __("Cancel") }}',
+                    fromLabel: '{{ __("From") }}',
+                    toLabel: '{{ __("To") }}',
+                    customRangeLabel: '{{ __("Custom Range") }}',
+                    daysOfWeek: [
+                        '{{ __("Su") }}', '{{ __("Mo") }}', '{{ __("Tu") }}', '{{ __("We") }}', '{{ __("Th") }}', '{{ __("Fr") }}', '{{ __("Sa") }}'
+                    ],
+                    monthNames: [
+                        '{{ __("January") }}', '{{ __("February") }}', '{{ __("March") }}', '{{ __("April") }}', '{{ __("May") }}', '{{ __("June") }}',
+                        '{{ __("July") }}', '{{ __("August") }}', '{{ __("September") }}', '{{ __("October") }}', '{{ __("November") }}', '{{ __("December") }}'
+                    ],
+                    firstDay: 1
                 },
                 showDropdowns: true,
                 ranges: {
-                    'Today': [moment(), moment()],
-                    'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                    'Last 15 Days': [moment().subtract(14, 'days'), moment()],
-                    'Last 30 Days': [moment().subtract(30, 'days'), moment()],
-                    'This Month': [moment().startOf('month'), moment().endOf('month')],
-                    'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
-                    'Last 6 Months': [moment().subtract(6, 'months').startOf('month'), moment().endOf('month')],
-                    'This Year': [moment().startOf('year'), moment().endOf('year')],
+                    '{{ __("Today") }}': [moment(), moment()],
+                    '{{ __("Yesterday") }}': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    '{{ __("Last 7 Days") }}': [moment().subtract(6, 'days'), moment()],
+                    '{{ __("Last 15 Days") }}': [moment().subtract(14, 'days'), moment()],
+                    '{{ __("Last 30 Days") }}': [moment().subtract(30, 'days'), moment()],
+                    '{{ __("This Month") }}': [moment().startOf('month'), moment().endOf('month')],
+                    '{{ __("Last Month") }}': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+                    '{{ __("Last 6 Months") }}': [moment().subtract(6, 'months').startOf('month'), moment().endOf('month')],
+                    '{{ __("This Year") }}': [moment().startOf('year'), moment().endOf('year')],
                 },
                 maxDate: moment()
             });

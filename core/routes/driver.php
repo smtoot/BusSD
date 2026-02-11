@@ -31,6 +31,8 @@ Route::middleware('driver')->namespace('Driver')->group(function () {
         Route::post('profile', 'profileUpdate')->name('profile.update');
         Route::get('password', 'password')->name('password');
         Route::post('password', 'passwordUpdate')->name('password.update');
-        Route::get('trips', 'trips')->name('trips');
+        Route::middleware('checkPermission:trip_management')->group(function () {
+            Route::get('trips', 'trips')->name('trips');
+        });
     });
 });

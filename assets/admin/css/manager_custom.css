@@ -1,0 +1,76 @@
+/* Manager Panel Custom Styles for Simplification and Accessibility */
+
+html[dir="rtl"] {
+    font-family: 'Cairo', sans-serif !important;
+}
+
+body {
+    font-size: 16px;
+    background-color: #f4f7f6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Cairo', sans-serif !important;
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.btn {
+    padding: 10px 20px;
+    font-size: 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.form-control {
+    height: 45px;
+    font-size: 1.1rem;
+    border-radius: 8px;
+}
+
+label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    font-size: 1.1rem;
+}
+
+/* RTL specific spacing adjustments */
+html[dir="rtl"] .ms-auto {
+    margin-right: auto !important;
+    margin-left: 0 !important;
+}
+
+html[dir="rtl"] .me-auto {
+    margin-left: auto !important;
+    margin-right: 0 !important;
+}
+
+html[dir="rtl"] .text-end {
+    text-align: left !important;
+}
+
+html[dir="rtl"] .text-start {
+    text-align: right !important;
+}
+
+/* Accessibility for 50+ users */
+.widget-two__content h3 {
+    font-size: 2rem !important;
+}
+
+.sidebar__menu .sidebar-menu-item > a .menu-title {
+    font-size: 1.1rem;
+}
+
+.sidebar__menu .sidebar-menu-item.active > a {
+    background-color: #7367f0;
+    border-radius: 10px;
+}
+
+/* Larger Icons */
+.menu-icon {
+    font-size: 1.5rem !important;
+}

@@ -189,19 +189,11 @@ class AdminController extends Controller
             $counterData[] = $counterBookings->where('created_on', $date)->first()?->count ?? 0;
         }
 
-        $report['created_on'] = $dates;
-        $report['data'] = [
-            [
-                'name' => 'B2C Bookings',
-                'data' => $b2cData
-            ],
-            [
-                'name' => 'Counter Bookings',
-                'data' => $counterData
-            ]
-        ];
-
-        return response()->json($report);
+        return response()->json([
+            'categories' => $dates,
+            'b2c' => $b2cData,
+            'counter' => $counterData
+        ]);
     }
 
     public function depositAndReport(Request $request)
@@ -475,7 +467,7 @@ class AdminController extends Controller
                 $old = $user->image;
                 $user->image = fileUploader($request->image, getFilePath('adminProfile'), getFileSize('adminProfile'), $old);
             } catch (\Exception $exp) {
-                $notify[] = ['error', 'Couldn\'t upload your image'];
+                $notify[] = ['error', __('Couldn\'t upload your image')];
                 return back()->withNotify($notify);
             }
         }
@@ -483,7 +475,7 @@ class AdminController extends Controller
         $user->name = $request->name;
         $user->email = $request->email;
         $user->save();
-        $notify[] = ['success', 'Profile updated successfully'];
+        $notify[] = ['success', __('Profile updated successfully')];
         return to_route('admin.profile')->withNotify($notify);
     }
 
@@ -503,12 +495,12 @@ class AdminController extends Controller
 
         $user = auth('admin')->user();
         if (!Hash::check($request->old_password, $user->password)) {
-            $notify[] = ['error', 'Password doesn\'t match!!'];
+            $notify[] = ['error', __('Password doesn\'t match!!')];
             return back()->withNotify($notify);
         }
         $user->password = Hash::make($request->password);
         $user->save();
-        $notify[] = ['success', 'Password changed successfully.'];
+        $notify[] = ['success', __('Password changed successfully.')];
         return to_route('admin.password')->withNotify($notify);
     }
 
@@ -543,7 +535,7 @@ class AdminController extends Controller
         $response = CurlRequest::curlContent($url);
         $response = json_decode($response);
         if (!$response || !@$response->status || !@$response->message) {
-            return to_route('admin.dashboard')->withErrors('Something went wrong');
+            return to_route('admin.dashboard')->withErrors(__('Something went wrong'));
         }
         if ($response->status == 'error') {
 
@@ -569,7 +561,7 @@ class AdminController extends Controller
         $response = CurlRequest::curlPostContent($url, $arr);
         $response = json_decode($response);
         if (!$response || !@$response->status || !@$response->message) {
-            return to_route('admin.dashboard')->withErrors('Something went wrong');
+            return to_route('admin.dashboard')->withErrors(__('Something went wrong'));
         }
         if ($response->status == 'error') {
             return back()->withErrors($response->message);
@@ -583,21 +575,21 @@ class AdminController extends Controller
         AdminNotification::where('is_read', Status::NO)->update([
             'is_read' => Status::YES
         ]);
-        $notify[] = ['success', 'Notifications read successfully'];
+        $notify[] = ['success', __('Notifications read successfully')];
         return back()->withNotify($notify);
     }
 
     public function deleteAllNotification()
     {
         AdminNotification::truncate();
-        $notify[] = ['success', 'Notifications deleted successfully'];
+        $notify[] = ['success', __('Notifications deleted successfully')];
         return back()->withNotify($notify);
     }
 
     public function deleteSingleNotification($id)
     {
         AdminNotification::where('id', $id)->delete();
-        $notify[] = ['success', 'Notification deleted successfully'];
+        $notify[] = ['success', __('Notification deleted successfully')];
         return back()->withNotify($notify);
     }
 
@@ -609,7 +601,7 @@ class AdminController extends Controller
         try {
             $mimetype = mime_content_type($filePath);
         } catch (\Exception $e) {
-            $notify[] = ['error', 'File does not exists'];
+            $notify[] = ['error', __('File does not exists')];
             return back()->withNotify($notify);
         }
         header('Content-Disposition: attachment; filename="' . $title);
