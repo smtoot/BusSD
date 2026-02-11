@@ -82,6 +82,49 @@ class SalesReportController extends Controller
         return view('owner.report.b2c_sale', compact('pageTitle', 'sales', 'owner', 'trips'));
     }
 
+    public function counterSales()
+    {
+        $pageTitle = "Counter (Office) Sales";
+        $owner = authUser();
+
+        $query = BookedTicket::where('owner_id', $owner->id)
+            ->whereNull('passenger_id'); // Filter: Only Counter/Manual Bookings
+
+        // Apply trip filter
+        if (request()->filled('trip_id')) {
+            $query->where('trip_id', request('trip_id'));
+        }
+
+        // Apply status filter
+        if (request()->filled('status')) {
+            $query->where('status', request('status'));
+        } else {
+            // Default: only show active bookings if no status filter
+            $query->active();
+        }
+
+        // Apply date range filter
+        if (request()->filled('date')) {
+            $dates = explode(' - ', request('date'));
+            if (count($dates) == 2) {
+                $query->whereDate('date_of_journey', '>=', trim($dates[0]))
+                      ->whereDate('date_of_journey', '<=', trim($dates[1]));
+            } elseif (count($dates) == 1) {
+                $query->whereDate('date_of_journey', trim($dates[0]));
+            }
+        }
+
+        $sales = $query->with('trip', 'trip.route', 'counterManager')
+            ->orderByDesc('id')
+            ->paginate(getPaginate())
+            ->appends(request()->all());
+
+        // Get all trips for filter dropdown
+        $trips = Trip::active()->where('owner_id', $owner->id)->orderBy('title')->get();
+
+        return view('owner.report.counter_sale', compact('pageTitle', 'sales', 'owner', 'trips'));
+    }
+
     public function periodic()
     {
         $pageTitle = "Periodic Sales Report";

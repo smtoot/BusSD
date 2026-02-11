@@ -229,6 +229,7 @@ Route::middleware('owner')->name('owner.')->group(function () {
                 Route::name('report.sale.')->prefix('report/sale')->group(function () {
                     Route::get('', 'index')->name('index');
                     Route::get('b2c', 'b2cSales')->name('b2c'); // New
+                    Route::get('counter', 'counterSales')->name('counter'); // New
                     Route::get('{id}', 'saleDetail')->name('details');
                 });
                 Route::get('report/periodic/', 'periodic')->name('report.periodic');

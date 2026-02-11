@@ -57,6 +57,11 @@
                 "menu_active": "owner.report.sale.b2c"
             },
             {
+                "title": "Office Bookings",
+                "route_name": "owner.report.sale.counter",
+                "menu_active": "owner.report.sale.counter"
+            },
+            {
                 "title": "Passengers",
                 "route_name": "owner.passenger.index",
                 "menu_active": "owner.passenger.index"
