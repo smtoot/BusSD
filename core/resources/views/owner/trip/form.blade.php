@@ -642,14 +642,21 @@
         });
 
         // Vehicle Amenities Display Logic
-        const vehiclesData = @json($vehicles->map(function($v) {
-            return [
-                'id' => $v->id,
-                'amenities' => $v->amenities->map(function($a) {
-                    return ['id' => $a->id, 'label' => $a->label, 'icon' => $a->icon];
-                })
-            ];
-        }));
+        @php
+            $vehiclesData = $vehicles->map(function($v) {
+                return [
+                    'id' => $v->id,
+                    'amenities' => $v->amenities->map(function($a) {
+                        return [
+                            'id' => $a->id,
+                            'label' => $a->label,
+                            'icon' => $a->icon
+                        ];
+                    })
+                ];
+            });
+        @endphp
+        const vehiclesData = @json($vehiclesData);
 
         $('select[name="vehicle_id"]').on('change', function() {
             const vehicleId = $(this).val();
