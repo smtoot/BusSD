@@ -27,8 +27,8 @@
             },
             {
                 "title": "Routes",
-                "route_name": "owner.route.index",
-                "menu_active": "owner.route.index"
+                "route_name": "owner.trip.route.index",
+                "menu_active": "owner.trip.route.index"
             },
             {
                 "title": "Bus Assignments",
