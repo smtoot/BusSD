@@ -21,7 +21,6 @@ class LanguageSeeder extends Seeder
             'name' => 'Arabic',
             'is_default' => Status::DISABLE,
             'is_rtl'     => Status::ENABLE, // Assuming is_rtl exists from migration
-            'status'     => Status::ENABLE, // Default status likely just 'status' or via boot
         ]);
 
         if ($language->wasRecentlyCreated) {
