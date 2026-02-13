@@ -64,7 +64,7 @@
                 "menu_active": "owner.bookings.index"
             },
             {
-                "name": "App Booking",
+                "title": "App Booking",
                 "route_name": "owner.report.sale.b2c",
                 "menu_active": "owner.report.sale.b2c"
             },
