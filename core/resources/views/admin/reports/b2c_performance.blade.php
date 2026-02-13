@@ -10,7 +10,7 @@
                             <i class="las la-ticket-alt f-size--56"></i>
                         </div>
                         <div class="col-8 text-end">
-                            <span class="text-white text--small">@lang('Total B2C Bookings')</span>
+                            <span class="text-white text--small">@lang('Total App Bookings')</span>
                             <h2 class="text-white">{{ $commissions->total_bookings }}</h2>
                         </div>
                     </div>

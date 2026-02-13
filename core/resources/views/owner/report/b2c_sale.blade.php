@@ -6,7 +6,7 @@
             <div class="alert alert-info d-flex justify-content-between align-items-center mb-3">
                 <div>
                     <i class="las la-info-circle"></i>
-                    <strong>@lang('Your B2C Commission Rate'):</strong>
+                    <strong>@lang('Your App Commission Rate'):</strong>
                     <span class="badge badge--primary">{{ $owner->b2c_commission ?? gs('b2c_commission') }}%</span>
                     <small class="ms-2">
                         @if($owner->b2c_commission)
@@ -176,7 +176,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td class="text-muted text-center" colspan="100%">@lang('No B2C sales found')</td>
+                                        <td class="text-muted text-center" colspan="100%">@lang('No App sales found')</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -245,7 +245,7 @@ function exportToCSV() {
 
     // Add filter metadata as comments
     @if(request()->hasAny(['date', 'trip_id', 'status']))
-        csv += '# B2C Sales Report - Filtered Results\n';
+        csv += '# App Sales Report - Filtered Results\n';
         @if(request('date'))
             csv += '# Date Range: {{ request("date") }}\n';
         @endif
@@ -289,7 +289,7 @@ function exportToCSV() {
     @endforelse
 
     // Generate filename with filter info
-    let filename = 'b2c_sales';
+    let filename = 'app_sales';
     @if(request('date'))
         filename += '_{{ str_replace(" - ", "_to_", request("date")) }}';
     @else

@@ -606,7 +606,7 @@
                     "b2c performance report",
                     "performance activity"
                 ],
-                "title": "B2C Performance",
+                "title": "App Performance",
                 "route_name": "admin.report.b2c.performance",
                 "menu_active": "admin.report.b2c.performance"
             },

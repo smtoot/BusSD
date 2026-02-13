@@ -43,7 +43,7 @@
                                     <li class="sidebar-menu-item {{ menuActive(@$menu->menu_active) }} ">
                                         <a href="{{ route(@$menu->route_name, $submenuParams) }}" class="nav-link">
                                             <i class="menu-icon las la-dot-circle"></i>
-                                            <span class="menu-title">{{ __($menu->title) }}</span>
+                                            <span class="menu-title">{{ __(@$menu->title) }}</span>
                                             @php $counter = @$menu->counter; @endphp
                                             @if (@$$counter)
                                                 <span

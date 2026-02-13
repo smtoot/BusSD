@@ -70,7 +70,7 @@
                             </div>
                             <div class="col-xl-3 col-sm-6">
                                 <div class="form-group ">
-                                    <label> @lang('B2C Global Commission (%)')</label>
+                                    <label> @lang('App Global Commission (%)')</label>
                                     <input class="form-control" type="number" step="any" name="b2c_commission" required value="{{gs('b2c_commission')}}">
                                 </div>
                             </div>

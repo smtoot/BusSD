@@ -22,7 +22,7 @@
                     <div class="rk-quick-links">
                         <a href="{{ route('owner.trip.form') }}" class="rk-quick-link"><i class="las la-plus-circle"></i> @lang('New Trip')</a>
                         <a href="{{ route('owner.report.sale.index') }}" class="rk-quick-link"><i class="las la-receipt"></i> @lang('Bookings')</a>
-                        <a href="{{ route('owner.report.sale.b2c') }}" class="rk-quick-link"><i class="las la-mobile"></i> @lang('B2C Sales')</a>
+                        <a href="{{ route('owner.report.sale.b2c') }}" class="rk-quick-link"><i class="las la-mobile"></i> @lang('App Sales')</a>
                     </div>
                 </div>
                 <div class="rk-today-strip__grid">
@@ -149,7 +149,7 @@
                 <div class="rk-kpi-card">
                     <div class="rk-kpi-card__top">
                         <div class="rk-kpi-card__icon rk-kpi-card__icon--emerald"><i class="las la-mobile"></i></div>
-                        <span class="rk-kpi-card__label">@lang('B2C (App) Sales')</span>
+                        <span class="rk-kpi-card__label">@lang('App Sales')</span>
                     </div>
                     <h4 class="rk-kpi-card__amount">{{ gs('cur_sym') }}{{ getAmount($widget['b2c_sales']) }}</h4>
                     <div class="rk-kpi-card__footer">
@@ -176,7 +176,7 @@
                 <div class="rk-kpi-card">
                     <div class="rk-kpi-card__top">
                         <div class="rk-kpi-card__icon rk-kpi-card__icon--amber"><i class="las la-coins"></i></div>
-                        <span class="rk-kpi-card__label">@lang('B2C Revenue')</span>
+                        <span class="rk-kpi-card__label">@lang('App Revenue')</span>
                     </div>
                     <h4 class="rk-kpi-card__amount">{{ gs('cur_sym') }}{{ getAmount($widget['b2c_revenue']) }}</h4>
                     <div class="rk-kpi-card__footer">
@@ -341,7 +341,7 @@
             },
             colors: ['#28A745', '#004085'],
             series: [
-                { name: '{{ __("B2C (App)") }}', data: [] },
+                { name: '{{ __("App") }}', data: [] },
                 { name: '{{ __("Counter") }}', data: [] }
             ],
             xaxis: {

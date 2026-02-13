@@ -52,7 +52,7 @@
                 <div class="rk-kpi-card">
                     <div class="rk-kpi-card__top">
                         <div class="rk-kpi-card__icon rk-kpi-card__icon--red"><i class="las la-percentage"></i></div>
-                        <span class="rk-kpi-card__label">@lang('B2C Commission')</span>
+                        <span class="rk-kpi-card__label">@lang('App Commission')</span>
                     </div>
                     <h4 class="rk-kpi-card__amount">{{ gs('cur_sym') }}{{ getAmount($widget['total_commissions'] ?? 0) }}</h4>
                     <div class="rk-kpi-card__footer">
@@ -231,7 +231,7 @@
                 </div>
                 <div class="rk-split__side">
                     <div class="rk-card rk-card--full">
-                        <h6 class="rk-section__title rk-section__title--inline mb-3">@lang('Recent B2C Bookings')</h6>
+                        <h6 class="rk-section__title rk-section__title--inline mb-3">@lang('Recent App Bookings')</h6>
                         <div class="table-responsive--sm table-responsive">
                             <table class="table table--light style--two">
                                 <thead>
@@ -243,7 +243,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @forelse($latestB2CBookings as $booking)
+                                    @forelse($latestAppBookings as $booking)
                                         <tr>
                                             <td>
                                                 <span class="fw-bold">{{ @$booking->passenger->fullname }}</span>
@@ -258,7 +258,7 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td class="text-muted text-center" colspan="100%">@lang('No B2C bookings found')</td>
+                                            <td class="text-muted text-center" colspan="100%">@lang('No App bookings found')</td>
                                         </tr>
                                     @endforelse
                                 </tbody>
@@ -663,7 +663,7 @@
             },
             colors: ['#ef5050', '#1f2937'],
             series: [
-                { name: '{{ __("B2C (App)") }}', data: [] },
+                { name: '{{ __("App Booking") }}', data: [] },
                 { name: '{{ __("Counter") }}', data: [] }
             ],
             xaxis: {
@@ -711,7 +711,7 @@
                     bookingChart.updateOptions({
                         xaxis: { categories: response.categories || [] },
                         series: [
-                            { name: '{{ __("B2C (App)") }}', data: response.b2c || [] },
+                            { name: '{{ __("App Booking") }}', data: response.app || [] },
                             { name: '{{ __("Counter") }}', data: response.counter || [] }
                         ]
                     });

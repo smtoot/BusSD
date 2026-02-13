@@ -6,7 +6,7 @@
                 <i class="las la-chart-bar overlay-icon text--primary"></i>
                 <div class="widget-two__content">
                     <h2 class="gross-volume">{{ gs('cur_sym') }}{{ getAmount($commissions->total_volume ?? 0) }}</h2>
-                    <p>@lang('Total B2C Gross Volume')</p>
+                    <p>@lang('Total App Gross Volume')</p>
                 </div>
             </div>
         </div>
@@ -60,7 +60,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td class="text-muted text-center" colspan="100%">@lang('No B2C transactions recorded yet')</td>
+                                        <td class="text-muted text-center" colspan="100%">@lang('No App transactions recorded yet')</td>
                                     </tr>
                                 @endforelse
                             </tbody>

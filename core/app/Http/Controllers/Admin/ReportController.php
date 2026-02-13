@@ -65,7 +65,7 @@ class ReportController extends Controller
 
     public function b2cPerformance()
     {
-        $pageTitle = __('B2C Platform Performance');
+        $pageTitle = __('App Platform Performance');
         
         // Use Transaction table to aggregate commissions (charge) for B2C sales
         $commissions = Transaction::where('remark', 'b2c_ticket_sale')
