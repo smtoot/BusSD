@@ -265,15 +265,13 @@ class AdminController extends Controller
         $widget['pending_settlement_sum']   = \App\Models\Settlement::where('status', 0)->sum('net_amount');
         $widget['pending_verifications']    = \App\Models\OperatorVerification::where('status', 0)->count();
         $widget['active_seat_locks']        = \App\Models\SeatLock::where('expires_at', '>', Carbon::now())->count();
-        $widget['total_commissions']        = \App\Models\BookedTicket::where('status', Status::ENABLE)->whereNotNull('passenger_id')->sum('sub_total');
+        // TEMPORARY FIX: commission_amount column is missing in DB. Setting to 0 to prevent crash.
+        $widget['total_commissions']        = 0; // \App\Models\BookedTicket::where('status', Status::ENABLE)->whereNotNull('passenger_id')->sum('commission_amount');
 
         // New Dashboard V2 Metrics
         // Today's Snapshot
         $today = Carbon::today();
-        $widget['today_revenue'] = \App\Models\BookedTicket::whereDate('created_at', $today)
-            ->where('status', Status::ENABLE)
-            ->whereNotNull('passenger_id')
-            ->sum('sub_total') + 
+        $widget['today_revenue'] = 0 + // \App\Models\BookedTicket::whereDate('created_at', $today)->where('status', Status::ENABLE)->whereNotNull('passenger_id')->sum('commission_amount') + 
             \App\Models\Deposit::whereDate('created_at', $today)
             ->successful()
             ->sum('amount');
@@ -289,14 +287,8 @@ class AdminController extends Controller
         $thisMonthStart = Carbon::now()->startOfMonth();
         $thisMonthEnd = Carbon::now()->endOfMonth();
 
-        $lastMonthCommission = \App\Models\BookedTicket::whereBetween('created_at', [$lastMonthStart, $lastMonthEnd])
-            ->where('status', Status::ENABLE)
-            ->whereNotNull('passenger_id')
-            ->sum('sub_total');
-        $thisMonthCommission = \App\Models\BookedTicket::whereBetween('created_at', [$thisMonthStart, $thisMonthEnd])
-            ->where('status', Status::ENABLE)
-            ->whereNotNull('passenger_id')
-            ->sum('sub_total');
+        $lastMonthCommission = 0; // \App\Models\BookedTicket::whereBetween('created_at', [$lastMonthStart, $lastMonthEnd])->where('status', Status::ENABLE)->whereNotNull('passenger_id')->sum('commission_amount');
+        $thisMonthCommission = 0; // \App\Models\BookedTicket::whereBetween('created_at', [$thisMonthStart, $thisMonthEnd])->where('status', Status::ENABLE)->whereNotNull('passenger_id')->sum('commission_amount');
 
         if ($lastMonthCommission > 0) {
             $widget['commission_change'] = round((($thisMonthCommission - $lastMonthCommission) / $lastMonthCommission) * 100, 1);
