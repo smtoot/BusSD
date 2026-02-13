@@ -48,7 +48,7 @@ class AdminController extends Controller
         $widget['pending_settlement_sum']   = \App\Models\Settlement::where('status', 0)->sum('net_amount');
         $widget['pending_verifications']    = \App\Models\OperatorVerification::where('status', 0)->count();
         $widget['active_seat_locks']        = \App\Models\SeatLock::where('expires_at', '>', Carbon::now())->count();
-        $widget['total_commissions']        = \App\Models\BookedTicket::where('status', Status::ENABLE)->whereNotNull('passenger_id')->sum('commission_amount');
+        $widget['total_commissions']        = \App\Models\BookedTicket::where('status', Status::ENABLE)->whereNotNull('passenger_id')->sum('sub_total');
 
         // New Dashboard V2 Metrics
         // Today's Snapshot
@@ -265,7 +265,7 @@ class AdminController extends Controller
         $widget['pending_settlement_sum']   = \App\Models\Settlement::where('status', 0)->sum('net_amount');
         $widget['pending_verifications']    = \App\Models\OperatorVerification::where('status', 0)->count();
         $widget['active_seat_locks']        = \App\Models\SeatLock::where('expires_at', '>', Carbon::now())->count();
-        $widget['total_commissions']        = \App\Models\BookedTicket::where('status', Status::ENABLE)->whereNotNull('passenger_id')->sum('commission_amount');
+        $widget['total_commissions']        = \App\Models\BookedTicket::where('status', Status::ENABLE)->whereNotNull('passenger_id')->sum('sub_total');
 
         // New Dashboard V2 Metrics
         // Today's Snapshot
@@ -273,7 +273,7 @@ class AdminController extends Controller
         $widget['today_revenue'] = \App\Models\BookedTicket::whereDate('created_at', $today)
             ->where('status', Status::ENABLE)
             ->whereNotNull('passenger_id')
-            ->sum('commission_amount') + 
+            ->sum('sub_total') + 
             \App\Models\Deposit::whereDate('created_at', $today)
             ->successful()
             ->sum('amount');
@@ -292,11 +292,11 @@ class AdminController extends Controller
         $lastMonthCommission = \App\Models\BookedTicket::whereBetween('created_at', [$lastMonthStart, $lastMonthEnd])
             ->where('status', Status::ENABLE)
             ->whereNotNull('passenger_id')
-            ->sum('commission_amount');
+            ->sum('sub_total');
         $thisMonthCommission = \App\Models\BookedTicket::whereBetween('created_at', [$thisMonthStart, $thisMonthEnd])
             ->where('status', Status::ENABLE)
             ->whereNotNull('passenger_id')
-            ->sum('commission_amount');
+            ->sum('sub_total');
 
         if ($lastMonthCommission > 0) {
             $widget['commission_change'] = round((($thisMonthCommission - $lastMonthCommission) / $lastMonthCommission) * 100, 1);
