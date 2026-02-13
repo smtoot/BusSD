@@ -515,10 +515,10 @@ class TripController extends Controller
     public function assignVehicleStore(Request $request, $id = 0)
     {
         $request->validate([
-            'trip'                    => ['required', 'integer', 'gt:0', \Illuminate\Validation\Rule::exists('trips', 'id')->where('owner_id', auth()->id())],
-            'bus_registration_number' => ['required', 'integer', 'gt:0', \Illuminate\Validation\Rule::exists('vehicles', 'id')->where('owner_id', auth()->id())],
-            'driver'                  => ['required', 'integer', 'gt:0', \Illuminate\Validation\Rule::exists('drivers', 'id')->where('owner_id', auth()->id())],
-            'supervisor'              => ['required', 'integer', 'gt:0', \Illuminate\Validation\Rule::exists('supervisors', 'id')->where('owner_id', auth()->id())]
+            'trip'                    => ['required', 'integer', 'gt:0', \Illuminate\Validation\Rule::exists('trips', 'id')->where('owner_id', auth()->guard('owner')->id())],
+            'bus_registration_number' => ['required', 'integer', 'gt:0', \Illuminate\Validation\Rule::exists('vehicles', 'id')->where('owner_id', auth()->guard('owner')->id())],
+            'driver'                  => ['required', 'integer', 'gt:0', \Illuminate\Validation\Rule::exists('drivers', 'id')->where('owner_id', auth()->guard('owner')->id())],
+            'supervisor'              => ['required', 'integer', 'gt:0', \Illuminate\Validation\Rule::exists('supervisors', 'id')->where('owner_id', auth()->guard('owner')->id())]
         ]);
 
         $owner = authUser();
