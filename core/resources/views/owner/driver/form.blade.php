@@ -71,7 +71,7 @@
                                 </div>
                             </div>
 
-                            @if(!@$user)
+                            @if(!@$user->id)
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label>@lang('Username')</label>

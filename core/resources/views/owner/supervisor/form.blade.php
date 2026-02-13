@@ -37,7 +37,7 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label class="form-control-label">@lang('Username')</label>
-                                            @if (@$user)
+                                            @if (@$user->id)
                                                 <input class="form-control" type="text" value="{{ $user->username }}"
                                                     disabled>
                                             @else
@@ -53,7 +53,7 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label>@lang('Email')</label>
-                                            @if (@$user)
+                                            @if (@$user->id)
                                                 <input class="form-control" type="email" value="{{ $user->email }}"
                                                     disabled>
                                             @else
