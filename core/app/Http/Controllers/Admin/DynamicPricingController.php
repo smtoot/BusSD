@@ -26,7 +26,7 @@ class DynamicPricingController extends Controller
     public function create()
     {
         $pageTitle = __('Create Pricing Rule');
-        $owners = Owner::active()->orderBy('fullname')->get();
+        $owners = Owner::active()->orderBy('firstname')->get();
         return view('admin.dynamic-pricing.create', compact('pageTitle', 'owners'));
     }
 
@@ -85,7 +85,7 @@ class DynamicPricingController extends Controller
     {
         $pageTitle = __('Edit Pricing Rule');
         $rule = DynamicPricingRule::findOrFail($id);
-        $owners = Owner::active()->orderBy('fullname')->get();
+        $owners = Owner::active()->orderBy('firstname')->get();
         return view('admin.dynamic-pricing.edit', compact('pageTitle', 'rule', 'owners'));
     }
 
