@@ -10,7 +10,7 @@
                             <thead>
                                 <tr>
                                     <th>@lang('Operator')</th>
-                                    <th>@lang('Total B2C Sales')</th>
+                                    <th>@lang('Total App Sales')</th>
                                     <th>@lang('Total Commission')</th>
                                     <th>@lang('Total Payouts')</th>
                                     <th>@lang('Current Balance')</th>

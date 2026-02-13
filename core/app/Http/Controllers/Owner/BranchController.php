@@ -217,6 +217,7 @@ class BranchController extends Controller
 
     public function counterStatus($id)
     {
-        return Branch::changeStatus($id);
+        $owner = authUser();
+        return Branch::where('owner_id', $owner->id)->findOrFail($id)->changeStatus();
     }
 }

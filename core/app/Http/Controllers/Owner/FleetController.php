@@ -14,37 +14,114 @@ class FleetController extends Controller
     public function fleetType()
     {
         $pageTitle = 'Fleet Types';
+        $owner = authUser();
         $fleetTypes = FleetType::searchable(['name'])
             ->with('seatLayout')
-            ->where('owner_id', 0) // Show admin-defined global fleet types
+            ->where(function($q) use ($owner) {
+                $q->where('owner_id', 0)->orWhere('owner_id', $owner->id);
+            })
             ->orderByDesc('id')
             ->paginate(getPaginate());
-        $seatLayouts = SeatLayout::active()->where('owner_id', 0)->orderByDesc('id')->get();
+        $seatLayouts = SeatLayout::active()
+            ->where(function($q) use ($owner) {
+                $q->where('owner_id', 0)->orWhere('owner_id', $owner->id);
+            })
+            ->orderByDesc('id')
+            ->get();
         return view('owner.fleet_type.index', compact('pageTitle', 'fleetTypes', 'seatLayouts'));
     }
 
     public function fleetTypeStatus($id)
     {
-        return FleetType::changeStatus($id);
+        $owner = authUser();
+        return FleetType::where('owner_id', $owner->id)->findOrFail($id)->changeStatus();
+    }
+
+    public function fleetTypeStore(Request $request, $id = 0)
+    {
+        $request->validate([
+            'name'        => 'required|string|max:40',
+            'seat_layout' => 'required|integer|gt:0|exists:seat_layouts,id',
+            'deck'        => 'required|integer|gt:0',
+            'seats'       => 'required|array|min:1',
+            'seats.*'     => 'required|integer|gt:0',
+            'has_ac'      => 'required|integer|in:0,1',
+        ]);
+
+        $owner = authUser();
+        // Verify seat layout belongs to owner or is global
+        $layout = SeatLayout::where(function($q) use ($owner) {
+            $q->where('owner_id', 0)->orWhere('owner_id', $owner->id);
+        })->findOrFail($request->seat_layout);
+
+        if ($id) {
+            $fleetType = FleetType::where('owner_id', $owner->id)->findOrFail($id);
+            $message    = 'Fleet type updated successfully';
+        } else {
+            $fleetType = new FleetType();
+            $fleetType->owner_id = $owner->id;
+            $message    = 'Fleet type created successfully';
+        }
+
+        $fleetType->seat_layout_id = $request->seat_layout;
+        $fleetType->name           = $request->name;
+        $fleetType->deck           = $request->deck;
+        $fleetType->seats          = $request->seats;
+        $fleetType->has_ac         = $request->has_ac;
+        $fleetType->save();
+
+        $notify[] = ['success', $message];
+        return back()->withNotify($notify);
     }
 
     public function seatLayout()
     {
         $pageTitle = 'Seat Layout Templates';
-        $seatLayouts = SeatLayout::active()->where('owner_id', 0)->orderByDesc('id')->paginate(getPaginate());
+        $owner = authUser();
+        $seatLayouts = SeatLayout::active()
+            ->where(function($q) use ($owner) {
+                $q->where('owner_id', 0)->orWhere('owner_id', $owner->id);
+            })
+            ->orderByDesc('id')
+            ->paginate(getPaginate());
         return view('owner.seat_layout.index', compact('pageTitle', 'seatLayouts'));
     }
 
     public function layoutStore(Request $request, $id = 0)
     {
-        $notify[] = ['error', 'Manual layout creation is disabled. Please use Admin templates.'];
+        $request->validate([
+            'name'   => 'required|string|max:40',
+            'schema' => 'required|json'
+        ]);
+
+        $schema = json_decode($request->schema, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $notify[] = ['error', 'Invalid JSON format'];
+            return back()->withNotify($notify);
+        }
+
+        $owner = authUser();
+        if ($id) {
+            $seatLayout = SeatLayout::where('owner_id', $owner->id)->findOrFail($id);
+            $message    = 'Seat layout updated successfully';
+        } else {
+            $seatLayout = new SeatLayout();
+            $seatLayout->owner_id = $owner->id;
+            $message    = 'Seat layout created successfully';
+        }
+
+        $seatLayout->name   = $request->name;
+        $seatLayout->schema = $schema;
+        $seatLayout->save();
+
+        $notify[] = ['success', $message];
         return back()->withNotify($notify);
     }
 
     public function layoutStatus($id)
     {
-        $notify[] = ['error', 'Status changes for templates are restricted.'];
-        return back()->withNotify($notify);
+        $owner = authUser();
+        return SeatLayout::where('owner_id', $owner->id)->findOrFail($id)->changeStatus();
     }
 
     public function vehicle()

@@ -13,7 +13,7 @@
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             @lang('Registration No')
-                            <span class="fw-bold">{{ $vehicle->register_no }}</span>
+                            <span class="fw-bold">{{ $vehicle->registration_no }}</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             @lang('Operator')
@@ -43,7 +43,7 @@
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             @lang('Chassis No')
-                            <span class="fw-bold">{{ $vehicle->chassis_no ?? 'N/A' }}</span>
+                            <span class="fw-bold">{{ $vehicle->chasis_no ?? 'N/A' }}</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             @lang('Model No')
@@ -53,6 +53,19 @@
                 </div>
             </div>
         </div>
+
+        @if(@$vehicle->fleetType->seatLayout)
+        <div class="col-lg-12">
+            <div class="card b-radius--10 overflow-hidden box--shadow1">
+                <div class="card-header bg--primary">
+                    <h5 class="card-title text-white mb-0">@lang('Visual Seat Configuration') - {{ $vehicle->fleetType->seatLayout->name }}</h5>
+                </div>
+                <div class="card-body bg--light">
+                    <x-visual-seat-map :layout="$vehicle->fleetType->seatLayout" />
+                </div>
+            </div>
+        </div>
+        @endif
     </div>
 @endsection
 

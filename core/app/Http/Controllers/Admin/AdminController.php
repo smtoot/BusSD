@@ -38,7 +38,7 @@ class AdminController extends Controller
         $widget['total_trips']         = \App\Models\Trip::count();
         $widget['active_trips']        = \App\Models\Trip::active()->count();
         $widget['total_bookings']      = \App\Models\BookedTicket::where('status', Status::ENABLE)->count();
-        $widget['b2c_bookings']        = \App\Models\BookedTicket::where('status', Status::ENABLE)->whereNotNull('passenger_id')->count();
+        $widget['app_bookings']        = \App\Models\BookedTicket::where('status', Status::ENABLE)->whereNotNull('passenger_id')->count();
         $widget['counter_bookings']    = \App\Models\BookedTicket::where('status', Status::ENABLE)->whereNull('passenger_id')->count();
         $widget['total_routes']        = \App\Models\Route::count();
         $widget['total_counters']      = \App\Models\Counter::count();
@@ -147,9 +147,9 @@ class AdminController extends Controller
 
         $latestSales   = SoldPackage::with('owner')->where('status', 1)->where('ends_at', '>', Carbon::now())->orderByDesc('ends_at')->latest()->limit(6)->get();
         $latestOwners  = Owner::latest()->limit(6)->get();
-        $latestB2CBookings = \App\Models\BookedTicket::whereNotNull('passenger_id')->with(['passenger', 'trip.owner'])->latest()->limit(6)->get();
+        $latestAppBookings = \App\Models\BookedTicket::whereNotNull('passenger_id')->with(['passenger', 'trip.owner'])->latest()->limit(6)->get();
 
-        return view('admin.dashboard', compact('pageTitle', 'widget', 'chart', 'deposit', 'latestOwners', 'latestSales', 'latestB2CBookings', 'topOwners'));
+        return view('admin.dashboard', compact('pageTitle', 'widget', 'chart', 'deposit', 'latestOwners', 'latestSales', 'latestAppBookings', 'topOwners'));
     }
 
     public function bookingChart(Request $request)
@@ -164,7 +164,7 @@ class AdminController extends Controller
             $dates = $this->getAllMonths($request->start_date, $request->end_date);
         }
 
-        $b2cBookings = \App\Models\BookedTicket::whereNotNull('passenger_id')
+        $appBookings = \App\Models\BookedTicket::whereNotNull('passenger_id')
             ->where('status', Status::ENABLE)
             ->whereDate('created_at', '>=', $request->start_date)
             ->whereDate('created_at', '<=', $request->end_date)
@@ -182,7 +182,7 @@ class AdminController extends Controller
             ->groupBy('created_on')
             ->get();
 
-        $b2cData = [];
+        $appData = [];
         $counterData = [];
         foreach ($dates as $date) {
             $appData[] = $appBookings->where('created_on', $date)->first()?->count ?? 0;
@@ -191,7 +191,7 @@ class AdminController extends Controller
 
         return response()->json([
             'categories' => $dates,
-            'b2c' => $b2cData,
+            'app' => $appData,
             'counter' => $counterData
         ]);
     }

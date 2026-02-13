@@ -18,7 +18,7 @@ class BoardingPointController extends Controller
             ->with(['city', 'counter'])
             ->searchable(['name', 'landmark'])
             ->filter(['city_id', 'type'])
-            ->where('owner_id', auth()->id())
+            ->where('owner_id', authUser()->id)
             ->orderBy('sort_order')
             ->orderByDesc('id')
             ->paginate(getPaginate());
@@ -53,7 +53,7 @@ class BoardingPointController extends Controller
         ]);
 
         $boardingPoint = new BoardingPoint();
-        $boardingPoint->owner_id = auth()->id();
+        $boardingPoint->owner_id = authUser()->id;
         $boardingPoint->name = $request->name;
         $boardingPoint->city_id = $request->city_id;
         $boardingPoint->counter_id = $request->counter_id;
@@ -76,7 +76,7 @@ class BoardingPointController extends Controller
     public function edit($id)
     {
         $pageTitle = __('Edit Boarding Point');
-        $boardingPoint = BoardingPoint::where('owner_id', auth()->id())->findOrFail($id);
+        $boardingPoint = BoardingPoint::where('owner_id', authUser()->id)->findOrFail($id);
         $cities = City::active()->orderBy('name')->get();
         $counters = Counter::active()->orderBy('name')->get();
         return view('owner.boarding-points.edit', compact('pageTitle', 'boardingPoint', 'cities', 'counters'));
@@ -100,7 +100,7 @@ class BoardingPointController extends Controller
             'sort_order' => 'nullable|integer|min:0',
         ]);
 
-        $boardingPoint = BoardingPoint::where('owner_id', auth()->id())->findOrFail($id);
+        $boardingPoint = BoardingPoint::where('owner_id', authUser()->id)->findOrFail($id);
         $boardingPoint->name = $request->name;
         $boardingPoint->city_id = $request->city_id;
         $boardingPoint->counter_id = $request->counter_id;
@@ -122,7 +122,7 @@ class BoardingPointController extends Controller
 
     public function status($id)
     {
-        $boardingPoint = BoardingPoint::where('owner_id', auth()->id())->findOrFail($id);
+        $boardingPoint = BoardingPoint::where('owner_id', authUser()->id)->findOrFail($id);
         $boardingPoint->is_active = !$boardingPoint->is_active;
         $boardingPoint->save();
 
@@ -132,7 +132,7 @@ class BoardingPointController extends Controller
 
     public function delete($id)
     {
-        $boardingPoint = BoardingPoint::where('owner_id', auth()->id())->findOrFail($id);
+        $boardingPoint = BoardingPoint::where('owner_id', authUser()->id)->findOrFail($id);
         $boardingPoint->delete();
 
         $notify[] = ['success', __('Boarding point deleted successfully')];
@@ -142,9 +142,9 @@ class BoardingPointController extends Controller
     public function assign($routeId)
     {
         $pageTitle = __('Assign Boarding Points to Route');
-        $route = Route::where('owner_id', auth()->id())->with('boardingPoints')->findOrFail($routeId);
+        $route = Route::where('owner_id', authUser()->id)->with('boardingPoints')->findOrFail($routeId);
         $boardingPoints = BoardingPoint::active()
-            ->where('owner_id', auth()->id())
+            ->where('owner_id', authUser()->id)
             ->orderBy('sort_order')
             ->get();
 
@@ -155,12 +155,12 @@ class BoardingPointController extends Controller
     {
         $request->validate([
             'boarding_point_ids' => 'required|array',
-            'boarding_point_ids.*' => ['integer', \Illuminate\Validation\Rule::exists('boarding_points', 'id')->where('owner_id', auth()->id())],
+            'boarding_point_ids.*' => ['integer', \Illuminate\Validation\Rule::exists('boarding_points', 'id')->where('owner_id', authUser()->id)],
             'pickup_time_offsets' => 'required|array',
             'pickup_time_offsets.*' => 'integer|min:0',
         ]);
 
-        $route = Route::where('owner_id', auth()->id())->findOrFail($routeId);
+        $route = Route::where('owner_id', authUser()->id)->findOrFail($routeId);
         
         // Remove existing assignments
         $route->boardingPoints()->detach();

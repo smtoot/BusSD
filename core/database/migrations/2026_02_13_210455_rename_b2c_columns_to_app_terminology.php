@@ -12,11 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('general_settings', function (Blueprint $table) {
-            $table->decimal('app_commission', 5, 2)->default(0)->after('cur_sym');
+            $table->renameColumn('app_commission', 'app_commission');
         });
 
-        Schema::table('owners', function (Blueprint $table) {
-            $table->decimal('app_commission', 5, 2)->nullable()->after('balance');
+        Schema::table('trips', function (Blueprint $table) {
+            $table->renameColumn('app_locked_seats', 'app_locked_seats');
         });
     }
 
@@ -26,11 +26,11 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('general_settings', function (Blueprint $table) {
-            $table->dropColumn('app_commission');
+            $table->renameColumn('app_commission', 'app_commission');
         });
 
-        Schema::table('owners', function (Blueprint $table) {
-            $table->dropColumn('app_commission');
+        Schema::table('trips', function (Blueprint $table) {
+            $table->renameColumn('app_locked_seats', 'app_locked_seats');
         });
     }
 };

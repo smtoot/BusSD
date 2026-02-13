@@ -46,13 +46,13 @@ class SalesReportController extends Controller
         return view('owner.report.details', compact('pageTitle', 'sale', 'owner'));
     }
 
-    public function b2cSales()
+    public function appSales()
     {
-        $pageTitle = "B2C (App) Sales";
+        $pageTitle = "App Sales";
         $owner = authUser();
 
         $query = BookedTicket::where('owner_id', $owner->id)
-            ->whereNotNull('passenger_id'); // Filter: Only B2C Passengers
+            ->whereNotNull('passenger_id'); // Filter: Only App Passengers
 
         // Apply trip filter
         if (request()->filled('trip_id')) {
@@ -94,7 +94,7 @@ class SalesReportController extends Controller
         $trips = Trip::active()->where('owner_id', $owner->id)->orderBy('title')->get();
         $branches = Branch::where('owner_id', $owner->id)->orderBy('name')->get();
 
-        return view('owner.report.b2c_sale', compact('pageTitle', 'sales', 'owner', 'trips', 'branches'));
+        return view('owner.report.app_sale', compact('pageTitle', 'sales', 'owner', 'trips', 'branches'));
     }
 
     public function counterSales()

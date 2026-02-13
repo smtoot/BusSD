@@ -15,7 +15,7 @@ class FleetController extends Controller
         $pageTitle = __('All Vehicles');
         $vehicles = Vehicle::query()
             ->with(['owner', 'fleetType'])
-            ->searchable(['nick_name', 'register_no'])
+            ->searchable(['nick_name', 'registration_no'])
             ->filter(['owner_id', 'fleet_type_id', 'status'])
             ->orderByDesc('id')
             ->paginate(getPaginate());
@@ -27,7 +27,7 @@ class FleetController extends Controller
     {
         $vehicle = Vehicle::with(['owner', 'fleetType', 'fleetType.seatLayout'])->findOrFail($id);
         $pageTitle = __('Vehicle Detail') . ' - ' . $vehicle->nick_name;
-        return view('admin.fleet.vehicle_show', compact('pageTitle', $vehicle));
+        return view('admin.fleet.vehicle_show', compact('pageTitle', 'vehicle'));
     }
 
     public function fleetTypes()
@@ -118,7 +118,7 @@ class FleetController extends Controller
                 fputcsv($file, [
                     $vehicle->id,
                     $vehicle->nick_name,
-                    $vehicle->register_no,
+                    $vehicle->registration_no,
                     @$vehicle->owner->username,
                     @$vehicle->fleetType->name,
                     $vehicle->status ? __('Active') : __('Inactive')
@@ -149,8 +149,8 @@ class FleetController extends Controller
             'has_ac' => 'required|integer|in:' . \App\Constants\Status::YES . ',' . \App\Constants\Status::NO,
         ], [
             'seats.*.required' => __('Seat number for all deck is required'),
-+            'seats.*.numeric' => __('Seat number for all deck is must be a number'),
-+            'seats.*.gt:0' => __('Seat number for all deck is must be greater than 0'),
+            'seats.*.numeric' => __('Seat number for all deck is must be a number'),
+            'seats.*.gt:0' => __('Seat number for all deck is must be greater than 0'),
         ]);
 
         $fleetType = new FleetType();
@@ -185,8 +185,8 @@ class FleetController extends Controller
             'has_ac' => 'required|integer|in:' . \App\Constants\Status::YES . ',' . \App\Constants\Status::NO,
         ], [
             'seats.*.required' => __('Seat number for all deck is required'),
-+            'seats.*.numeric' => __('Seat number for all deck is must be a number'),
-+            'seats.*.gt:0' => __('Seat number for all deck is must be greater than 0'),
+            'seats.*.numeric' => __('Seat number for all deck is must be a number'),
+            'seats.*.gt:0' => __('Seat number for all deck is must be greater than 0'),
         ]);
 
         $fleetType = FleetType::findOrFail($id);

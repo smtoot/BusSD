@@ -55,7 +55,7 @@ Route::middleware('owner')->name('owner.')->group(function () {
                 Route::post('add-device-token', 'addDeviceToken')->name('add.device.token');
 
                 Route::get('chart/seals', 'salesReport')->name('chart.sales');
-                Route::get('notifications/b2c-bookings', 'recentB2CBookings')->name('notifications.b2c');
+                Route::get('notifications/app-bookings', 'recentAppBookings')->name('notifications.app');
 
                 // package
                 Route::prefix('package')->name('package.')->group(function () {
@@ -148,6 +148,7 @@ Route::middleware('owner')->name('owner.')->group(function () {
 
                 route::prefix('fleet-type')->name('fleet.type.')->group(function () {
                     Route::get('', 'fleetType')->name('index');
+                    Route::post('store/{id?}', 'fleetTypeStore')->name('store');
                     Route::post('status/{id}', 'fleetTypeStatus')->name('status');
                 });
 
@@ -293,22 +294,13 @@ Route::middleware('owner')->name('owner.')->group(function () {
                 Route::post('assign/{routeId}', 'assignStore')->name('assign.store');
             });
 
-            //Dynamic Pricing
-            Route::controller('DynamicPricingController')->prefix('dynamic-pricing')->name('dynamic-pricing.')->group(function () {
-                Route::get('', 'index')->name('index');
-                Route::get('create', 'create')->name('create');
-                Route::post('store', 'store')->name('store');
-                Route::get('edit/{id}', 'edit')->name('edit');
-                Route::post('update/{id}', 'update')->name('update');
-                Route::post('status/{id}', 'status')->name('status');
-                Route::post('delete/{id}', 'delete')->name('delete');
-            });
+
 
             //Report
             Route::controller('SalesReportController')->group(function () {
                 Route::name('report.sale.')->prefix('report/sale')->group(function () {
                     Route::get('', 'index')->name('index');
-                    Route::get('b2c', 'b2cSales')->name('b2c'); // New
+                    Route::get('app', 'appSales')->name('app'); // New
                     Route::get('counter', 'counterSales')->name('counter'); // New
                     Route::get('{id}', 'saleDetail')->name('details');
                 });

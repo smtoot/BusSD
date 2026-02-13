@@ -31,7 +31,9 @@ class TripController extends Controller
             ->orderByDesc('id')
             ->paginate(getPaginate());
 
-        $fleetTypes = FleetType::active()->where('owner_id', $owner->id)->orderByDesc('id')->get();
+        $fleetTypes = FleetType::active()->where(function($q) use ($owner) {
+            $q->where('owner_id', 0)->orWhere('owner_id', $owner->id);
+        })->orderByDesc('id')->get();
         $schedules  = Schedule::active()->where('owner_id', $owner->id)->orderByDesc('id')->get();
         $routes     = Route::active()->where('owner_id', $owner->id)->orderByDesc('id')->get();
 
@@ -56,7 +58,9 @@ class TripController extends Controller
             $pageTitle = 'Create New Trip';
             $trip      = null;
         }
-        $fleetTypes = FleetType::active()->where('owner_id', $owner->id)->orderByDesc('id')->get();
+        $fleetTypes = FleetType::active()->where(function($q) use ($owner) {
+            $q->where('owner_id', 0)->orWhere('owner_id', $owner->id);
+        })->orderByDesc('id')->get();
         $schedules  = Schedule::active()->where('owner_id', $owner->id)->orderByDesc('id')->get();
         // Allow Global Routes (owner_id = 0) + Owner's Routes
         $routes     = Route::active()->with(['startingPoint', 'destinationPoint'])->where(function($q) use ($owner) {
@@ -85,24 +89,24 @@ class TripController extends Controller
         // Phase 2.2: Get seat pricing modifiers count
         $seatModifiersCount = \App\Models\SeatPricingModifier::where('owner_id', $owner->id)->active()->count();
 
-        $minB2CQuota = gs('min_b2c_quota', 0);
+        $minAppQuota = gs('min_app_quota', 0);
 
-        return view('owner.trip.form', compact('pageTitle', 'fleetTypes', 'schedules', 'routes', 'trip', 'vehicles', 'drivers', 'supervisors', 'vehicleAmenities', 'tripAmenities', 'policies', 'minB2CQuota', 'branches', 'routeTemplates', 'seatModifiersCount'));
+        return view('owner.trip.form', compact('pageTitle', 'fleetTypes', 'schedules', 'routes', 'trip', 'vehicles', 'drivers', 'supervisors', 'vehicleAmenities', 'tripAmenities', 'policies', 'minAppQuota', 'branches', 'routeTemplates', 'seatModifiersCount'));
     }
 
     public function store(Request $request, $id = 0)
     {
         $request->validate([
             'title'      => 'required|string',
-            'fleet_type' => ['required', 'integer', 'gt:0', \Illuminate\Validation\Rule::exists('fleet_types', 'id')->where('owner_id', auth()->id())],
+            'fleet_type' => ['required', 'integer', 'gt:0', \Illuminate\Validation\Rule::exists('fleet_types', 'id')->where(function($q){ $q->where('owner_id', authUser()->id)->orWhere('owner_id', 0); })],
             'route'      => ['required', 'integer', 'gt:0', \Illuminate\Validation\Rule::exists('routes', 'id')->where(function($q){ $q->where('owner_id', auth()->id())->orWhere('owner_id', 0); })],
             'starting_city_id' => 'required|integer|gt:0|exists:cities,id',
             'destination_city_id' => 'required|integer|gt:0|exists:cities,id',
             'schedule'   => 'nullable|integer|gt:0|exists:schedules,id', // Make schedule nullable/optional
             'departure_datetime' => 'required|date',
             'arrival_datetime'   => 'required|date|after:departure_datetime',
-            'b2c_locked_seats' => 'nullable|array',
-            'b2c_locked_seats.*' => 'nullable',
+            'app_locked_seats' => 'nullable|array',
+            'app_locked_seats.*' => 'nullable',
             // New redBus fields
             'trip_type'        => 'nullable|in:express,semi_express,local,night',
             'trip_category'    => 'nullable|in:premium,standard,budget',
@@ -135,7 +139,7 @@ class TripController extends Controller
 
         // Validate Inventory Quota
         if ($request->inventory_allocation == 'partial') {
-            $minQuota = gs('min_b2c_quota', 0);
+            $minQuota = gs('min_app_quota', 0);
             if ($request->inventory_count < $minQuota) {
                 $notify[] = ['error', trans('Partial inventory count cannot be less than the minimum quota of :quota seats.', ['quota' => $minQuota])];
                 return back()->withNotify($notify)->withInput();
@@ -181,7 +185,7 @@ class TripController extends Controller
         $trip->starting_city_id    = $request->starting_city_id;
         $trip->destination_city_id = $request->destination_city_id;
         // day_off removed
-        $trip->b2c_locked_seats = $request->b2c_locked_seats ?? [];
+        $trip->app_locked_seats = $request->app_locked_seats ?? [];
         
         // Branch Assignment
         if ($request->filled('owning_branch_id')) {
@@ -353,7 +357,7 @@ class TripController extends Controller
         ]);
 
         $owner = authUser();
-        $commissionRate = $owner->commission_rate ?? gs('b2c_commission', 10);
+        $commissionRate = $owner->commission_rate ?? gs('app_commission', 10);
 
         // Get base price from request or TicketPrice table
         $basePrice = $request->base_price;

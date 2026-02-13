@@ -48,7 +48,7 @@ class SettlementController extends Controller
             return back()->withNotify($notify);
         }
 
-        $commissionRate = $owner->b2c_commission ?? gs('b2c_commission');
+        $commissionRate = $owner->app_commission ?? gs('app_commission');
         $commissionAmount = ($grossAmount * $commissionRate) / 100;
         $netAmount = $grossAmount - $commissionAmount;
 

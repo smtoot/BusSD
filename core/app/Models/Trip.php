@@ -10,7 +10,7 @@ class Trip extends Model
     use GlobalStatus;
 
     protected $casts = [
-        'b2c_locked_seats' => 'array',
+        'app_locked_seats' => 'array',
         'amenities' => 'array',
         'date' => 'date'
     ];
@@ -24,7 +24,7 @@ class Trip extends Model
         'starting_city_id',
         'destination_city_id',
 
-        'b2c_locked_seats',
+        'app_locked_seats',
         'status',
         'trip_type',
         'trip_category',
@@ -296,7 +296,7 @@ class Trip extends Model
      */
     public function calculateCommission($price)
     {
-        $commissionRate = $this->owner->commission_rate ?? gs('b2c_commission', 10);
+        $commissionRate = $this->owner->commission_rate ?? gs('app_commission', 10);
         return round($price * ($commissionRate / 100), 2);
     }
 

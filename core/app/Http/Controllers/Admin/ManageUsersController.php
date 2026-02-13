@@ -128,7 +128,7 @@ class ManageUsersController extends Controller
         $user->country_code = $countryCode;
         $user->ev           = $request->ev ? Status::VERIFIED : Status::UNVERIFIED;
         $user->sv           = $request->sv ? Status::VERIFIED : Status::UNVERIFIED;
-        $user->b2c_commission = $request->b2c_commission;
+        $user->app_commission = $request->app_commission;
         $user->save();
 
         $notify[] = ['success', __('Owner details updated successfully')];

@@ -26,10 +26,12 @@ trait Crud
     public function login($id)
     {
         $guard = $this->guard;
-        $isOwner = Auth::guard('owner')->user();
-        abort_if(!$isOwner, 404);
+        $owner = authUser();
+        // Verify ownership before login
+        $staff = $this->model::where('owner_id', $owner->id)->findOrFail($id);
+        
         Auth::guard('owner')->logout();
-        Auth::guard($guard)->loginUsingId($id);
+        Auth::guard($guard)->loginUsingId($staff->id);
         return to_route("$guard.dashboard");
     }
 
@@ -130,6 +132,6 @@ trait Crud
 
     public function status($id)
     {
-        return $this->model::changeStatus($id);
+        return $this->model::where('owner_id', $this->owner->id)->findOrFail($id)->changeStatus();
     }
 }

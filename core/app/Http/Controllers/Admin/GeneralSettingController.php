@@ -37,7 +37,7 @@ class GeneralSettingController extends Controller
             'timezone' => 'required|integer',
             'currency_format' => 'required|in:1,2,3',
             'paginate_number' => 'required|integer',
-            'b2c_commission' => 'required|numeric|min:0|max:100'
+            'app_commission' => 'required|numeric|min:0|max:100'
         ]);
 
         $timezones = timezone_identifiers_list();
@@ -51,7 +51,7 @@ class GeneralSettingController extends Controller
         $general->base_color = str_replace('#', '', $request->base_color);
         $general->secondary_color = str_replace('#', '', $request->secondary_color);
         $general->currency_format = $request->currency_format;
-        $general->b2c_commission = $request->b2c_commission;
+        $general->app_commission = $request->app_commission;
         $general->save();
 
         $timezoneFile = config_path('timezone.php');

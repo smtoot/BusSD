@@ -5,8 +5,10 @@
             <div class="widget-two box--shadow2 b-radius--5 bg--white">
                 <i class="las la-money-bill-wave overlay-icon text--primary"></i>
                 <div class="widget-two__content">
-                    <h2 class="text--primary">{{ gs('cur_sym') }}{{ getAmount($totalB2C) }}</h2>
-                    <p>@lang('Gross B2C Sale')</p>
+                    <h2 class="text--primary">@lang('Total App Sales')
+@lang('Total earnings from app-based passenger bookings.')
+{{ showAmount($totalApp) }}</h2>
+                    <p>@lang('Gross App Sale')</p>
                 </div>
             </div>
         </div>

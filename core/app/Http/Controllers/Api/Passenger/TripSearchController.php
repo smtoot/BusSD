@@ -186,7 +186,7 @@ class TripSearchController extends Controller
             ->flatten()
             ->toArray();
 
-        $lockedSeats = is_array($trip->b2c_locked_seats) ? $trip->b2c_locked_seats : [];
+        $lockedSeats = is_array($trip->app_locked_seats) ? $trip->app_locked_seats : [];
         $bookedSeats = array_values(array_unique(array_merge($bookedSeats, $lockedSeats)));
 
         $layout = $trip->fleetType->seatLayout;

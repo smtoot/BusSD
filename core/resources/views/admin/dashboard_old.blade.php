@@ -53,7 +53,7 @@
                                 </div>
                                 <div class="widget-card-content">
                                     <h6 class="widget-card-amount">{{ $widget['b2c_bookings'] }}</h6>
-                                    <p class="widget-card-title">@lang('B2C Bookings')</p>
+                                    <p class="widget-card-title">@lang('App Bookings')</p>
                                 </div>
                             </div>
                             <span class="widget-card-arrow">
@@ -311,7 +311,7 @@
     </div>
     <div class="row mb-none-30 mt-30">
         <div class="col-xl-12 mb-30">
-            <h5 class="mb-3">@lang('Recent B2C Bookings')</h5>
+            <h5 class="mb-3">@lang('Recent App Bookings')</h5>
             <div class="card">
                 <div class="card-body p-0">
                     <div class="table-responsive--md table-responsive">

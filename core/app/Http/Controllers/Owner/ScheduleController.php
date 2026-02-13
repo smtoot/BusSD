@@ -100,10 +100,10 @@ class ScheduleController extends Controller
     {
         $request->validate([
             'name'                  => 'required|string|max:255',
-            'route_id'              => 'required|integer|exists:routes,id',
-            'fleet_type_id'         => 'required|integer|exists:fleet_types,id',
-            'starting_point'        => 'required|integer|exists:counters,id',
-            'destination_point'     => 'required|integer|exists:counters,id',
+            'route_id'              => ['required', 'integer', 'exists:routes,id', \Illuminate\Validation\Rule::exists('routes', 'id')->where(fn($q) => $q->where('owner_id', authUser()->id)->orWhere('owner_id', 0))],
+            'fleet_type_id'         => ['required', 'integer', 'exists:fleet_types,id', \Illuminate\Validation\Rule::exists('fleet_types', 'id')->where(fn($q) => $q->where('owner_id', authUser()->id)->orWhere('owner_id', 0))],
+            'starting_point'        => ['required', 'integer', \Illuminate\Validation\Rule::exists('branches', 'id')->where('owner_id', authUser()->id)],
+            'destination_point'     => ['required', 'integer', \Illuminate\Validation\Rule::exists('branches', 'id')->where('owner_id', authUser()->id)],
             'starts_from'           => 'required|date_format:H:i',
             'ends_at'               => 'required|date_format:H:i',
             'duration_hours'        => 'required|integer|min:0',
@@ -214,6 +214,6 @@ class ScheduleController extends Controller
 
     public function changeStatus($id)
     {
-        return Schedule::changeStatus($id);
+        return Schedule::where('owner_id', authUser()->id)->findOrFail($id)->changeStatus();
     }
 }

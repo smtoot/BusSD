@@ -63,21 +63,21 @@ class ReportController extends Controller
         return view('admin.reports.sales', compact('pageTitle', 'sales'));
     }
 
-    public function b2cPerformance()
+    public function appPerformance()
     {
         $pageTitle = __('App Platform Performance');
         
-        // Use Transaction table to aggregate commissions (charge) for B2C sales
-        $commissions = Transaction::where('remark', 'b2c_ticket_sale')
+        // Use Transaction table to aggregate commissions (charge) for App sales
+        $commissions = Transaction::where('remark', 'app_ticket_sale')
             ->selectRaw('SUM(amount) as total_volume, SUM(charge) as total_commission, count(id) as total_bookings')
             ->first();
 
-        $transactions = Transaction::where('remark', 'b2c_ticket_sale')
+        $transactions = Transaction::where('remark', 'app_ticket_sale')
             ->with('owner')
             ->orderBy('id', 'desc')
             ->paginate(getPaginate());
 
-        return view('admin.reports.b2c_performance', compact('pageTitle', 'commissions', 'transactions'));
+        return view('admin.reports.app_performance', compact('pageTitle', 'commissions', 'transactions'));
     }
 
     public function tripFeedback()
@@ -91,14 +91,14 @@ class ReportController extends Controller
     public function revenueLedger(Request $request)
     {
         $pageTitle = __('Revenue Ledger (Commissions)');
-        $transactions = Transaction::where('remark', 'b2c_ticket_sale')
+        $transactions = Transaction::where('remark', 'app_ticket_sale')
             ->searchable(['trx', 'owner:username'])
             ->dateFilter()
             ->with('owner')
             ->orderBy('id', 'desc')
             ->paginate(getPaginate());
         
-        $totalCommission = Transaction::where('remark', 'b2c_ticket_sale')
+        $totalCommission = Transaction::where('remark', 'app_ticket_sale')
             ->dateFilter()
             ->sum('charge');
 
@@ -110,10 +110,10 @@ class ReportController extends Controller
         $pageTitle = __('Operator Settlement Ledger');
         $owners = \App\Models\Owner::searchable(['username', 'email'])
             ->withSum(['transactions as total_operator_earnings' => function($query) {
-                $query->where('remark', 'b2c_ticket_sale');
+                $query->where('remark', 'app_ticket_sale');
             }], 'amount')
             ->withSum(['transactions as total_commission' => function($query) {
-                $query->where('remark', 'b2c_ticket_sale');
+                $query->where('remark', 'app_ticket_sale');
             }], 'charge')
             ->withSum(['transactions as total_payouts' => function($query) {
                 $query->where('remark', 'withdraw');

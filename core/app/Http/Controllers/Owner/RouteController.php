@@ -119,6 +119,6 @@ class RouteController extends Controller
 
     public function status($id)
     {
-        return Route::where('owner_id', authUser()->id)->findOrFail($id)->changeStatus($id);
+        return Route::where('owner_id', authUser()->id)->findOrFail($id)->changeStatus();
     }
 }

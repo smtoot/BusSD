@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('trips', function (Blueprint $row) {
-            $row->text('b2c_locked_seats')->nullable();
+            $row->text('app_locked_seats')->nullable();
         });
     }
 
@@ -26,7 +26,7 @@ return new class extends Migration
     public function down()
     {
         Schema::table('trips', function (Blueprint $row) {
-            $row->dropColumn('b2c_locked_seats');
+            $row->dropColumn('app_locked_seats');
         });
     }
 };

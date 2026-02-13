@@ -150,8 +150,8 @@
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label>@lang('B2C Commission Override (%)') <small class="text--small text--muted">(@lang('Leave empty to use Global Rate'))</small></label>
-                                    <input class="form-control" type="number" step="any" name="b2c_commission"
-                                        value="{{ $user->b2c_commission }}">
+                                    <input class="form-control" type="number" step="any" name="app_commission"
+                                        value="{{ $user->app_commission }}">
                                 </div>
                             </div>
                             <div class="col-md-12">

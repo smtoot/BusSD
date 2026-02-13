@@ -17,7 +17,7 @@ class DroppingPointController extends Controller
             ->with(['city'])
             ->searchable(['name', 'landmark'])
             ->filter(['city_id', 'type'])
-            ->where('owner_id', auth()->id())
+            ->where('owner_id', authUser()->id)
             ->orderBy('sort_order')
             ->orderByDesc('id')
             ->paginate(getPaginate());
@@ -49,7 +49,7 @@ class DroppingPointController extends Controller
         ]);
 
         $droppingPoint = new DroppingPoint();
-        $droppingPoint->owner_id = auth()->id();
+        $droppingPoint->owner_id = authUser()->id;
         $droppingPoint->name = $request->name;
         $droppingPoint->city_id = $request->city_id;
         $droppingPoint->landmark = $request->landmark;
@@ -70,7 +70,7 @@ class DroppingPointController extends Controller
     public function edit($id)
     {
         $pageTitle = __('Edit Dropping Point');
-        $droppingPoint = DroppingPoint::where('owner_id', auth()->id())->findOrFail($id);
+        $droppingPoint = DroppingPoint::where('owner_id', authUser()->id)->findOrFail($id);
         $cities = City::active()->orderBy('name')->get();
         return view('owner.dropping-points.edit', compact('pageTitle', 'droppingPoint', 'cities'));
     }
@@ -91,7 +91,7 @@ class DroppingPointController extends Controller
             'sort_order' => 'nullable|integer|min:0',
         ]);
 
-        $droppingPoint = DroppingPoint::where('owner_id', auth()->id())->findOrFail($id);
+        $droppingPoint = DroppingPoint::where('owner_id', authUser()->id)->findOrFail($id);
         $droppingPoint->name = $request->name;
         $droppingPoint->city_id = $request->city_id;
         $droppingPoint->landmark = $request->landmark;
@@ -111,7 +111,7 @@ class DroppingPointController extends Controller
 
     public function status($id)
     {
-        $droppingPoint = DroppingPoint::where('owner_id', auth()->id())->findOrFail($id);
+        $droppingPoint = DroppingPoint::where('owner_id', authUser()->id)->findOrFail($id);
         $droppingPoint->is_active = !$droppingPoint->is_active;
         $droppingPoint->save();
 
@@ -121,7 +121,7 @@ class DroppingPointController extends Controller
 
     public function delete($id)
     {
-        $droppingPoint = DroppingPoint::where('owner_id', auth()->id())->findOrFail($id);
+        $droppingPoint = DroppingPoint::where('owner_id', authUser()->id)->findOrFail($id);
         $droppingPoint->delete();
 
         $notify[] = ['success', __('Dropping point deleted successfully')];
@@ -131,9 +131,9 @@ class DroppingPointController extends Controller
     public function assign($routeId)
     {
         $pageTitle = __('Assign Dropping Points to Route');
-        $route = Route::where('owner_id', auth()->id())->with('droppingPoints')->findOrFail($routeId);
+        $route = Route::where('owner_id', authUser()->id)->with('droppingPoints')->findOrFail($routeId);
         $droppingPoints = DroppingPoint::active()
-            ->where('owner_id', auth()->id())
+            ->where('owner_id', authUser()->id)
             ->orderBy('sort_order')
             ->get();
 
@@ -149,7 +149,7 @@ class DroppingPointController extends Controller
             'dropoff_time_offsets.*' => 'integer|min:0',
         ]);
 
-        $route = Route::where('owner_id', auth()->id())->findOrFail($routeId);
+        $route = Route::where('owner_id', authUser()->id)->findOrFail($routeId);
         
         // Remove existing assignments
         $route->droppingPoints()->detach();

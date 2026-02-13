@@ -154,7 +154,7 @@ class PaymentController extends Controller
                 $gs = gs();
 
                 // Commission Logic: Operator Override > Global Rate
-                $commissionRate = $owner->b2c_commission ?? $gs->b2c_commission;
+                $commissionRate = $owner->app_commission ?? $gs->app_commission;
                 $commissionAmount = ($deposit->amount * $commissionRate) / 100;
                 $operatorAmount = $deposit->amount - $commissionAmount;
 
@@ -174,14 +174,14 @@ class PaymentController extends Controller
                 $transaction->remark       = 'ticket_payment';
                 $transaction->save();
 
-                // Operator Transaction (Credit for B2C Sale)
+                // Operator Transaction (Credit for App Sale)
                 $ownerTransaction               = new Transaction();
                 $ownerTransaction->owner_id     = $owner->id;
                 $ownerTransaction->amount       = $operatorAmount;
                 $ownerTransaction->post_balance = $owner->balance;
                 $ownerTransaction->charge       = $commissionAmount; // Commission is the 'charge' for the operator
                 $ownerTransaction->trx_type     = '+';
-                $ownerTransaction->details      = 'Credit from B2C Sale (Commission: ' . $commissionRate . '%)';
+                $ownerTransaction->details      = 'Credit from App Sale (Commission: ' . $commissionRate . '%)';
                 $ownerTransaction->trx          = $deposit->trx;
                 $ownerTransaction->remark       = 'b2c_ticket_sale';
                 $ownerTransaction->save();

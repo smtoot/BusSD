@@ -54,7 +54,7 @@
         "icon": "las la-ticket-alt",
         "menu_active": [
             "owner.bookings*",
-            "owner.report.sale.b2c",
+            "owner.report.sale.app",
             "owner.passenger*"
         ],
         "submenu": [
@@ -65,8 +65,8 @@
             },
             {
                 "title": "App Booking",
-                "route_name": "owner.report.sale.b2c",
-                "menu_active": "owner.report.sale.b2c"
+                "route_name": "owner.report.sale.app",
+                "menu_active": "owner.report.sale.app"
             },
             {
                 "title": "Office Bookings",

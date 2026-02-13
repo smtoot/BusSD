@@ -151,7 +151,7 @@
                         <div class="rk-kpi-card__icon rk-kpi-card__icon--emerald"><i class="las la-mobile"></i></div>
                         <span class="rk-kpi-card__label">@lang('App Sales')</span>
                     </div>
-                    <h4 class="rk-kpi-card__amount">{{ gs('cur_sym') }}{{ getAmount($widget['b2c_sales']) }}</h4>
+                    <h4 class="rk-kpi-card__amount">{{ gs('cur_sym') }}{{ getAmount($widget['app_sales']) }}</h4>
                     <div class="rk-kpi-card__footer">
                         @if($widget['b2c_percent_change'] > 0)
                             <span class="rk-pill rk-pill--success"><i class="las la-arrow-up"></i> {{ number_format($widget['b2c_percent_change'], 1) }}%</span>

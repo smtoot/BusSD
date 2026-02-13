@@ -16,10 +16,10 @@ class BookingController extends Controller
         return view('admin.bookings.index', compact('pageTitle', 'bookings'));
     }
 
-    public function b2cBookings()
+    public function appBookings()
     {
         $pageTitle = 'App Booking';
-        $bookings = $this->bookingData('b2c');
+        $bookings = $this->bookingData('app');
         return view('admin.bookings.index', compact('pageTitle', 'bookings'));
     }
 
@@ -34,7 +34,7 @@ class BookingController extends Controller
     {
         $query = BookedTicket::query()->with(['owner', 'trip', 'trip.route', 'passenger', 'counterManager', 'counterManager.counter']);
         
-        if ($scope == 'b2c') {
+        if ($scope == 'app') {
             $query->whereNotNull('passenger_id');
         } elseif ($scope == 'counter') {
             $query->whereNull('passenger_id');

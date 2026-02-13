@@ -48,7 +48,7 @@ class BookingController extends Controller
         $requestedSeats = array_map('strval', $request->seats);
 
         // 1. Static B2C Exclusions (Counter only seats)
-        $staticLocked = is_array($trip->b2c_locked_seats) ? $trip->b2c_locked_seats : [];
+        $staticLocked = is_array($trip->app_locked_seats) ? $trip->app_locked_seats : [];
         foreach ($requestedSeats as $seat) {
             if (in_array((string)$seat, array_map('strval', $staticLocked))) {
                 return $this->apiError("Seat $seat is reserved for counter booking only.", 400);

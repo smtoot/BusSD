@@ -85,20 +85,20 @@ class OwnerController extends Controller
         $widget['today_passengers'] = $owner->bookedTickets()->where('status', 1)->whereDate('created_at', $today)->sum('ticket_count');
         $widget['today_trips']      = $owner->trips()->active()->whereDate('date', $today)->count();
 
-        // B2C specific metrics
+        // App specific metrics
         $thisMonth = Carbon::now()->startOfMonth();
         $lastMonth = Carbon::now()->subMonth()->startOfMonth();
         $lastMonthEnd = Carbon::now()->subMonth()->endOfMonth();
 
-        // B2C (app) sales this month
-        $b2cSalesThisMonth = $owner->bookedTickets()
+        // App sales this month
+        $appSalesThisMonth = $owner->bookedTickets()
             ->whereNotNull('passenger_id')
             ->where('status', 1)
             ->where('created_at', '>=', $thisMonth)
             ->sum(\DB::raw('price * ticket_count'));
 
-        // B2C sales last month for comparison
-        $b2cSalesLastMonth = $owner->bookedTickets()
+        // App sales last month for comparison
+        $appSalesLastMonth = $owner->bookedTickets()
             ->whereNotNull('passenger_id')
             ->where('status', 1)
             ->whereBetween('created_at', [$lastMonth, $lastMonthEnd])
@@ -126,30 +126,30 @@ class OwnerController extends Controller
             ->sum('ticket_count');
 
         // Revenue calculation (what operator keeps after commission)
-        $commissionRate = $owner->b2c_commission ?? gs('b2c_commission');
-        $b2cRevenueThisMonth = $b2cSalesThisMonth * (1 - $commissionRate / 100);
-        $b2cRevenueLastMonth = $b2cSalesLastMonth * (1 - $commissionRate / 100);
+        $commissionRate = $owner->app_commission ?? gs('app_commission');
+        $appRevenueThisMonth = $appSalesThisMonth * (1 - $commissionRate / 100);
+        $appRevenueLastMonth = $appSalesLastMonth * (1 - $commissionRate / 100);
 
         // Calculate percentage changes
-        $b2cPercentChange = $b2cSalesLastMonth > 0
-            ? (($b2cSalesThisMonth - $b2cSalesLastMonth) / $b2cSalesLastMonth) * 100
-            : ($b2cSalesThisMonth > 0 ? 100 : 0);
+        $appPercentChange = $appSalesLastMonth > 0
+            ? (($appSalesThisMonth - $appSalesLastMonth) / $appSalesLastMonth) * 100
+            : ($appSalesThisMonth > 0 ? 100 : 0);
 
         $counterPercentChange = $counterSalesLastMonth > 0
             ? (($counterSalesThisMonth - $counterSalesLastMonth) / $counterSalesLastMonth) * 100
             : ($counterSalesThisMonth > 0 ? 100 : 0);
 
-        $b2cRevenuePercentChange = $b2cRevenueLastMonth > 0
-            ? (($b2cRevenueThisMonth - $b2cRevenueLastMonth) / $b2cRevenueLastMonth) * 100
-            : ($b2cRevenueThisMonth > 0 ? 100 : 0);
+        $appRevenuePercentChange = $appRevenueLastMonth > 0
+            ? (($appRevenueThisMonth - $appRevenueLastMonth) / $appRevenueLastMonth) * 100
+            : ($appRevenueThisMonth > 0 ? 100 : 0);
 
-        $widget['b2c_sales']                = $b2cSalesThisMonth;
-        $widget['b2c_percent_change']       = $b2cPercentChange;
+        $widget['app_sales']                = $appSalesThisMonth;
+        $widget['app_percent_change']       = $appPercentChange;
         $widget['counter_sales']            = $counterSalesThisMonth;
         $widget['counter_percent_change']   = $counterPercentChange;
         $widget['app_passengers']           = $appPassengersThisMonth;
-        $widget['b2c_revenue']              = $b2cRevenueThisMonth;
-        $widget['b2c_revenue_percent_change'] = $b2cRevenuePercentChange;
+        $widget['app_revenue']              = $appRevenueThisMonth;
+        $widget['app_revenue_percent_change'] = $appRevenuePercentChange;
 
         // ========================================
         // NEW PHASE 1.1: Enhanced KPIs
@@ -581,11 +581,11 @@ class OwnerController extends Controller
         return view('owner.manage_transport', compact('pageTitle', 'manageTransport'));
     }
 
-    public function recentB2CBookings()
+    public function recentAppBookings()
     {
         $owner = authUser('owner');
 
-        // Get recent confirmed B2C bookings from the last 24 hours
+        // Get recent confirmed App bookings from the last 24 hours
         $recentBookings = $owner->bookedTickets()
             ->whereNotNull('passenger_id')
             ->where('status', 1) // Confirmed only

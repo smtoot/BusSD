@@ -65,7 +65,7 @@
             {{-- B2C Notifications --}}
             <li class="dropdown">
                 <button type="button" class="primary--layer" data-bs-toggle="dropdown" data-bs-placement="bottom"
-                    title="@lang('B2C Bookings')" id="notificationButton">
+                    title="@lang('App Bookings')" id="notificationButton">
                     <i class="las la-bell"></i>
                     <span class="badge badge--danger notification-badge" id="notificationCount" style="display: none;">0</span>
                 </button>
@@ -82,7 +82,7 @@
                     </div>
                     <div class="dropdown-footer text-center border-top">
                         <a href="{{ route('owner.report.sale.b2c') }}" class="dropdown-menu__item d-block px-3 py-2">
-                            @lang('View All B2C Sales') <i class="las la-arrow-right"></i>
+                            @lang('View All App Sales') <i class="las la-arrow-right"></i>
                         </a>
                     </div>
                 </div>

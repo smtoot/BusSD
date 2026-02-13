@@ -75,7 +75,7 @@ Route::middleware('admin')->group(function () {
     // Booking Manager
     Route::controller('BookingController')->name('bookings.')->prefix('bookings')->group(function () {
         Route::get('/', 'index')->name('index');
-        Route::get('b2c', 'b2cBookings')->name('b2c');
+        Route::get('app', 'appBookings')->name('app');
         Route::get('counter', 'counterBookings')->name('counter');
         Route::get('show/{id}', 'show')->name('show');
         Route::get('export', 'export')->name('export');
@@ -299,7 +299,7 @@ Route::middleware('admin')->group(function () {
         Route::get('notification/history', 'notificationHistory')->name('notification.history');
         Route::get('email/detail/{id}', 'emailDetails')->name('email.details');
         Route::get('sales', 'sales')->name('sales.history');
-        Route::get('b2c-performance', 'b2cPerformance')->name('b2c.performance');
+        Route::get('app-performance', 'appPerformance')->name('app.performance');
         Route::get('trip-feedback', 'tripFeedback')->name('trip.feedback');
         Route::get('revenue-ledger', 'revenueLedger')->name('revenue.ledger');
         Route::get('settlement-ledger', 'settlementLedger')->name('settlement.ledger');

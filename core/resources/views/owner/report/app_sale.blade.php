@@ -7,9 +7,9 @@
                 <div>
                     <i class="las la-info-circle"></i>
                     <strong>@lang('Your App Commission Rate'):</strong>
-                    <span class="badge badge--primary">{{ $owner->b2c_commission ?? gs('b2c_commission') }}%</span>
+                    <span class="badge badge--primary">{{ $owner->app_commission ?? gs('app_commission') }}%</span>
                     <small class="ms-2">
-                        @if($owner->b2c_commission)
+                        @if($owner->app_commission)
                             @lang('(Custom rate for your company)')
                         @else
                             @lang('(Platform standard rate)')
@@ -24,7 +24,7 @@
             {{-- Advanced Filters --}}
             <div class="card mb-3">
                 <div class="card-body">
-                    <form action="{{ route('owner.report.sale.b2c') }}" method="GET">
+                    <form action="{{ route('owner.report.sale.app') }}" method="GET">
                         <div class="row g-3">
                             <div class="col-lg-3 col-md-6">
                                 <label class="form-label">@lang('Date Range')</label>
@@ -71,7 +71,7 @@
                             </div>
                             <div class="col-lg-2 col-md-6">
                                 <label class="form-label d-block">&nbsp;</label>
-                                <a href="{{ route('owner.report.sale.b2c') }}" class="btn btn--secondary w-100">
+                                <a href="{{ route('owner.report.sale.app') }}" class="btn btn--secondary w-100">
                                     <i class="las la-redo"></i> @lang('Reset')
                                 </a>
                             </div>
@@ -85,19 +85,19 @@
                             @if(request('date'))
                                 <span class="badge badge--primary me-1">
                                     <i class="las la-calendar"></i> {{ request('date') }}
-                                    <a href="{{ route('owner.report.sale.b2c', array_diff_key(request()->all(), ['date' => ''])) }}" class="text-white ms-1">×</a>
+                                    <a href="{{ route('owner.report.sale.app', array_diff_key(request()->all(), ['date' => ''])) }}" class="text-white ms-1">×</a>
                                 </span>
                             @endif
                             @if(request('trip_id'))
                                 <span class="badge badge--info me-1">
                                     <i class="las la-route"></i> {{ $trips->where('id', request('trip_id'))->first()->title ?? 'Trip' }}
-                                    <a href="{{ route('owner.report.sale.b2c', array_diff_key(request()->all(), ['trip_id' => ''])) }}" class="text-white ms-1">×</a>
+                                    <a href="{{ route('owner.report.sale.app', array_diff_key(request()->all(), ['trip_id' => ''])) }}" class="text-white ms-1">×</a>
                                 </span>
                             @endif
                             @if(request('status'))
                                 <span class="badge badge--warning me-1">
                                     <i class="las la-check-circle"></i> {{ request('status') == '1' ? __('Confirmed') : __('Cancelled') }}
-                                    <a href="{{ route('owner.report.sale.b2c', array_diff_key(request()->all(), ['status' => ''])) }}" class="text-white ms-1">×</a>
+                                    <a href="{{ route('owner.report.sale.app', array_diff_key(request()->all(), ['status' => ''])) }}" class="text-white ms-1">×</a>
                                 </span>
                             @endif
                         </div>
@@ -124,7 +124,7 @@
                         </div>
                         <div class="col-md-4">
                             <h5>@lang('Estimated Net Revenue')</h5>
-                            <h3 class="text--success">{{ gs('cur_sym') }}{{ getAmount($sales->sum(fn($s) => ($s->ticket_count * $s->price) * (1 - ($owner->b2c_commission ?? gs('b2c_commission')) / 100))) }}</h3>
+                            <h3 class="text--success">{{ gs('cur_sym') }}{{ getAmount($sales->sum(fn($s) => ($s->ticket_count * $s->price) * (1 - ($owner->app_commission ?? gs('app_commission')) / 100))) }}</h3>
                         </div>
                     </div>
                 </div>
@@ -149,7 +149,7 @@
                                 @forelse($sales as $sale)
                                     @php
                                         $gross = $sale->ticket_count * $sale->price;
-                                        $commRate = $owner->b2c_commission ?? gs('b2c_commission');
+                                        $commRate = $owner->app_commission ?? gs('app_commission');
                                         $commission = ($gross * $commRate) / 100;
                                         $net = $gross - $commission;
                                     @endphp
@@ -266,7 +266,7 @@ function exportToCSV() {
     @forelse($sales as $sale)
         @php
             $gross = $sale->ticket_count * $sale->price;
-            $commRate = $owner->b2c_commission ?? gs('b2c_commission');
+            $commRate = $owner->app_commission ?? gs('app_commission');
             $commission = ($gross * $commRate) / 100;
             $net = $gross - $commission;
         @endphp

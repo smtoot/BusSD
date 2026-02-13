@@ -29,27 +29,27 @@ class FinancialController extends Controller
     {
         $pageTitle = "Financial Settlements";
         $owner = authUser();
-        $commissionRate = $owner->b2c_commission ?? gs('b2c_commission');
+        $commissionRate = $owner->app_commission ?? gs('app_commission');
 
         $query = BookedTicket::where('owner_id', $owner->id)
-            ->whereNotNull('passenger_id') // Only B2C
+            ->whereNotNull('passenger_id') // Only App
             ->active();
 
         // Summary Statistics
-        $totalB2C = (clone $query)->sum(\DB::raw('price * ticket_count'));
-        $totalCommission = $totalB2C * ($commissionRate / 100);
-        $netEarnings = $totalB2C - $totalCommission;
+        $totalApp = (clone $query)->sum(\DB::raw('price * ticket_count'));
+        $totalCommission = $totalApp * ($commissionRate / 100);
+        $netEarnings = $totalApp - $totalCommission;
 
         $settlements = $query->with(['trip', 'trip.route'])
             ->orderByDesc('id')
             ->paginate(getPaginate());
 
-        return view('owner.financial.settlements', compact('pageTitle', 'owner', 'settlements', 'totalB2C', 'totalCommission', 'netEarnings', 'commissionRate'));
+        return view('owner.financial.settlements', compact('pageTitle', 'owner', 'settlements', 'totalApp', 'totalCommission', 'netEarnings', 'commissionRate'));
     }
 
     public function refunds()
     {
-        $pageTitle = "B2C Refund Logs";
+        $pageTitle = "App Refund Logs";
         $owner = authUser();
 
         $refunds = Refund::whereHas('bookedTicket', function($q) use ($owner) {
