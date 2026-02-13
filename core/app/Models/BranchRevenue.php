@@ -13,7 +13,7 @@ class BranchRevenue extends Model
     protected $fillable = [
         'branch_id',
         'trip_id',
-        'booking_id',
+        'booked_ticket_id',
         'revenue_amount',
         'revenue_type',
         'split_percentage',
@@ -37,9 +37,9 @@ class BranchRevenue extends Model
         return $this->belongsTo(Trip::class);
     }
 
-    public function booking()
+    public function bookedTicket()
     {
-        return $this->belongsTo(Booking::class);
+        return $this->belongsTo(BookedTicket::class);
     }
 
     // Helper Methods

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('branch_id');
             $table->unsignedBigInteger('trip_id');
-            $table->unsignedBigInteger('booking_id');
+            $table->unsignedBigInteger('booked_ticket_id');
             $table->decimal('revenue_amount', 28, 8);
             $table->enum('revenue_type', ['primary', 'shared'])->default('primary');
             $table->decimal('split_percentage', 5, 2)->default(100.00);
@@ -25,7 +25,7 @@ return new class extends Migration
             // Foreign keys
             $table->foreign('branch_id')->references('id')->on('branches')->onDelete('cascade');
             $table->foreign('trip_id')->references('id')->on('trips')->onDelete('cascade');
-            $table->foreign('booking_id')->references('id')->on('bookings')->onDelete('cascade');
+            $table->foreign('booked_ticket_id')->references('id')->on('booked_tickets')->onDelete('cascade');
             
             // Indexes for performance
             $table->index(['branch_id', 'booking_date'], 'idx_branch_date');
