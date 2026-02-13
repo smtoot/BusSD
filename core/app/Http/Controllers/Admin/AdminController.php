@@ -45,7 +45,7 @@ class AdminController extends Controller
 
         // Aggregator Financials & Ops
         $widget['pending_settlements']      = \App\Models\Settlement::where('status', 0)->count();
-        $widget['pending_settlement_sum']   = \App\Models\Settlement::where('status', 0)->sum('net_payout');
+        $widget['pending_settlement_sum']   = \App\Models\Settlement::where('status', 0)->sum('net_amount');
         $widget['pending_verifications']    = \App\Models\OperatorVerification::where('status', 0)->count();
         $widget['active_seat_locks']        = \App\Models\SeatLock::where('expires_at', '>', Carbon::now())->count();
         $widget['total_commissions']        = \App\Models\BookedTicket::where('status', Status::ENABLE)->whereNotNull('passenger_id')->sum('commission_amount');
