@@ -53,6 +53,8 @@ Route::middleware('throttle:api')->group(function () {
         Route::controller(\App\Http\Controllers\Api\Passenger\BookingController::class)->group(function () {
             Route::post('booking/initiate', 'initiate')->middleware('throttle:booking');
             Route::post('booking/release-seats', 'releaseSeats');
+            Route::post('booking/waitlist/join', 'joinWaitlist');
+            Route::get('booking/waitlist/status', 'checkWaitlistStatus');
             Route::get('passenger/trips/upcoming', 'upcoming');
             Route::get('passenger/trips/history', 'history');
             Route::get('ticket/{id}/view', 'viewTicket');

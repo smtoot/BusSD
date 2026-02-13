@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Passenger;
 use App\Http\Controllers\Controller;
 use App\Models\BookedTicket;
 use App\Models\Trip;
+use App\Models\Waitlist;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -167,7 +168,92 @@ class BookingController extends Controller
             ->where('date_of_journey', $date)
             ->delete();
 
+        // Trigger waitlist processing for this trip/date
+        try {
+            \App\Models\Waitlist::where('trip_id', $request->trip_id)
+                ->where('date_of_journey', $date)
+                ->where('status', 0)
+                ->orderBy('created_at')
+                ->take(1) // Notify top 1 for now
+                ->get()
+                ->each(function($entry) {
+                    $entry->status = 1;
+                    $entry->save();
+                    // In real app, send push notification here
+                });
+        } catch (\Exception $e) {
+            // Ignore waitlist errors during release
+        }
+
         return $this->apiSuccess('Seats released successfully.');
+    }
+
+    public function joinWaitlist(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'trip_id' => 'required|exists:trips,id',
+            'date' => 'required|date_format:Y-m-d|after_or_equal:today',
+            'pickup_id' => 'required|integer',
+            'destination_id' => 'required|integer',
+            'seat_count' => 'required|integer|min:1',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->apiError($validator->errors()->all(), 422);
+        }
+
+        $passenger = $request->user();
+        $date = Carbon::parse($request->date)->format('Y-m-d');
+
+        // Check if already on waitlist
+        $exists = Waitlist::where('passenger_id', $passenger->id)
+            ->where('trip_id', $request->trip_id)
+            ->where('date_of_journey', $date)
+            ->whereIn('status', [0, 1]) // Pending or Notified
+            ->exists();
+
+        if ($exists) {
+            return $this->apiError('You are already on the waitlist for this trip.', 400);
+        }
+
+        $waitlist = Waitlist::create([
+            'passenger_id' => $passenger->id,
+            'trip_id' => $request->trip_id,
+            'date_of_journey' => $date,
+            'pickup_id' => $request->pickup_id,
+            'destination_id' => $request->destination_id,
+            'seat_count' => $request->seat_count,
+            'status' => 0 // Pending
+        ]);
+
+        return $this->apiSuccess('Joined waitlist successfully.', $waitlist);
+    }
+
+    public function checkWaitlistStatus(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'trip_id' => 'required|exists:trips,id',
+            'date' => 'required|date_format:Y-m-d',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->apiError($validator->errors()->all(), 422);
+        }
+
+        $passenger = $request->user();
+        $date = Carbon::parse($request->date)->format('Y-m-d');
+
+        $entry = Waitlist::where('passenger_id', $passenger->id)
+            ->where('trip_id', $request->trip_id)
+            ->where('date_of_journey', $date)
+            ->latest()
+            ->first();
+
+        if (!$entry) {
+            return $this->apiSuccess('Not on waitlist', ['status' => 'none']);
+        }
+
+        return $this->apiSuccess('Waitlist status retrieved', ['status' => $entry->status, 'entry' => $entry]);
     }
 
     public function upcoming(Request $request)
