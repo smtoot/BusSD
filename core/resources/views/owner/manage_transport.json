@@ -32,7 +32,7 @@
         "title": "Routes",
         "subtitle": "Manage travel routes and stops",
         "icon": "las la-route",
-        "route_name": "owner.trip.route.index"
+        "route_name": "owner.route.index"
     },
     "ticket_price": {
         "keyword": [],

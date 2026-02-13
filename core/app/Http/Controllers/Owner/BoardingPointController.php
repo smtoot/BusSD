@@ -155,7 +155,7 @@ class BoardingPointController extends Controller
     {
         $request->validate([
             'boarding_point_ids' => 'required|array',
-            'boarding_point_ids.*' => 'integer|exists:boarding_points,id',
+            'boarding_point_ids.*' => ['integer', \Illuminate\Validation\Rule::exists('boarding_points', 'id')->where('owner_id', auth()->id())],
             'pickup_time_offsets' => 'required|array',
             'pickup_time_offsets.*' => 'integer|min:0',
         ]);

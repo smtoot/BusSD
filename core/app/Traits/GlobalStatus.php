@@ -11,6 +11,15 @@ trait GlobalStatus
     {
         $modelName = get_class();
         $query     = $modelName::findOrFail($id);
+
+        // Security Fix: Check ownership if model has owner_id
+        if (\Illuminate\Support\Facades\Schema::hasColumn($query->getTable(), 'owner_id')) {
+            $owner = auth()->guard('owner')->user();
+            if ($owner && $query->owner_id != $owner->id && !auth()->guard('admin')->check()) {
+                abort(403, 'Unauthorized action.');
+            }
+        }
+
         if ($query->$column == Status::ENABLE) {
             $query->$column = Status::DISABLE;
         } else {

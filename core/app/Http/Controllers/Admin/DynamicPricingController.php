@@ -27,7 +27,7 @@ class DynamicPricingController extends Controller
     {
         $pageTitle = __('Create Pricing Rule');
         $owners = Owner::active()->orderBy('firstname')->get();
-        return view('admin.dynamic-pricing.create', compact('pageTitle', 'owners'));
+        return view('admin.dynamic-pricing.create', ['pageTitle' => $pageTitle, 'owners' => $owners]);
     }
 
     public function store(Request $request)

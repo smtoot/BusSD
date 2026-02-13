@@ -94,8 +94,8 @@ class TripController extends Controller
     {
         $request->validate([
             'title'      => 'required|string',
-            'fleet_type' => 'required|integer|gt:0|exists:fleet_types,id',
-            'route'      => 'required|integer|gt:0|exists:routes,id',
+            'fleet_type' => ['required', 'integer', 'gt:0', \Illuminate\Validation\Rule::exists('fleet_types', 'id')->where('owner_id', auth()->id())],
+            'route'      => ['required', 'integer', 'gt:0', \Illuminate\Validation\Rule::exists('routes', 'id')->where(function($q){ $q->where('owner_id', auth()->id())->orWhere('owner_id', 0); })],
             'starting_city_id' => 'required|integer|gt:0|exists:cities,id',
             'destination_city_id' => 'required|integer|gt:0|exists:cities,id',
             'schedule'   => 'nullable|integer|gt:0|exists:schedules,id', // Make schedule nullable/optional
@@ -121,11 +121,11 @@ class TripController extends Controller
             'amenities'        => 'nullable|array',
             'amenities.*'      => 'nullable|integer|exists:amenity_templates,id', // Validate against template IDs
             // Vehicle assignment
-            'vehicle_id'       => 'required|integer|gt:0|exists:vehicles,id', // Made required
-            'driver_id'        => 'nullable|integer|gt:0|exists:drivers,id',
-            'supervisor_id'    => 'nullable|integer|gt:0|exists:supervisors,id',
+            'vehicle_id'       => ['required', 'integer', 'gt:0', \Illuminate\Validation\Rule::exists('vehicles', 'id')->where('owner_id', auth()->id())], // Made required
+            'driver_id'        => ['nullable', 'integer', 'gt:0', \Illuminate\Validation\Rule::exists('drivers', 'id')->where('owner_id', auth()->id())],
+            'supervisor_id'    => ['nullable', 'integer', 'gt:0', \Illuminate\Validation\Rule::exists('supervisors', 'id')->where('owner_id', auth()->id())],
             // Branch assignment
-            'owning_branch_id' => 'nullable|integer|gt:0|exists:branches,id',
+            'owning_branch_id' => ['nullable', 'integer', 'gt:0', \Illuminate\Validation\Rule::exists('branches', 'id')->where('owner_id', auth()->id())],
         ], [
             'starting_city_id.required' => trans('Invalid route selection. Please re-select the route.'),
             'destination_city_id.required'   => trans('Invalid route selection. Please re-select the route.'),
@@ -515,10 +515,10 @@ class TripController extends Controller
     public function assignVehicleStore(Request $request, $id = 0)
     {
         $request->validate([
-            'trip'                    => 'required|integer|gt:0|exists:trips,id',
-            'bus_registration_number' => 'required|integer|gt:0|exists:vehicles,id',
-            'driver'                  => 'required|integer|gt:0|exists:drivers,id',
-            'supervisor'              => 'required|integer|gt:0|exists:supervisors,id'
+            'trip'                    => ['required', 'integer', 'gt:0', \Illuminate\Validation\Rule::exists('trips', 'id')->where('owner_id', auth()->id())],
+            'bus_registration_number' => ['required', 'integer', 'gt:0', \Illuminate\Validation\Rule::exists('vehicles', 'id')->where('owner_id', auth()->id())],
+            'driver'                  => ['required', 'integer', 'gt:0', \Illuminate\Validation\Rule::exists('drivers', 'id')->where('owner_id', auth()->id())],
+            'supervisor'              => ['required', 'integer', 'gt:0', \Illuminate\Validation\Rule::exists('supervisors', 'id')->where('owner_id', auth()->id())]
         ]);
 
         $owner = authUser();

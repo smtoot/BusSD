@@ -49,8 +49,8 @@ class VehicleTicketController extends Controller
     public function ticketPriceStore(Request $request)
     {
         $request->validate([
-            'fleet_type' => 'required|integer|gt:0|exists:fleet_types,id',
-            'route'      => 'required|integer|gt:0|exists:routes,id',
+            'fleet_type' => ['required', 'integer', 'gt:0', \Illuminate\Validation\Rule::exists('fleet_types', 'id')->where('owner_id', auth()->id())],
+            'route'      => ['required', 'integer', 'gt:0', \Illuminate\Validation\Rule::exists('routes', 'id')->where('owner_id', auth()->id())],
             'main_price' => 'required|numeric|gt:0',
             'price'      => 'sometimes|required|array|min:1',
             'price.*'    => 'sometimes|required|numeric|gte:0',

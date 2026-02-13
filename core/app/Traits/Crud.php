@@ -37,7 +37,8 @@ trait Crud
     {
         if ($id) {
             $pageTitle = 'Edit ' . $this->title;
-            $user = $this->model::findOrFail($id);
+            // Security Fix: Scope to owner_id
+            $user = $this->model::where('owner_id', $this->owner->id)->findOrFail($id);
         } else {
             $pageTitle = 'Add New ' . $this->title;
             $user = [];
@@ -75,7 +76,8 @@ trait Crud
         ]);
 
         if ($id) {
-            $user = $this->model::findOrFail($id);
+            // Security Fix: Scope to owner_id
+            $user = $this->model::where('owner_id', $this->owner->id)->findOrFail($id);
             $message = $this->title . ' updated successfully';
         } else {
             $tableName = $this->tableName;
