@@ -37,7 +37,6 @@ trait Crud
     {
         if ($id) {
             $pageTitle = 'Edit ' . $this->title;
-            // Security Fix: Scope to owner_id
             $user = $this->model::where('owner_id', $this->owner->id)->findOrFail($id);
         } else {
             $pageTitle = 'Add New ' . $this->title;
@@ -76,7 +75,6 @@ trait Crud
         ]);
 
         if ($id) {
-            // Security Fix: Scope to owner_id
             $user = $this->model::where('owner_id', $this->owner->id)->findOrFail($id);
             $message = $this->title . ' updated successfully';
         } else {
@@ -121,11 +119,7 @@ trait Crud
         $user->city         = $request->city;
         $user->state        = $request->state;
         $user->zip          = $request->zip;
-        if ($request->has('permissions')) {
-            $user->permissions = json_encode($request->permissions);
-        } else {
-            $user->permissions = null;
-        }
+        $user->permissions = $request->permissions;
         $user->save();
 
         $notify[] = ['success', $message];

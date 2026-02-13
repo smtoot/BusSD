@@ -198,7 +198,7 @@
                                     <div class="form-check form-check-inline custom--check">
                                         <input type="checkbox" name="permissions[]" value="{{ $key }}"
                                             id="{{ $key }}" class="form-check-input"
-                                            @checked(@$user->permissions && in_array($key, $user->permissions))>
+                                            @checked($user->hasPermission($key))>
                                         <label class="form-check-label"
                                             for="{{ $key }}">@lang($val)</label>
                                     </div>

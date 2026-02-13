@@ -11,9 +11,13 @@ trait HasPermissions
 {
     public function hasPermission($permission)
     {
-        $permissions = $this->permissions ? json_decode($this->permissions, true) : null;
+        $permissions = $this->permissions;
 
-        if ($permissions && in_array($permission, $permissions)) {
+        if (is_string($permissions)) {
+            $permissions = json_decode($permissions, true);
+        }
+
+        if ($permissions && is_array($permissions) && in_array($permission, $permissions)) {
             return true;
         }
 

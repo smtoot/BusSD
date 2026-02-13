@@ -16,6 +16,10 @@ class CounterManager extends Authenticatable
         'remember_token',
     ];
 
+    protected $casts = [
+        'permissions' => 'array',
+    ];
+
     public function fullname(): Attribute
     {
         return new Attribute(
