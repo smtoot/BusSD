@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\DynamicPricingRule;
+use App\Models\Owner;
 use Illuminate\Http\Request;
 
 class DynamicPricingController extends Controller
@@ -25,7 +26,8 @@ class DynamicPricingController extends Controller
     public function create()
     {
         $pageTitle = __('Create Pricing Rule');
-        return view('admin.dynamic-pricing.create', compact('pageTitle'));
+        $owners = Owner::active()->orderBy('fullname')->get();
+        return view('admin.dynamic-pricing.create', compact('pageTitle', 'owners'));
     }
 
     public function store(Request $request)
@@ -83,7 +85,8 @@ class DynamicPricingController extends Controller
     {
         $pageTitle = __('Edit Pricing Rule');
         $rule = DynamicPricingRule::findOrFail($id);
-        return view('admin.dynamic-pricing.edit', compact('pageTitle', 'rule'));
+        $owners = Owner::active()->orderBy('fullname')->get();
+        return view('admin.dynamic-pricing.edit', compact('pageTitle', 'rule', 'owners'));
     }
 
     public function update(Request $request, $id)
