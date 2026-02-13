@@ -124,7 +124,7 @@
                     "b2c bookings",
                     "Manage bookings"
                 ],
-                "title": "B2C Bookings",
+                "title": "App Booking",
                 "route_name": "admin.bookings.b2c",
                 "menu_active": "admin.bookings.b2c"
             },

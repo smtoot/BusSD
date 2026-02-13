@@ -80,7 +80,7 @@ class DriverController extends Controller
         $user->license_number = $request->license_number;
         $user->license_expiry_date = $request->license_expiry_date;
 
-        $user->permissions = $request->permissions ? json_encode($request->permissions) : null;
+        $user->permissions = $request->permissions;
         $user->save();
 
         $notify[] = ['success', $message];

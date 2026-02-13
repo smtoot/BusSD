@@ -18,7 +18,7 @@ class BookingController extends Controller
 
     public function b2cBookings()
     {
-        $pageTitle = __('B2C Bookings');
+        $pageTitle = 'App Booking';
         $bookings = $this->bookingData('b2c');
         return view('admin.bookings.index', compact('pageTitle', 'bookings'));
     }
