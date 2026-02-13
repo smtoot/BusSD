@@ -24,6 +24,7 @@
     @if(isRTL())
         <link rel="stylesheet" href="{{ asset('assets/admin/css/rtl.css') }}">
     @endif
+    <link rel="stylesheet" href="{{ asset('assets/global/css/design_system.css') }}">
 
     @stack('style')
 </head>

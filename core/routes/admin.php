@@ -131,6 +131,13 @@ Route::middleware('admin')->group(function () {
     });
 
 
+    // City Manager
+    Route::controller('CityController')->name('city.')->prefix('cities')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('store/{id?}', 'store')->name('store');
+        Route::post('status/{id}', 'status')->name('status');
+    });
+
     // Counter Manager
     Route::controller('CounterController')->name('counters.')->prefix('counters')->group(function () {
         Route::get('/', 'index')->name('index');
@@ -139,6 +146,43 @@ Route::middleware('admin')->group(function () {
     // Schedule Manager
     Route::controller('ScheduleController')->name('schedules.')->prefix('schedules')->group(function () {
         Route::get('/', 'index')->name('index');
+    });
+
+    // Boarding Points
+    Route::controller('BoardingPointController')->prefix('boarding-points')->name('boarding-points.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('create', 'create')->name('create');
+        Route::post('store', 'store')->name('store');
+        Route::get('edit/{id}', 'edit')->name('edit');
+        Route::post('update/{id}', 'update')->name('update');
+        Route::post('status/{id}', 'status')->name('status');
+        Route::post('delete/{id}', 'delete')->name('delete');
+        Route::get('assign/{routeId}', 'assign')->name('assign');
+        Route::post('assign/{routeId}', 'assignStore')->name('assign.store');
+    });
+
+    // Dropping Points
+    Route::controller('DroppingPointController')->prefix('dropping-points')->name('dropping-points.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('create', 'create')->name('create');
+        Route::post('store', 'store')->name('store');
+        Route::get('edit/{id}', 'edit')->name('edit');
+        Route::post('update/{id}', 'update')->name('update');
+        Route::post('status/{id}', 'status')->name('status');
+        Route::post('delete/{id}', 'delete')->name('delete');
+        Route::get('assign/{routeId}', 'assign')->name('assign');
+        Route::post('assign/{routeId}', 'assignStore')->name('assign.store');
+    });
+
+    // Dynamic Pricing
+    Route::controller('DynamicPricingController')->prefix('dynamic-pricing')->name('dynamic-pricing.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('create', 'create')->name('create');
+        Route::post('store', 'store')->name('store');
+        Route::get('edit/{id}', 'edit')->name('edit');
+        Route::post('update/{id}', 'update')->name('update');
+        Route::post('status/{id}', 'status')->name('status');
+        Route::post('delete/{id}', 'delete')->name('delete');
     });
 
     // Users Manager

@@ -1,0 +1,207 @@
+/* BusConnect Partner Portal - PURE DESIGN SYSTEM (NO RED MIXTURE) */
+
+:root {
+    /* Brand Colors - THE ONLY ALLOWED PRIMARY/SECONDARY */
+    --busconnect-primary: #28A745;
+    /* Vibrant Green */
+    --busconnect-secondary: #004085;
+    /* Deep Blue */
+
+    /* Neutral Colors */
+    --busconnect-dark-grey: #343A40;
+    --busconnect-medium-grey: #6C757D;
+    --busconnect-light-grey: #F8F9FA;
+
+    /* Semantic Colors - Used sparingly */
+    --busconnect-success: #28A745;
+    --busconnect-warning: #FFC107;
+    --busconnect-danger: #DC3545;
+    --busconnect-info: #17A2B8;
+
+    /* System Tokens */
+    --background: #f3f4f6;
+    --foreground: #343A40;
+    --card: #ffffff;
+    --card-foreground: #343A40;
+    --primary: var(--busconnect-primary);
+    --primary-foreground: #ffffff;
+    --secondary: var(--busconnect-secondary);
+    --secondary-foreground: #ffffff;
+    --muted: #F8F9FA;
+    --muted-foreground: #6C757D;
+    --accent: #E8F5E8;
+    /* Light green tint for accents */
+    --border: rgba(108, 117, 125, 0.15);
+    --radius: 0.75rem;
+    /* Increased for modern feel */
+    --ring: var(--busconnect-primary);
+}
+
+/* Base Overrides */
+body {
+    font-family: 'Poppins', sans-serif;
+    color: var(--foreground);
+    background-color: var(--background) !important;
+}
+
+[dir="rtl"] body {
+    font-family: 'IBM Plex Sans Arabic', sans-serif !important;
+}
+
+/* Global Brand Overrides - FORCED PURE THEME - FINAL AGGRESSIVE */
+:root {
+    --primary-color: var(--busconnect-primary) !important;
+    --secondary-color: var(--busconnect-secondary) !important;
+}
+
+/* Force override ALL legacy background utility classes to brand green or blue */
+/* bg--1, bg--3, bg--success etc -> Brand Green */
+/* bg--2, bg--4, bg--primary, bg--info etc -> Brand Blue */
+.bg--primary,
+.bg-primary,
+.bg--info,
+.bg--info-2,
+.bg--1,
+.bg--3,
+.bg--5,
+.bg--7,
+.bg--9,
+.bg--11,
+.bg--13,
+.bg--15,
+.bg--17,
+.bg--19,
+.bg--success,
+.bg--danger {
+    background-color: var(--busconnect-primary) !important;
+    color: #fff !important;
+}
+
+.bg--secondary,
+.bg-secondary,
+.bg--2,
+.bg--4,
+.bg--6,
+.bg--8,
+.bg--10,
+.bg--12,
+.bg--14,
+.bg--16,
+.bg--18,
+.bg--20 {
+    background-color: var(--busconnect-secondary) !important;
+    color: #fff !important;
+}
+
+/* Force override ALL text colors */
+.text--primary,
+.text-primary,
+.text--danger,
+.text--success,
+.text--info,
+.text--1,
+.text--5,
+.text--9 {
+    color: var(--busconnect-primary) !important;
+}
+
+/* Force override ALL buttons */
+.btn--primary,
+.btn-primary,
+.btn--danger,
+.btn-danger,
+.btn-info,
+.btn--info {
+    background-color: var(--busconnect-primary) !important;
+    border-color: var(--busconnect-primary) !important;
+    color: #fff !important;
+}
+
+.btn-outline--primary,
+.btn-outline--danger,
+.btn-outline--info {
+    border-color: var(--busconnect-primary) !important;
+    color: var(--busconnect-primary) !important;
+    background: transparent !important;
+}
+
+.btn-outline--primary:hover,
+.btn-outline--danger:hover,
+.btn-outline--info:hover {
+    background-color: var(--busconnect-primary) !important;
+    color: #fff !important;
+}
+
+/* Sidebar Overrides - Aggressive */
+.sidebar {
+    background: #ffffff !important;
+    border-right: 1px solid var(--border) !important;
+}
+
+.sidebar__menu .sidebar-menu-item>a {
+    color: #4b5563 !important;
+}
+
+/* Specific fix for red text and background in sidebar active/hover states */
+.sidebar__menu .sidebar-menu-item.active>a,
+.sidebar__menu .sidebar-menu-item.sidebar-dropdown.active>a,
+.sidebar__menu .sidebar-menu-item>a:hover {
+    background: var(--busconnect-primary) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.25) !important;
+}
+
+.sidebar__menu .sidebar-menu-item.active>a i,
+.sidebar__menu .sidebar-menu-item>a:hover i {
+    color: #ffffff !important;
+}
+
+/* Side navigation item background/sidebar-menu-item fix */
+.sidebar-menu-item {
+    border-left: none !important;
+}
+
+[dir="rtl"] .sidebar-menu-item {
+    border-right: none !important;
+}
+
+/* Table - Brand Secondary (Deep Blue) Headers */
+.table thead th {
+    background-color: var(--busconnect-secondary) !important;
+    color: #ffffff !important;
+}
+
+.table .text--primary,
+.table .fw-bold {
+    color: var(--busconnect-secondary) !important;
+}
+
+/* Navbar / Topnav specifics */
+.navbar-wrapper {
+    background: #ffffff !important;
+    border-bottom: 1px solid var(--border) !important;
+}
+
+.rk-balance-btn {
+    background: rgba(40, 167, 69, 0.05) !important;
+    border: 1px solid rgba(40, 167, 69, 0.2) !important;
+    color: var(--busconnect-secondary) !important;
+}
+
+.rk-balance-btn i {
+    color: var(--busconnect-primary) !important;
+}
+
+/* Notification Badge */
+.notification-badge {
+    background: var(--busconnect-primary) !important;
+}
+
+/* Chart Colors Override */
+.apexcharts-series-bar path {
+    fill: var(--busconnect-primary) !important;
+}
+
+.apexcharts-series-bar:nth-child(2) path {
+    fill: var(--busconnect-secondary) !important;
+}

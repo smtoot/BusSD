@@ -68,10 +68,10 @@
                                         @foreach ($routes as $route)
                                             <option value="{{ $route->id }}" 
                                                     data-name="{{ $route->name }}"
-                                                    data-source="{{ $route->startingPoint->name }}"
-                                                    data-source-id="{{ $route->starting_point }}"
-                                                    data-destination="{{ $route->destinationPoint->name }}"
-                                                    data-destination-id="{{ $route->destination_point }}"
+                                                    data-source="{{ $route->startingPoint?->name }}"
+                                                    data-source-id="{{ $route->starting_city_id }}"
+                                                    data-destination="{{ $route->destinationPoint?->name }}"
+                                                    data-destination-id="{{ $route->destination_city_id }}"
                                                     @selected(old('route', @$trip->route_id) == $route->id)>
                                                 {{ $route->name }}
                                             </option>
@@ -80,12 +80,30 @@
                                 </div>
                             </div>
 
-                            <!-- Hidden Route Points -->
-                            <input type="hidden" name="from" id="route-from-id" value="{{ old('from', @$trip->starting_point) }}">
-                            <input type="hidden" name="to" id="route-to-id" value="{{ old('to', @$trip->destination_point) }}">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="fw-bold">@lang('Route Template (Optional)')</label>
+                                    <select class="select2 form-control" name="route_template_id" id="route_template_id">
+                                        <option value="">@lang('Select Template to Auto-fill Stops')</option>
+                                        @foreach ($routeTemplates as $template)
+                                            <option value="{{ $template->id }}" @selected(old('route_template_id', @$trip->route_template_id) == $template->id)>
+                                                {{ $template->name }} ({{ $template->stops_count ?: $template->stops->count() }} @lang('Stops'))
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <small class="text-muted">@lang('Loading a template will automatically populate the trip timeline')</small>
+                                </div>
+                            </div>
 
-                            <!-- Route Visual & Swap (Hidden initially) -->
+                            <!-- Route Visual & Timeline -->
                             <div class="col-12 from-to-wrapper" style="display:none;"></div>
+                            
+                            <div class="col-12 route-stops-wrapper mt-3" style="display:none;">
+                                <h6 class="text--primary mb-3"><i class="fas fa-map-marked-alt me-2"></i>@lang('Stops & Timing')</h6>
+                                <div id="stopsTimeline" class="stops-timeline">
+                                    {{-- Populated via AJAX --}}
+                                </div>
+                            </div>
 
                             <!-- Schedule (Datetime) -->
                             <div class="col-md-6">
@@ -109,6 +127,23 @@
                             <div class="col-12 mt-4">
                                 <h6 class="text--primary border-bottom pb-2 mb-3"><i class="fas fa-users-cog me-2"></i>@lang('Resource Assignment')</h6>
                             </div>
+
+                            @if($branches->count() > 1)
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="fw-bold">@lang('Owning Branch')</label>
+                                    <select class="select2 form-control" name="owning_branch_id">
+                                        <option value="">@lang('Auto-assign (Primary Branch)')</option>
+                                        @foreach ($branches as $branch)
+                                            <option value="{{ $branch->id }}" @selected(old('owning_branch_id', @$trip->owning_branch_id) == $branch->id)>
+                                                {{ $branch->name }} @if($branch->code)({{ $branch->code }})@endif
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <small class="text-muted">@lang('Select which branch owns and manages this trip')</small>
+                                </div>
+                            </div>
+                            @endif
 
                             <div class="col-md-4">
                                 <div class="form-group">
@@ -201,11 +236,32 @@
                                     <label class="fw-bold">@lang('Base Ticket Price')</label>
                                     <div class="input-group">
                                         <span class="input-group-text">{{ gs('cur_sym') }}</span>
-                                        <input type="number" step="0.01" name="base_price" class="form-control" value="{{ old('base_price', @$trip->seat_price) }}" required>
+                                        <input type="number" step="0.01" name="base_price" id="base_price" class="form-control" value="{{ old('base_price', @$trip->seat_price) }}" required>
+                                        <button type="button" class="btn btn--info suggestPriceBtn" data-toggle="tooltip" title="@lang('Get Smart Pricing Suggestion')">
+                                            <i class="fas fa-magic"></i>
+                                        </button>
                                     </div>
-                                    <small class="text-muted">@lang('Main route price (Source to Destination)')</small>
+                                    <div class="d-flex justify-content-between mt-1">
+                                        <small class="text-muted">@lang('Main route price (Source to Destination)')</small>
+                                        <a href="javascript:void(0)" class="text--primary small fw-bold pricingBreakdownBtn">@lang('View Breakdown')</a>
+                                    </div>
                                 </div>
                             </div>
+
+                            @if($seatModifiersCount > 0)
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="fw-bold">@lang('Seat-Level Pricing')</label>
+                                    <div class="d-grid">
+                                        <button type="button" class="btn btn-outline--primary seatPricingPreviewBtn">
+                                            <i class="fas fa-chair me-2"></i> @lang('Preview Seat Premiums')
+                                            <span class="badge badge--dark ms-2">{{ $seatModifiersCount }} @lang('Rules Active')</span>
+                                        </button>
+                                    </div>
+                                    <small class="text-muted">@lang('Multiple pricing tiers detected for this fleet type')</small>
+                                </div>
+                            </div>
+                            @endif
                             
                             <!-- Dynamic Surcharges -->
                             <div class="col-12 mt-4">
@@ -360,6 +416,76 @@
         </div>
     </div>
 </div>
+
+{{-- Pricing Breakdown Modal --}}
+<div id="pricingBreakdownModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@lang('Pricing Breakdown & Profitability')</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="pricing-card p-4">
+                    <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                        <span>@lang('Current Ticket Price')</span>
+                        <h4 class="text--primary mb-0">{{ gs('cur_sym') }}<span id="pb-final-price">0.00</span></h4>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            @lang('Base Price')
+                            <span>{{ gs('cur_sym') }}<span id="pb-base-price">0.00</span></span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            @lang('Surcharges (Weekend/Holiday)')
+                            <span class="text--danger">+{{ gs('cur_sym') }}<span id="pb-surcharges">0.00</span></span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            @lang('Discounts (Early Bird)')
+                            <span class="text--success">-{{ gs('cur_sym') }}<span id="pb-discounts">0.00</span></span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 border-top-0 pt-3">
+                            <strong>@lang('Platform Commission') (<span id="pb-comm-rate">0</span>%)</strong>
+                            <span class="text--danger">-{{ gs('cur_sym') }}<span id="pb-commission">0.00</span></span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 bg-light p-3 rounded mt-3">
+                            <h6 class="mb-0">@lang('Net Revenue per Seat')</h6>
+                            <h5 class="text--success mb-0">{{ gs('cur_sym') }}<span id="pb-net">0.00</span></h5>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn--dark" data-dismiss="modal">@lang('Close')</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Seat Pricing Preview Modal --}}
+<div id="seatPricingModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@lang('Seat-Level Pricing Map')</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info py-2">
+                    <i class="las la-info-circle"></i> @lang('Visual preview of premiums applied to specific seats/rows based on active rules.')
+                </div>
+                <div id="seatPricingMap" class="text-center p-4">
+                    {{-- Populated via AJAX --}}
+                    <div class="spinner-border text--primary" role="status"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('style')
@@ -463,22 +589,46 @@
     .amenity-item .amenity-box i { font-size: 24px; }
 
     /* Policy Cards */
-    .policy-card {
-        cursor: pointer;
-        display: block;
-        position: relative;
-        width: 100%;
-        height: 100%;
-    }
-    input:checked + .policy-card .card-content {
-        border-color: #4634ff;
-        background: #fff8f8; /* Distinct from inventory */
-    }
     .policy-card .card-content {
         border: 1px solid #eaebed;
         border-radius: 6px;
         padding: 15px;
         height: 100%;
+    }
+
+    /* Stops Timeline */
+    .stops-timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    .stops-timeline::before {
+        content: '';
+        position: absolute;
+        left: 10px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #e0e0e0;
+    }
+    .timeline-item {
+        position: relative;
+        margin-bottom: 20px;
+    }
+    .timeline-marker {
+        position: absolute;
+        left: -25px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #4634ff;
+        border: 2px solid #fff;
+        z-index: 2;
+    }
+    .timeline-content {
+        background: #f8f9fa;
+        padding: 10px 15px;
+        border-radius: 6px;
+        border-left: 3px solid #4634ff;
     }
 </style>
 @endpush
@@ -488,7 +638,9 @@
     (function($) {
         "use strict";
         
-        // Wizard navigation
+        // ==========================================
+        // 1. Wizard Navigation & Validation
+        // ==========================================
         let currentStep = 1;
         const totalSteps = 3;
 
@@ -496,13 +648,8 @@
             $('.wizard-step').hide();
             $(`#step-${step}`).fadeIn(300);
             
-            // Update buttons
-            if(step === 1) {
-                $('#prevBtn').hide();
-            } else {
-                $('#prevBtn').show();
-            }
-            
+            // Buttons
+            step === 1 ? $('#prevBtn').hide() : $('#prevBtn').show();
             if(step === totalSteps) {
                 $('#nextBtn').hide();
                 $('#submitBtn').show();
@@ -511,11 +658,11 @@
                 $('#submitBtn').hide();
             }
 
-            // Update Progress
+            // Progress Bar
             $('.wizard-progress .step').removeClass('active');
             $(`.wizard-progress .step[data-step="${step}"]`).addClass('active');
             for(let i=1; i<step; i++) {
-                $(`.wizard-progress .step[data-step="${i}"]`).addClass('active'); // Keep previous active
+                $(`.wizard-progress .step[data-step="${i}"]`).addClass('active');
             }
         }
 
@@ -539,6 +686,15 @@
                     notify('error', '@lang("Base price is required")');
                     return;
                 }
+                // Partial Quota Validation
+                if($('input[name="inventory_allocation"]:checked').val() === 'partial') {
+                    const count = parseInt($('input[name="inventory_count"]').val()) || 0;
+                    const minQuota = {{ $minB2CQuota ?? 0 }};
+                    if(count < minQuota) {
+                        notify('error', `@lang("Minimum B2C quota is") ${minQuota}`);
+                        return;
+                    }
+                }
             }
 
             if (currentStep < totalSteps) {
@@ -557,19 +713,58 @@
         // Initialize Select2
         $('.select2').select2();
 
-        // Inventory toggle
-        $('input[name="inventory_allocation"]').on('change', function() {
-            if($(this).val() === 'partial') {
-                $('#inventory-count-wrapper').slideDown();
-            } else {
-                $('#inventory-count-wrapper').slideUp();
-            }
+        // ==========================================
+        // 2. Route Logic & Swapping
+        // ==========================================
+        $('select[name="route"]').on('change', function() {
+            updateRouteInfo();
         });
 
-        // Fleet/Route Logic (Adapted from old form)
-        $('select[name="fleet_type"]').on('change', function() {
-            updateVehicleList();
+        $('#route_template_id').on('change', function() {
+            loadTemplate($(this).val());
         });
+
+        function loadTemplate(id) {
+            if(!id) {
+                $('.route-stops-wrapper').slideUp();
+                return;
+            }
+
+            $.get(`{{ route('owner.route.builder.load', '') }}/${id}`, function(res) {
+                if(res.id) {
+                    // Update dates/time if possible or just show timeline
+                    renderStopsTimeline(res.stops);
+                    $('.route-stops-wrapper').slideDown();
+                    
+                    // Auto-select route if template has base_route
+                    if(res.base_route_id) {
+                        $('select[name="route"]').val(res.base_route_id).trigger('change');
+                    }
+                }
+            });
+        }
+
+        function renderStopsTimeline(stops) {
+            let html = '';
+            stops.forEach((stop, index) => {
+                html += `
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">${stop.city_name}</h6>
+                                <span class="badge badge--pill badge--primary small">${index === 0 ? '@lang("Origin")' : (index === stops.length - 1 ? '@lang("Destination")' : stop.formatted_time_offset)}</span>
+                            </div>
+                            <div class="small text-muted mt-1">
+                                <i class="las la-clock"></i> ${stop.dwell_time_minutes}m @lang("Wait") 
+                                <i class="las la-road ms-2"></i> ${stop.distance_from_previous}km @lang("from prev")
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            $('#stopsTimeline').html(html);
+        }
 
         function updateRouteInfo() {
             var selected = $('select[name="route"]').find('option:selected');
@@ -579,14 +774,7 @@
             var destId = selected.attr('data-destination-id');
             
             if(source && dest) {
-                var html = `
-                <div class="alert alert-info d-flex justify-content-between align-items-center">
-                    <div><strong>@lang('Route:'):</strong> ${source} <i class="fas fa-arrow-right mx-2"></i> ${dest}</div>
-                    <button type="button" class="btn btn-sm btn-outline-primary" id="swapRouteBtn"><i class="las la-exchange-alt"></i> @lang('Swap')</button>
-                </div>`;
-                $('.from-to-wrapper').html(html).slideDown();
-                
-                // Update hidden inputs
+                renderRouteVisual(source, dest);
                 $('#route-from-id').val(sourceId);
                 $('#route-to-id').val(destId);
             } else {
@@ -594,21 +782,44 @@
             }
         }
 
-        $('select[name="route"]').on('change', function() {
-            updateRouteInfo();
+        function renderRouteVisual(source, dest) {
+            var html = `
+            <div class="route-visual-container p-3 bg-light rounded border d-flex justify-content-between align-items-center">
+                <div class="route-timeline d-flex align-items-center flex-grow-1">
+                    <div class="point start">
+                        <i class="fas fa-circle text--success"></i>
+                        <span class="fw-bold ms-2">${source}</span>
+                    </div>
+                    <div class="line flex-grow-1 mx-3" style="height: 2px; background: #ccc; position: relative;">
+                        <i class="fas fa-chevron-right" style="position: absolute; right: 50%; top: -8px; color: #999;"></i>
+                    </div>
+                    <div class="point end">
+                        <span class="fw-bold me-2">${dest}</span>
+                        <i class="fas fa-map-marker-alt text--danger"></i>
+                    </div>
+                </div>
+            </div>`;
+            $('.from-to-wrapper').html(html).slideDown();
+        }
+
+        // ==========================================
+        // 3. Inventory & Fleet Logic
+        // ==========================================
+        $('input[name="inventory_allocation"]').on('change', function() {
+            if($(this).val() === 'partial') {
+                $('#inventory-count-wrapper').slideDown();
+            } else {
+                $('#inventory-count-wrapper').slideUp();
+            }
         });
 
-        // Initialize state on load
-        showStep(1);
-        if($('select[name="route"]').val()) {
-            updateRouteInfo();
-        }
-        updateVehicleList();
+        $('select[name="fleet_type"]').on('change', function() {
+            updateVehicleList();
+        });
 
-        // Vehicle Filter
         function updateVehicleList() {
             var fleetTypeId = $('select[name="fleet_type"]').val();
-            $('.vehicle-select option').prop('disabled', false); // Reset
+            $('.vehicle-select option').prop('disabled', false); 
             
             if(fleetTypeId) {
                 $('.vehicle-select option').each(function() {
@@ -618,11 +829,32 @@
                     }
                 });
             }
-            $('.vehicle-select').select2(); // Refresh
+            $('.vehicle-select').select2();
         }
 
-        // Duration Calculator
-        $('input[name="departure_datetime"], input[name="arrival_datetime"]').on('change', function() {
+        // ==========================================
+        // 4. Date & Duration (Flatpickr)
+        // ==========================================
+        // Ensure flatpickr is loaded or use fallback
+        if(typeof flatpickr !== 'undefined') {
+            flatpickr("input[name='departure_datetime']", {
+                enableTime: true,
+                dateFormat: "Y-m-d H:i",
+                minDate: "today",
+                onChange: calculateDuration
+            });
+            flatpickr("input[name='arrival_datetime']", {
+                enableTime: true,
+                dateFormat: "Y-m-d H:i",
+                minDate: "today",
+                onChange: calculateDuration
+            });
+        } else {
+            // Fallback for native input change
+            $('input[name="departure_datetime"], input[name="arrival_datetime"]').on('change', calculateDuration);
+        }
+
+        function calculateDuration() {
             var depStr = $('input[name="departure_datetime"]').val();
             var arrStr = $('input[name="arrival_datetime"]').val();
             
@@ -634,14 +866,99 @@
                 if(diff > 0) {
                     var hours = Math.floor(diff / 36e5);
                     var mins = Math.floor((diff % 36e5) / 6e4);
-                    $('#duration-display').text(`Duration: ${hours}h ${mins}m`);
+                    $('#duration-display').text(`@lang("Duration"): ${hours}h ${mins}m`);
                 } else {
-                    $('#duration-display').text('Invalid: Arrival must be after Departure');
+                    $('#duration-display').text('@lang("Invalid: Arrival must be after Departure")');
                 }
             }
+        }
+
+        // ==========================================
+        // 5. Pricing Preview (Real-time)
+        // ==========================================
+        const pricingInputs = 'input[name="base_price"], input[name="weekend_surcharge"], input[name="holiday_surcharge"], input[name="early_bird_discount"], input[name="last_minute_surcharge"]';
+        
+        $(document).on('input change', pricingInputs, function() {
+           // Debounce or just call calc? Let's just do calc for now.
+           updatePricingPreview();
         });
 
-        // Vehicle Amenities Display Logic
+        function updatePricingPreview() {
+            let basePrice = parseFloat($('input[name="base_price"]').val()) || 0;
+            let weekend = parseFloat($('input[name="weekend_surcharge"]').val()) || 0;
+            let holiday = parseFloat($('input[name="holiday_surcharge"]').val()) || 0;
+            let early = parseFloat($('input[name="early_bird_discount"]').val()) || 0;
+
+            let price = basePrice;
+            price += price * (weekend/100);
+            price += price * (holiday/100);
+            price -= price * (early/100);
+
+            $('#preview-final-price').text(price.toFixed(2));
+            
+            // Shared logic for Modal too
+            $('#pb-base-price').text(basePrice.toFixed(2));
+            $('#pb-final-price').text(price.toFixed(2));
+            $('#pb-surcharges').text((basePrice * ((weekend + holiday)/100)).toFixed(2));
+            $('#pb-discounts').text((basePrice * (early/100)).toFixed(2));
+        }
+
+        $('.pricingBreakdownBtn').on('click', function() {
+            const formData = $('#tripWizardForm').serialize();
+            $.get(`{{ route('owner.trip.pricing.preview', '') }}`, formData, function(res) {
+                if(res.status === 'success') {
+                    const data = res.data;
+                    $('#pb-base-price').text(data.base_price.toFixed(2));
+                    $('#pb-final-price').text(data.final_price.toFixed(2));
+                    $('#pb-comm-rate').text(data.commission_rate);
+                    $('#pb-commission').text(data.commission_per_booking.toFixed(2));
+                    $('#pb-net').text(data.net_revenue_per_booking.toFixed(2));
+                    $('#pb-surcharges').text((data.final_price - data.base_price + (data.base_price * ($('input[name="early_bird_discount"]').val() || 0)/100)).toFixed(2));
+                    $('#pb-discounts').text((data.base_price * ($('input[name="early_bird_discount"]').val() || 0)/100).toFixed(2));
+                    $('#pricingBreakdownModal').modal('show');
+                }
+            });
+        });
+
+        $('.suggestPriceBtn').on('click', function() {
+            const tripId = `{{ @$trip->id ?: 0 }}`;
+            const routeId = $('select[name="route"]').val();
+            if(!routeId) {
+                notify('error', '@lang("Please select a route first")');
+                return;
+            }
+
+            $(this).find('i').addClass('fa-spin');
+            
+            $.get(`{{ route('owner.trip.pricing.suggest', '') }}`, {route_id: routeId}, (res) => {
+                $(this).find('i').removeClass('fa-spin');
+                if(res.status === 'success') {
+                    $('#base_price').val(res.data.suggested_price).trigger('input');
+                    notify('success', `@lang("Smart Pricing applied"): ${res.data.reason}`);
+                }
+            });
+        });
+
+        $('.seatPricingPreviewBtn').on('click', function() {
+            const modal = $('#seatPricingModal');
+            modal.modal('show');
+            $('#seatPricingMap').html('<div class="spinner-border text--primary" role="status"></div>');
+            
+            $.get(`{{ route('owner.seat.pricing.preview', @$trip->id ?: 0) }}`, function(res) {
+                if(res.html) {
+                    $('#seatPricingMap').html(res.html);
+                } else if(res.data) {
+                    // Fallback render if server returns JSON
+                    $('#seatPricingMap').html('<p class="text-muted">@lang("Modifier map loaded. Rows with premiums are highlighted.")</p>');
+                } else {
+                    $('#seatPricingMap').html('<p class="text-muted">@lang("No seat-specific premiums found for this trip.")</p>');
+                }
+            });
+        });
+
+        // ==========================================
+        // 6. Vehicle Amenities (Legacy)
+        // ==========================================
         @php
             $vehiclesData = $vehicles->map(function($v) {
                 return [
@@ -695,6 +1012,13 @@
         @if(@$trip && @$trip->vehicle_id)
             $('select[name="vehicle_id"]').trigger('change');
         @endif
+        
+        // Initial Runs
+        showStep(1);
+        if($('select[name="route"]').val()) {
+            updateRouteInfo();
+        }
+        updateVehicleList();
 
     })(jQuery);
 

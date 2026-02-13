@@ -13,8 +13,8 @@ class Schedule extends Model
         'owner_id',
         'name',
         'route_id',
-        'starting_point',
-        'destination_point',
+        'starting_city_id',
+        'destination_city_id',
         'fleet_type_id',
         'vehicle_id',
         'starts_from',
@@ -61,12 +61,12 @@ class Schedule extends Model
 
     public function startingPoint()
     {
-        return $this->belongsTo(Counter::class, 'starting_point');
+        return $this->belongsTo(City::class, 'starting_city_id');
     }
 
     public function destinationPoint()
     {
-        return $this->belongsTo(Counter::class, 'destination_point');
+        return $this->belongsTo(City::class, 'destination_city_id');
     }
 
     public function fleetType()
@@ -82,5 +82,27 @@ class Schedule extends Model
     public function trips()
     {
         return $this->hasMany(Trip::class);
+    }
+
+    // Phase 1.2: Template-level point management
+    public function scheduleBoardingPoints()
+    {
+        return $this->hasMany(\App\Models\ScheduleBoardingPoint::class)->orderBy('sort_order');
+    }
+
+    public function scheduleDroppingPoints()
+    {
+        return $this->hasMany(\App\Models\ScheduleDroppingPoint::class)->orderBy('sort_order');
+    }
+
+    // Convenience methods for accessing points with full details
+    public function boardingPointsWithDetails()
+    {
+        return $this->scheduleBoardingPoints()->with('boardingPoint.city');
+    }
+
+    public function droppingPointsWithDetails()
+    {
+        return $this->scheduleDroppingPoints()->with('droppingPoint.city');
     }
 }

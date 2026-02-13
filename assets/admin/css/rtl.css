@@ -11,8 +11,15 @@
     left: auto !important;
     right: 0 !important;
     border-right: none !important;
-    border-left: 1px solid #66666675 !important;
+    border-left: 1px solid var(--border) !important;
     direction: rtl !important;
+}
+
+[dir="rtl"] .sidebar__menu .sidebar-menu-item.active>a,
+[dir="rtl"] .sidebar__menu .sidebar-menu-item>a:hover {
+    border-right: 4px solid var(--busconnect-secondary);
+    border-left: none;
+    padding-right: calc(1rem - 4px) !important;
 }
 
 @media (max-width: 991px) {
@@ -187,7 +194,9 @@
 
 [dir="rtl"] .form-control {
     text-align: right !important;
+    border-radius: var(--radius) !important;
 }
+
 
 /* Toggles & Checkboxes */
 [dir="rtl"] .form-check {

@@ -11,8 +11,8 @@
                                 <tr>
                                     <th>@lang('Route Name')</th>
                                     <th>@lang('Operator')</th>
-                                    <th>@lang('Starting Point')</th>
-                                    <th>@lang('Destination')</th>
+                                    <th>@lang('Starting City')</th>
+                                    <th>@lang('Destination City')</th>
                                     <th>@lang('Trips')</th>
                                     <th>@lang('Status')</th>
                                     <th>@lang('Action')</th>

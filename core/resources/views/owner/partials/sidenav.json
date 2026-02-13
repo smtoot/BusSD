@@ -17,7 +17,9 @@
         "menu_active": [
             "owner.trip.index",
             "owner.trip.assign.vehicle.index",
-            "owner.trip.route.index"
+            "owner.trip.route.index",
+            "owner.boarding-points*",
+            "owner.dropping-points*"
         ],
         "submenu": [
             {
@@ -26,14 +28,24 @@
                 "menu_active": "owner.trip.index"
             },
             {
-                "title": "Routes",
-                "route_name": "owner.trip.route.index",
-                "menu_active": "owner.trip.route.index"
+                "title": "My Private Routes",
+                "route_name": "owner.route.index",
+                "menu_active": "owner.route.index"
             },
             {
                 "title": "Bus Assignments",
                 "route_name": "owner.trip.assign.vehicle.index",
                 "menu_active": "owner.trip.assign.vehicle.index"
+            },
+            {
+                "title": "Boarding Points",
+                "route_name": "owner.boarding-points.index",
+                "menu_active": "owner.boarding-points*"
+            },
+            {
+                "title": "Dropping Points",
+                "route_name": "owner.dropping-points.index",
+                "menu_active": "owner.dropping-points*"
             }
         ]
     },

@@ -142,7 +142,7 @@
     "manage_routes": {
         "title": "Manage Routes",
         "icon": "las la-route",
-        "menu_active": "admin.routes*",
+        "menu_active": "admin.routes*|admin.boarding-points*|admin.dropping-points*",
         "submenu": [
             {
                 "keyword": [
@@ -153,6 +153,43 @@
                 "title": "All Routes",
                 "route_name": "admin.routes.index",
                 "menu_active": "admin.routes.index"
+            },
+            {
+                "keyword": [
+                    "boarding points",
+                    "pickup points",
+                    "boarding point management"
+                ],
+                "title": "Boarding Points",
+                "route_name": "admin.boarding-points.index",
+                "menu_active": "admin.boarding-points.index"
+            },
+            {
+                "keyword": [
+                    "dropping points",
+                    "dropoff points",
+                    "dropping point management"
+                ],
+                "title": "Dropping Points",
+                "route_name": "admin.dropping-points.index",
+                "menu_active": "admin.dropping-points.index"
+            }
+        ]
+    },
+    "dynamic_pricing": {
+        "title": "Dynamic Pricing",
+        "icon": "las la-percentage",
+        "menu_active": "admin.dynamic-pricing*",
+        "submenu": [
+            {
+                "keyword": [
+                    "pricing rules",
+                    "dynamic pricing",
+                    "surge pricing"
+                ],
+                "title": "Pricing Rules",
+                "route_name": "admin.dynamic-pricing.index",
+                "menu_active": "admin.dynamic-pricing.index"
             }
         ]
     },
@@ -188,6 +225,23 @@
                 "title": "Seat Layouts",
                 "route_name": "admin.fleet.seat_layouts",
                 "menu_active": "admin.fleet.seat_layouts"
+            }
+        ]
+    },
+    "manage_cities": {
+        "title": "Manage Cities",
+        "icon": "las la-city",
+        "menu_active": "admin.city.*",
+        "submenu": [
+            {
+                "keyword": [
+                    "cities",
+                    "city management",
+                    "route cities"
+                ],
+                "title": "All Cities",
+                "route_name": "admin.city.index",
+                "menu_active": "admin.city.index"
             }
         ]
     },

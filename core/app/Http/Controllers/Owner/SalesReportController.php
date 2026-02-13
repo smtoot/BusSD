@@ -7,6 +7,7 @@ use App\Models\BookedTicket;
 use App\Models\CounterManager;
 use App\Models\Route;
 use App\Models\Trip;
+use App\Models\Branch;
 use App\Constants\Status;
 
 class SalesReportController extends Controller
@@ -21,14 +22,20 @@ class SalesReportController extends Controller
             ->dateFilter()
             ->customDateFilter(['date_of_journey'])
             ->active()
-            ->with('trip', 'trip.route', 'counterManager')
+            ->with('trip', 'trip.route', 'trip.owningBranch', 'counterManager')
+            ->when(request('branch_id'), function($q) {
+                $q->whereHas('trip', function($query) {
+                    $query->where('owning_branch_id', request('branch_id'));
+                });
+            })
             ->orderByDesc('id')
             ->paginate(getPaginate());
 
         $routes = Route::active()->where('owner_id', $owner->id)->get();
         $trips = Trip::active()->where('owner_id', $owner->id)->get();
         $counterManagers = CounterManager::active()->where('owner_id', $owner->id)->with('counter')->get();
-        return view('owner.report.sale', compact('pageTitle', 'sales', 'routes', 'trips', 'counterManagers', 'owner'));
+        $branches = Branch::where('owner_id', $owner->id)->orderBy('name')->get();
+        return view('owner.report.sale', compact('pageTitle', 'sales', 'routes', 'trips', 'counterManagers', 'branches', 'owner'));
     }
 
     public function saleDetail($id)
@@ -71,15 +78,23 @@ class SalesReportController extends Controller
             }
         }
 
-        $sales = $query->with('trip', 'trip.route', 'passenger')
+        // Apply branch filter
+        if (request()->filled('branch_id')) {
+            $query->whereHas('trip', function($q) {
+                $q->where('owning_branch_id', request('branch_id'));
+            });
+        }
+
+        $sales = $query->with('trip', 'trip.route', 'trip.owningBranch', 'passenger')
             ->orderByDesc('id')
             ->paginate(getPaginate())
             ->appends(request()->all());
 
         // Get all trips for filter dropdown
         $trips = Trip::active()->where('owner_id', $owner->id)->orderBy('title')->get();
+        $branches = Branch::where('owner_id', $owner->id)->orderBy('name')->get();
 
-        return view('owner.report.b2c_sale', compact('pageTitle', 'sales', 'owner', 'trips'));
+        return view('owner.report.b2c_sale', compact('pageTitle', 'sales', 'owner', 'trips', 'branches'));
     }
 
     public function counterSales()
@@ -114,15 +129,23 @@ class SalesReportController extends Controller
             }
         }
 
-        $sales = $query->with('trip', 'trip.route', 'counterManager')
+        // Apply branch filter
+        if (request()->filled('branch_id')) {
+            $query->whereHas('trip', function($q) {
+                $q->where('owning_branch_id', request('branch_id'));
+            });
+        }
+
+        $sales = $query->with('trip', 'trip.route', 'trip.owningBranch', 'counterManager')
             ->orderByDesc('id')
             ->paginate(getPaginate())
             ->appends(request()->all());
 
         // Get all trips for filter dropdown
         $trips = Trip::active()->where('owner_id', $owner->id)->orderBy('title')->get();
+        $branches = Branch::where('owner_id', $owner->id)->orderBy('name')->get();
 
-        return view('owner.report.counter_sale', compact('pageTitle', 'sales', 'owner', 'trips'));
+        return view('owner.report.counter_sale', compact('pageTitle', 'sales', 'owner', 'trips', 'branches'));
     }
 
     public function periodic()
@@ -133,11 +156,17 @@ class SalesReportController extends Controller
         $sales = BookedTicket::where('owner_id', $owner->id)
             ->active()
             ->customDateFilter(['date_of_journey'])
-            ->with(['trip', 'trip.route', 'counterManager', 'passenger'])
+            ->when(request('branch_id'), function($q) {
+                $q->whereHas('trip', function($query) {
+                    $query->where('owning_branch_id', request('branch_id'));
+                });
+            })
+            ->with(['trip', 'trip.route', 'trip.owningBranch', 'counterManager', 'passenger'])
             ->orderByDesc('id')
             ->paginate(getPaginate());
 
-        return view('owner.report.periodic', compact('pageTitle', 'sales', 'owner'));
+        $branches = Branch::where('owner_id', $owner->id)->orderBy('name')->get();
+        return view('owner.report.periodic', compact('pageTitle', 'sales', 'branches', 'owner'));
     }
 
     public function performance()

@@ -123,12 +123,7 @@
                                     <select class="select2 form-control" name="route_id" required>
                                         <option selected value="">@lang('Select One')</option>
                                         @foreach ($routes as $route)
-                                            <option value="{{ $route->id }}" data-name="{{ $route->name }}"
-                                                data-source_id="{{ $route->starting_point }}"
-                                                data-source="{{ optional($route->startingPoint)->name }}"
-                                                data-destination_id="{{ $route->destination_point }}"
-                                                data-destination="{{ optional($route->destinationPoint)->name }}"
-                                                @selected(old('route_id', @$schedule->route_id) == $route->id)>
+                                            <option value="{{ $route->id }}" @selected(old('route_id', @$schedule->route_id) == $route->id)>
                                                 {{ $route->name }}
                                             </option>
                                         @endforeach
@@ -139,21 +134,15 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label><i class="fas fa-map-marker-alt text--success me-1"></i> @lang('From')</label>
-                                    <select class="form-control select2" name="starting_point" id="starting_point" required>
-                                        @if(@$schedule && $schedule->startingPoint)
-                                            <option value="{{ $schedule->starting_point }}" selected>{{ $schedule->startingPoint->name }}</option>
-                                        @endif
-                                    </select>
+                                    <input type="hidden" name="starting_point" id="starting_point_id" value="{{ @$schedule->starting_point }}">
+                                    <input type="text" class="form-control" id="starting_point_display" value="{{ @$schedule->startingPoint->name }}" readonly>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label><i class="fas fa-map-marker-alt text--danger me-1"></i> @lang('To')</label>
-                                    <select class="form-control select2" name="destination_point" id="destination_point" required>
-                                        @if(@$schedule && $schedule->destinationPoint)
-                                            <option value="{{ $schedule->destination_point }}" selected>{{ $schedule->destinationPoint->name }}</option>
-                                        @endif
-                                    </select>
+                                    <input type="hidden" name="destination_point" id="destination_point_id" value="{{ @$schedule->destination_point }}">
+                                    <input type="text" class="form-control" id="destination_point_display" value="{{ @$schedule->destinationPoint->name }}" readonly>
                                 </div>
                             </div>
 
@@ -268,6 +257,61 @@
                                         <input class="form-check-input" type="checkbox" name="never_ends" id="never_ends" value="1" @checked(old('never_ends', @$schedule->never_ends ?? true))>
                                         <label class="form-check-label ms-2" for="never_ends">@lang('Never Ends')</label>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phase 1.2: Boarding & Dropping Points -->
+                        <div class="section-header mt-4">
+                            <i class="fas fa-map-marked-alt text--primary"></i>
+                            <h6>@lang('Boarding & Dropping Points')</h6>
+                        </div>
+                        <div class="row px-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label><i class="fas fa-sign-in-alt me-1 text--success"></i> @lang('Boarding Points')</label>
+                                    <small class="d-block text-muted mb-2">@lang('Select pickup stops and their time offset from departure')</small>
+                                    <div id="boarding-points-list" class="border rounded p-2" style="min-height: 100px; background: #f9f9f9;">
+                                        @if(isset($schedule) && $schedule->scheduleBoardingPoints->count() > 0)
+                                            @foreach($schedule->scheduleBoardingPoints as $sbp)
+                                                <div class="d-flex align-items-center gap-2 mb-2 boarding-point-item p-2 bg-white border rounded">
+                                                    <input type="hidden" name="boarding_points[{{ $loop->index }}][point_id]" value="{{ $sbp->boarding_point_id }}">
+                                                    <input type="hidden" name="boarding_points[{{ $loop->index }}][offset_minutes]" value="{{ $sbp->time_offset_minutes }}">
+                                                    <span class="flex-grow-1"><strong>{{ $sbp->boardingPoint->name }}</strong> (+{{ $sbp->time_offset_minutes }} min)</span>
+                                                    <button type="button" class="btn btn-sm btn-outline--danger remove-point-btn"><i class="fas fa-times"></i></button>
+                                                </div>
+                                            @endforeach
+                                        @else
+                                            <p class="text-muted text-center my-3"><small>@lang('No boarding points selected')</small></p>
+                                        @endif
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline--primary mt-2" id="add-boarding-point-btn">
+                                        <i class="fas fa-plus me-1"></i> @lang('Add Boarding Point')
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label><i class="fas fa-sign-out-alt me-1 text--danger"></i> @lang('Dropping Points')</label>
+                                    <small class="d-block text-muted mb-2">@lang('Select drop-off stops and their time offset from departure')</small>
+                                    <div id="dropping-points-list" class="border rounded p-2" style="min-height: 100px; background: #f9f9f9;">
+                                        @if(isset($schedule) && $schedule->scheduleDroppingPoints->count() > 0)
+                                            @foreach($schedule->scheduleDroppingPoints as $sdp)
+                                                <div class="d-flex align-items-center gap-2 mb-2 dropping-point-item p-2 bg-white border rounded">
+                                                    <input type="hidden" name="dropping_points[{{ $loop->index }}][point_id]" value="{{ $sdp->dropping_point_id }}">
+                                                    <input type="hidden" name="dropping_points[{{ $loop->index }}][offset_minutes]" value="{{ $sdp->time_offset_minutes }}">
+                                                    <span class="flex-grow-1"><strong>{{ $sdp->droppingPoint->name }}</strong> (+{{ $sdp->time_offset_minutes }} min)</span>
+                                                    <button type="button" class="btn btn-sm btn-outline--danger remove-point-btn"><i class="fas fa-times"></i></button>
+                                                </div>
+                                            @endforeach
+                                        @else
+                                            <p class="text-muted text-center my-3"><small>@lang('No dropping points selected')</small></p>
+                                        @endif
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline--primary mt-2" id="add-dropping-point-btn">
+                                        <i class="fas fa-plus me-1"></i> @lang('Add Dropping Point')
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -470,6 +514,112 @@
             </div>
         </div>
     </div>
+
+    <!-- Phase 1.2: Boarding Point Selection Modal -->
+    <div class="modal fade" id="boardingPointModal" tabindex="-1" aria-labelledby="boardingPointModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="boardingPointModalLabel">
+                        <i class="fas fa-sign-in-alt text--success me-2"></i>Add Boarding Point
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group mb-3">
+                        <label for="boarding-point-select"><i class="fas fa-map-marker-alt me-1"></i> Select Boarding Point</label>
+                        <div class="d-flex gap-2 align-items-center">
+                            <select class="form-control flex-grow-1" id="boarding-point-select">
+                                <option value="">-- Select Point --</option>
+                                @foreach($boardingPoints as $bp)
+                                    <option value="{{ $bp->id }}" data-name="{{ $bp->name }}" data-city="{{ $bp->city->name ?? '' }}">
+                                        {{ $bp->name }} @if($bp->city), {{ $bp->city->name }}@endif
+                                    </option>
+                                @endforeach
+                            </select>
+                            <a href="{{ route('owner.counter.index') }}" target="_blank" class="btn btn-sm btn-outline--primary" title="Manage Boarding Points">
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        </div>
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle"></i> Don't see your point? 
+                            <a href="{{ route('owner.counter.index') }}" target="_blank" class="text--primary">Add it in Branches & Offices</a>
+                        </small>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="boarding-offset-input"><i class="far fa-clock me-1"></i> Time Offset (minutes from departure)</label>
+                        <input type="number" class="form-control" id="boarding-offset-input" min="0" step="1" placeholder="e.g., 0, 15, 30">
+                        <small class="text-muted">0 = departure time, 15 = 15 minutes after departure</small>
+                    </div>
+                    <div class="form-group mb-0">
+                        <label><i class="fas fa-clock me-1"></i> Calculated Time</label>
+                        <div class="alert alert-info py-2" id="boarding-calculated-time">
+                            <small>Select departure time in "Timing & Recurrence" section first</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn--primary" id="confirm-add-boarding-point">
+                        <i class="fas fa-plus me-1"></i> Add Point
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Phase 1.2: Dropping Point Selection Modal -->
+    <div class="modal fade" id="droppingPointModal" tabindex="-1" aria-labelledby="droppingPointModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="droppingPointModalLabel">
+                        <i class="fas fa-sign-out-alt text--danger me-2"></i>Add Dropping Point
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group mb-3">
+                        <label for="dropping-point-select"><i class="fas fa-map-marker-alt me-1"></i> Select Dropping Point</label>
+                        <div class="d-flex gap-2 align-items-center">
+                            <select class="form-control flex-grow-1" id="dropping-point-select">
+                                <option value="">-- Select Point --</option>
+                                @foreach($droppingPoints as $dp)
+                                    <option value="{{ $dp->id }}" data-name="{{ $dp->name }}" data-city="{{ $dp->city->name ?? '' }}">
+                                        {{ $dp->name }} @if($dp->city), {{ $dp->city->name }}@endif
+                                    </option>
+                                @endforeach
+                            </select>
+                            <a href="{{ route('owner.counter.index') }}" target="_blank" class="btn btn-sm btn-outline--primary" title="Manage Dropping Points">
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        </div>
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle"></i> Don't see your point? 
+                            <a href="{{ route('owner.counter.index') }}" target="_blank" class="text--primary">Add it in Branches & Offices</a>
+                        </small>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="dropping-offset-input"><i class="far fa-clock me-1"></i> Time Offset (minutes from departure)</label>
+                        <input type="number" class="form-control" id="dropping-offset-input" min="0" step="1" placeholder="e.g., 60, 90, 120">
+                        <small class="text-muted">Duration from departure to this stop</small>
+                    </div>
+                    <div class="form-group mb-0">
+                        <label><i class="fas fa-clock me-1"></i> Calculated Time</label>
+                        <div class="alert alert-info py-2" id="dropping-calculated-time">
+                            <small>Select departure time in "Timing & Recurrence" section first</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn--primary" id="confirm-add-dropping-point">
+                        <i class="fas fa-plus me-1"></i> Add Point
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('breadcrumb-plugins')
@@ -509,14 +659,28 @@
                 }
             });
 
-            $('select[name="route_id"]').on('change', function() {
-                var source = $(this).find(':selected').data('source');
-                var source_id = $(this).find(':selected').data('source_id');
-                var destination = $(this).find(':selected').data('destination');
-                var destination_id = $(this).find(':selected').data('destination_id');
+            const routesData = @json($routes);
 
-                $('#starting_point').html(`<option value="${source_id}" selected>${source}</option>`).trigger('change');
-                $('#destination_point').html(`<option value="${destination_id}" selected>${destination}</option>`).trigger('change');
+            $('select[name="route_id"]').on('change', function() {
+                const routeId = $(this).val();
+                const route = routesData.find(r => r.id == routeId);
+
+                if (route) {
+                    // Try to get names from loaded relationships, fallback to 'N/A'
+                    const sourceName = route.starting_point ? route.starting_point.name : (route.startingPoint ? route.startingPoint.name : 'N/A');
+                    const destinationName = route.destination_point ? route.destination_point.name : (route.destinationPoint ? route.destinationPoint.name : 'N/A');
+
+                    $('#starting_point_id').val(route.starting_point || route.starting_point_id); // Use ID from relation or direct attribute
+                    $('#starting_point_display').val(sourceName);
+
+                    $('#destination_point_id').val(route.destination_point || route.destination_point_id);
+                    $('#destination_point_display').val(destinationName);
+                } else {
+                    $('#starting_point_id').val('');
+                    $('#starting_point_display').val('');
+                    $('#destination_point_id').val('');
+                    $('#destination_point_display').val('');
+                }
             });
 
             // Vehicle Amenities Display Logic
@@ -573,6 +737,216 @@
             @if(old('vehicle_id', @$schedule->vehicle_id))
                 $('select[name="vehicle_id"]').trigger('change');
             @endif
+
+            // Phase 1.2: Boarding/Dropping Points Management with Modals
+            const boardingPointsData = @json($boardingPoints);
+            const droppingPointsData = @json($droppingPoints);
+
+            // Helper function to calculate time from offset
+            function calculateTime(offsetMinutes) {
+                const departureTime = $('input[name="starts_from"]').val();
+                if (!departureTime) {
+                    return null;
+                }
+                
+                const [hours, minutes] = departureTime.split(':').map(Number);
+                const totalMinutes = hours * 60 + minutes + parseInt(offsetMinutes);
+                const newHours = Math.floor(totalMinutes / 60) % 24;
+                const newMinutes = totalMinutes % 60;
+                
+                return String(newHours).padStart(2, '0') + ':' + String(newMinutes).padStart(2, '0');
+            }
+
+            // Update calculated time when offset changes
+            $('#boarding-offset-input').on('input', function() {
+                const offset = $(this).val();
+                if (offset !== '' && offset >= 0) {
+                    const calculatedTime = calculateTime(offset);
+                    if (calculatedTime) {
+                        $('#boarding-calculated-time').html(
+                            '<strong class="text-success"><i class="fas fa-clock me-1"></i>' + calculatedTime + '</strong>'
+                        );
+                    } else {
+                        $('#boarding-calculated-time').html(
+                            '<small class="text-muted">Set departure time first</small>'
+                        );
+                    }
+                }
+            });
+
+            $('#dropping-offset-input').on('input', function() {
+                const offset = $(this).val();
+                if (offset !== '' && offset >= 0) {
+                    const calculatedTime = calculateTime(offset);
+                    if (calculatedTime) {
+                        $('#dropping-calculated-time').html(
+                            '<strong class="text-success"><i class="fas fa-clock me-1"></i>' + calculatedTime + '</strong>'
+                        );
+                    } else {
+                        $('#dropping-calculated-time').html(
+                            '<small class="text-muted">Set departure time first</small>'
+                        );
+                    }
+                }
+            });
+
+            // Open boarding point modal
+            $('#add-boarding-point-btn').on('click', function() {
+                $('#boarding-point-select').val('');
+                $('#boarding-offset-input').val('');
+                $('#boarding-calculated-time').html('<small class="text-muted">Enter time offset to see calculated time</small>');
+                
+                const boardingModal = new bootstrap.Modal(document.getElementById('boardingPointModal'));
+                boardingModal.show();
+            });
+
+            // Open dropping point modal
+            $('#add-dropping-point-btn').on('click', function() {
+                $('#dropping-point-select').val('');
+                $('#dropping-offset-input').val('');
+                $('#dropping-calculated-time').html('<small class="text-muted">Enter time offset to see calculated time</small>');
+                
+                const droppingModal = new bootstrap.Modal(document.getElementById('droppingPointModal'));
+                droppingModal.show();
+            });
+
+            // Confirm add boarding point
+            $('#confirm-add-boarding-point').on('click', function() {
+                const pointId = $('#boarding-point-select').val();
+                const offsetMinutes = $('#boarding-offset-input').val();
+                
+                if (!pointId) {
+                    alert('Please select a boarding point');
+                    return;
+                }
+                
+                if (offsetMinutes === '' || offsetMinutes < 0) {
+                    alert('Please enter a valid time offset (0 or more minutes)');
+                    return;
+                }
+                
+                // Check for duplicates
+                let isDuplicate = false;
+                $('#boarding-points-list input[name$="[point_id]"]').each(function() {
+                    if ($(this).val() == pointId) {
+                        isDuplicate = true;
+                        return false;
+                    }
+                });
+                
+                if (isDuplicate) {
+                    alert('This boarding point is already added');
+                    return;
+                }
+                
+                const selectedOption = $('#boarding-point-select option:selected');
+                const pointName = selectedOption.data('name');
+                const cityName = selectedOption.data('city');
+                const displayName = cityName ? pointName + ', ' + cityName : pointName;
+                const calculatedTime = calculateTime(offsetMinutes);
+                
+                const index = $('#boarding-points-list .boarding-point-item').length;
+                const html = `
+                    <div class="d-flex align-items-center gap-2 mb-2 boarding-point-item p-2 bg-white border rounded">
+                        <input type="hidden" name="boarding_points[${index}][point_id]" value="${pointId}">
+                        <input type="hidden" name="boarding_points[${index}][offset_minutes]" value="${offsetMinutes}">
+                        <div class="flex-grow-1">
+                            <strong>${displayName}</strong>
+                            <br><small class="text-muted">+${offsetMinutes} min${calculatedTime ? ' → ' + calculatedTime : ''}</small>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline--danger remove-point-btn"><i class="fas fa-times"></i></button>
+                    </div>
+                `;
+                
+                $('#boarding-points-list p.text-muted').remove();
+                $('#boarding-points-list').append(html);
+                
+                // Close modal
+                bootstrap.Modal.getInstance(document.getElementById('boardingPointModal')).hide();
+            });
+
+            // Confirm add dropping point
+            $('#confirm-add-dropping-point').on('click', function() {
+                const pointId = $('#dropping-point-select').val();
+                const offsetMinutes = $('#dropping-offset-input').val();
+                
+                if (!pointId) {
+                    alert('Please select a dropping point');
+                    return;
+                }
+                
+                if (offsetMinutes === '' || offsetMinutes < 0) {
+                    alert('Please enter a valid time offset (0 or more minutes)');
+                    return;
+                }
+                
+                // Check for duplicates
+                let isDuplicate = false;
+                $('#dropping-points-list input[name$="[point_id]"]').each(function() {
+                    if ($(this).val() == pointId) {
+                        isDuplicate = true;
+                        return false;
+                    }
+                });
+                
+                if (isDuplicate) {
+                    alert('This dropping point is already added');
+                    return;
+                }
+                
+                const selectedOption = $('#dropping-point-select option:selected');
+                const pointName = selectedOption.data('name');
+                const cityName = selectedOption.data('city');
+                const displayName = cityName ? pointName + ', ' + cityName : pointName;
+                const calculatedTime = calculateTime(offsetMinutes);
+                
+                const index = $('#dropping-points-list .dropping-point-item').length;
+                const html = `
+                    <div class="d-flex align-items-center gap-2 mb-2 dropping-point-item p-2 bg-white border rounded">
+                        <input type="hidden" name="dropping_points[${index}][point_id]" value="${pointId}">
+                        <input type="hidden" name="dropping_points[${index}][offset_minutes]" value="${offsetMinutes}">
+                        <div class="flex-grow-1">
+                            <strong>${displayName}</strong>
+                            <br><small class="text-muted">+${offsetMinutes} min${calculatedTime ? ' → ' + calculatedTime : ''}</small>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline--danger remove-point-btn"><i class="fas fa-times"></i></button>
+                    </div>
+                `;
+                
+                $('#dropping-points-list p.text-muted').remove();
+                $('#dropping-points-list').append(html);
+                
+                // Close modal
+                bootstrap.Modal.getInstance(document.getElementById('droppingPointModal')).hide();
+            });
+
+            // Remove point (boarding or dropping)
+            $(document).on('click', '.remove-point-btn', function() {
+                $(this).closest('.boarding-point-item, .dropping-point-item').remove();
+                
+                // Reindex
+                $('#boarding-points-list .boarding-point-item').each(function(index) {
+                    $(this).find('input[name^="boarding_points"]').each(function() {
+                        const name = $(this).attr('name').replace(/\[\d+\]/, '[' + index + ']');
+                        $(this).attr('name', name);
+                    });
+                });
+                
+                $('#dropping-points-list .dropping-point-item').each(function(index) {
+                    $(this).find('input[name^="dropping_points"]').each(function() {
+                        const name = $(this).attr('name').replace(/\[\d+\]/, '[' + index + ']');
+                        $(this).attr('name', name);
+                    });
+                });
+
+                // Show placeholder if empty
+                if ($('#boarding-points-list .boarding-point-item').length === 0) {
+                    $('#boarding-points-list').html('<p class="text-muted text-center my-3"><small>@lang("No boarding points selected")</small></p>');
+                }
+                if ($('#dropping-points-list .dropping-point-item').length === 0) {
+                    $('#dropping-points-list').html('<p class="text-muted text-center my-3"><small>@lang("No dropping points selected")</small></p>');
+                }
+            });
 
         })(jQuery);
     </script>

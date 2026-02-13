@@ -54,11 +54,78 @@
                             <strong class="rk-mini-stat__value">{{ $widget['today_passengers'] }}</strong>
                         </div>
                     </div>
+                    
+                    {{-- NEW: Occupancy Rate --}}
+                    <div class="rk-mini-stat">
+                        <div class="rk-mini-stat__icon" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                            <i class="las la-percentage"></i>
+                        </div>
+                        <div>
+                            <span class="rk-mini-stat__label">@lang('Occupancy Rate')</span>
+                            <strong class="rk-mini-stat__value">{{ number_format($widget['today_occupancy_rate'], 1) }}%</strong>
+                        </div>
+                    </div>
+                    
+                    {{-- NEW: Cancellations --}}
+                    <div class="rk-mini-stat">
+                        <div class="rk-mini-stat__icon" style="background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);">
+                            <i class="las la-times-circle"></i>
+                        </div>
+                        <div>
+                            <span class="rk-mini-stat__label">@lang('Cancellations')</span>
+                            <strong class="rk-mini-stat__value">{{ $widget['today_cancellations'] }}</strong>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        {{-- Row 2: Monthly Revenue — 4 KPI cards in a true 4-col grid --}}
+        {{-- NEW ROW 2: Operational Alerts Strip --}}
+        @if($widget['low_occupancy_count'] > 0 || $widget['vehicle_conflict_count'] > 0)
+        <div class="rk-section">
+            <div class="rk-card" style="padding: 1rem 1.5rem; background: linear-gradient(135deg, #fff8e1 0%, #ffe0b2 100%); border-left: 4px solid #ff9800;">
+                <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 2rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="las la-exclamation-triangle" style="font-size: 1.5rem; color: #f57c00;"></i>
+                        <strong style="color: #e65100;">@lang('Operational Alerts')</strong>
+                    </div>
+                    
+                    @if($widget['low_occupancy_count'] > 0)
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span class="rk-pill" style="background: #ff9800; color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-weight: 600;">
+                            {{ $widget['low_occupancy_count'] }}
+                        </span>
+                        <span style="color: #6c757d;">@lang('low-occupancy trips') (&lt;30%)</span>
+                        <a href="#low-occupancy-modal" data-bs-toggle="modal" style="color: #004085; font-weight: 600; text-decoration: underline;">
+                            @lang('View Details')
+                        </a>
+                    </div>
+                    @endif
+                    
+                    @if($widget['vehicle_conflict_count'] > 0)
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span class="rk-pill" style="background: #dc3545; color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-weight: 600;">
+                            {{ $widget['vehicle_conflict_count'] }}
+                        </span>
+                        <span style="color: #6c757d;">@lang('vehicle conflicts detected')</span>
+                        <a href="#vehicle-conflict-modal" data-bs-toggle="modal" style="color: #004085; font-weight: 600; text-decoration: underline;">
+                            @lang('View Details')
+                        </a>
+                    </div>
+                    @endif
+                    
+                    @if($widget['low_occupancy_count'] == 0 && $widget['vehicle_conflict_count'] == 0)
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="las la-check-circle" style="font-size: 1.25rem; color: #28a745;"></i>
+                        <span style="color: #28a745; font-weight: 600;">@lang('All systems operational')</span>
+                    </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+        @endif
+
+        {{-- Row 3: Monthly Revenue — 4 KPI cards in a true 4-col grid --}}
         <div class="rk-section">
             <h6 class="rk-section__title">@lang('Monthly Revenue')</h6>
             <div class="rk-kpi-row">
@@ -194,7 +261,7 @@
                         <strong>{{ $widget['total_coAdmin'] }}</strong>
                         <span>@lang('Co-Admins')</span>
                     </a>
-                    <a href="{{ route('owner.trip.route.index') }}" class="rk-ops-chip">
+                    <a href="{{ route('owner.route.index') }}" class="rk-ops-chip">
                         <i class="las la-route"></i>
                         <strong>{{ $widget['total_route'] }}</strong>
                         <span>@lang('Routes')</span>
@@ -272,7 +339,7 @@
                 foreColor: '#6b7280',
                 background: 'transparent',
             },
-            colors: ['#ef5050', '#1f2937'],
+            colors: ['#28A745', '#004085'],
             series: [
                 { name: '{{ __("B2C (App)") }}', data: [] },
                 { name: '{{ __("Counter") }}', data: [] }
@@ -429,7 +496,7 @@
             transition: all 150ms ease;
         }
         .rk-quick-link:hover {
-            background: #ef5050; color: #fff; border-color: #ef5050;
+            background: var(--busconnect-primary); color: #fff; border-color: var(--busconnect-primary);
         }
         .rk-quick-link i { font-size: 15px; }
 
@@ -494,7 +561,7 @@
             display: flex; align-items: center; justify-content: center;
             font-size: 18px; flex-shrink: 0;
         }
-        .rk-kpi-card__icon--red { background: rgba(239,80,80,0.1); color: #ef5050; }
+        .rk-kpi-card__icon--red { background: rgba(40,167,69,0.1); color: #28a745; }
         .rk-kpi-card__icon--emerald { background: rgba(5,150,105,0.1); color: #059669; }
         .rk-kpi-card__icon--violet { background: rgba(139,92,246,0.1); color: #8b5cf6; }
         .rk-kpi-card__icon--amber { background: rgba(249,115,22,0.1); color: #f97316; }
@@ -556,11 +623,11 @@
             border-radius: 100px; overflow: hidden;
         }
         .rk-route-item__bar-fill {
-            height: 100%; background: #ef5050;
+            height: 100%; background: var(--busconnect-primary);
             border-radius: 100px; transition: width 0.4s ease;
         }
         .rk-route-item__pct {
-            font-size: 11px; font-weight: 700; color: #ef5050;
+            font-size: 11px; font-weight: 700; color: var(--busconnect-primary);
             min-width: 32px; text-align: end;
         }
         .rk-empty {
@@ -626,7 +693,7 @@
         .apexcharts-xaxistooltip::before { border-bottom-color: #e5e7eb !important; }
         .apexcharts-xaxistooltip::after { border-bottom-color: #fff !important; }
         .apexcharts-toolbar .apexcharts-menu-icon:hover svg,
-        .apexcharts-toolbar .apexcharts-download-icon:hover svg { fill: #ef5050; }
+        .apexcharts-toolbar .apexcharts-download-icon:hover svg { fill: var(--busconnect-primary); }
 
         /* --- DateRangePicker --- */
         .daterangepicker {
@@ -640,16 +707,16 @@
         .daterangepicker .calendar-table { background: transparent !important; border: none !important; }
         .daterangepicker td.active,
         .daterangepicker td.active:hover {
-            background-color: #ef5050 !important; border-color: #ef5050 !important;
+            background-color: var(--busconnect-primary) !important; border-color: var(--busconnect-primary) !important;
             color: #fff !important; border-radius: 6px;
         }
-        .daterangepicker td.in-range { background-color: rgba(239,80,80,0.06) !important; color: #111827 !important; }
-        .daterangepicker .btn-primary { background: #ef5050 !important; border-color: #ef5050 !important; border-radius: 8px !important; }
-        .daterangepicker .btn-primary:hover { background: #dc4545 !important; }
+        .daterangepicker td.in-range { background-color: rgba(40,167,69,0.06) !important; color: #111827 !important; }
+        .daterangepicker .btn-primary { background: var(--busconnect-primary) !important; border-color: var(--busconnect-primary) !important; border-radius: 8px !important; }
+        .daterangepicker .btn-primary:hover { background: #218838 !important; }
         .daterangepicker .ranges li { border-radius: 6px !important; }
-        .daterangepicker .ranges li.active { background: #ef5050 !important; color: #fff !important; }
+        .daterangepicker .ranges li.active { background: var(--busconnect-primary) !important; color: #fff !important; }
         .daterangepicker .ranges li:hover { background: #f9fafb !important; }
-        .daterangepicker .ranges li.active:hover { background: #dc4545 !important; }
+        .daterangepicker .ranges li.active:hover { background: #218838 !important; }
         .daterangepicker th { color: #111827 !important; font-weight: 600 !important; }
         .daterangepicker td { color: #374151 !important; border-radius: 4px !important; }
         .daterangepicker td.off { color: #d1d5db !important; }
@@ -687,4 +754,96 @@
             .rk-ops-chip { flex: unset; min-width: calc(50% - 4px); }
         }
     </style>
+    
+    {{-- Low Occupancy Trips Modal --}}
+    <div class="modal fade" id="low-occupancy-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@lang('Low Occupancy Trips') (&lt;30%)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    @if($widget['low_occupancy_trips']->count() > 0)
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>@lang('Trip')</th>
+                                    <th>@lang('Date')</th>
+                                    <th>@lang('Booked')</th>
+                                    <th>@lang('Capacity')</th>
+                                    <th>@lang('Occupancy')</th>
+                                    <th>@lang('Action')</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($widget['low_occupancy_trips'] as $trip)
+                                <tr>
+                                    <td>{{ $trip['title'] }}</td>
+                                    <td>{{ $trip['date'] }}</td>
+                                    <td>{{ $trip['booked'] }}</td>
+                                    <td>{{ $trip['capacity'] }}</td>
+                                    <td>
+                                        <span class="badge" style="background: #ff9800;">{{ $trip['occupancy'] }}%</span>
+                                    </td>
+                                    <td>
+                                        <a href="{{ route('owner.trip.edit', $trip['id']) }}" class="btn btn-sm btn-outline-primary">
+                                            @lang('Edit Trip')
+                                        </a>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    @else
+                    <p class="text-muted">@lang('No low-occupancy trips found.')</p>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {{-- Vehicle Conflicts Modal --}}
+    <div class="modal fade" id="vehicle-conflict-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@lang('Vehicle Scheduling Conflicts')</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    @if($widget['vehicle_conflicts']->count() > 0)
+                    <div class="alert alert-warning">
+                        <i class="las la-exclamation-triangle"></i>
+                        @lang('The following vehicles are assigned to overlapping trips. Please resolve these conflicts to avoid operational issues.')
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>@lang('Vehicle')</th>
+                                    <th>@lang('Trip 1')</th>
+                                    <th>@lang('Trip 2')</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($widget['vehicle_conflicts'] as $conflict)
+                                <tr>
+                                    <td><strong>{{ $conflict['vehicle'] }}</strong></td>
+                                    <td>{{ $conflict['trip1'] }}</td>
+                                    <td>{{ $conflict['trip2'] }}</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    @else
+                    <p class="text-muted">@lang('No vehicle conflicts detected.')</p>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
 @endpush

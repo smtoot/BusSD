@@ -119,7 +119,7 @@ Route::middleware('owner')->name('owner.')->group(function () {
             });
 
             //Counter Manager
-            Route::controller('CounterController')->prefix('counter/manager')->name('counter.manager.')->group(function () {
+            Route::controller('BranchController')->prefix('counter/manager')->name('counter.manager.')->group(function () {
                 Route::get('', 'index')->name('index');
                 Route::get('form/{id?}', 'form')->name('form');
                 Route::post('store/{id?}', 'store')->name('store');
@@ -127,10 +127,13 @@ Route::middleware('owner')->name('owner.')->group(function () {
                 Route::get('login/{id}', 'login')->name('login');
             });
 
-            //Counter
-            Route::controller('CounterController')->prefix('counter')->name('counter.')->group(function () {
+            //Branches (formerly Counters)
+            Route::controller('BranchController')->prefix('counter')->name('counter.')->group(function () {
                 Route::get('', 'counter')->name('index');
-                Route::post('store/{id?}', 'counterStore')->name('store');
+                Route::get('create', 'create')->name('create');
+                Route::get('edit/{id}', 'edit')->name('edit');
+                Route::post('store', 'counterStore')->name('store');
+                Route::post('update/{id}', 'counterUpdate')->name('update');
                 Route::post('status/{id}', 'counterStatus')->name('status');
                 Route::get('login/{id}', 'login')->name('login');
             });
@@ -176,12 +179,6 @@ Route::middleware('owner')->name('owner.')->group(function () {
                 Route::get('available-vehicles', 'getAvailableVehicles')->name('available.vehicles');
                 Route::get('show/{id}', 'show')->name('show');
 
-            //Trip Manage - Routes
-            Route::prefix('route')->name('route.')->group(function () {
-                Route::get('', 'route')->name('index');
-                Route::post('status/{id}', 'changeRouteStatus')->name('status');
-            });
-
                 //Trip Manage - Stoppage
                 Route::prefix('stoppage')->name('stoppage.')->group(function () {
                     Route::get('', 'stoppage')->name('index');
@@ -196,6 +193,52 @@ Route::middleware('owner')->name('owner.')->group(function () {
                     Route::post('store/{id?}', 'assignVehicleStore')->name('store');
                     Route::post('status/{id}', 'changeAssignVehicleStatus')->name('status');
                 });
+
+                // Pricing Management (Phase 2.1 - Unified Pricing Engine)
+                Route::controller('TripPricingController')->prefix('{trip}/pricing')->name('pricing.')->group(function () {
+                    Route::get('preview', 'preview')->name('preview');
+                    Route::get('suggest', 'suggest')->name('suggest');
+                    Route::get('rules', 'rules')->name('rules');
+                });
+            });
+
+            // Seat Pricing Management (Phase 2.2 - Multi-Tier Seat Pricing)
+            Route::controller('SeatPricingController')->prefix('seat-pricing')->name('seat.pricing.')->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('/form/{id?}', 'form')->name('form');
+                Route::post('/store/{id?}', 'store')->name('store');
+                Route::post('/status/{id}', 'status')->name('status');
+                Route::post('/delete/{id}', 'delete')->name('delete');
+                Route::get('/preview/{tripId}', 'preview')->name('preview');
+            });
+
+            // Route Builder (Phase 2.3 - Visual Route Templates)
+            Route::controller('RouteBuilderController')->prefix('route-builder')->name('route.builder.')->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('/create', 'create')->name('create');
+                Route::post('/store', 'store')->name('store');
+                Route::get('/edit/{id}', 'edit')->name('edit');
+                Route::post('/update/{id}', 'update')->name('update');
+                Route::post('/status/{id}', 'status')->name('status');
+                Route::post('/delete/{id}', 'delete')->name('delete');
+                Route::get('/load/{id}', 'load')->name('load'); // AJAX
+            });
+
+            // Route Analytics (Phase 3.1 - Profitability Dashboard)
+            Route::controller('RouteAnalyticsController')->prefix('analytics')->name('analytics.')->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('/route/{id}', 'route')->name('route');
+                Route::post('/compare', 'compare')->name('compare'); // AJAX
+                Route::get('/export/{id}', 'export')->name('export'); // AJAX
+            });
+
+            //Route Manage
+            Route::controller('RouteController')->prefix('route')->name('route.')->group(function () {
+                Route::get('', 'index')->name('index');
+                Route::get('create', 'create')->name('create');
+                Route::post('store/{id?}', 'store')->name('store');
+                Route::get('edit/{id}', 'edit')->name('edit');
+                Route::post('status/{id}', 'status')->name('status');
             });
 
             //Trip Manage - Schedules
@@ -222,6 +265,43 @@ Route::middleware('owner')->name('owner.')->group(function () {
                     Route::get('route_data', 'getRouteData')->name('get_route_data');
                     Route::get('check_price', 'checkTicketPrice')->name('check_price');
                 });
+            });
+
+            //Boarding Points
+            Route::controller('BoardingPointController')->prefix('boarding-points')->name('boarding-points.')->group(function () {
+                Route::get('', 'index')->name('index');
+                Route::get('create', 'create')->name('create');
+                Route::post('store', 'store')->name('store');
+                Route::get('edit/{id}', 'edit')->name('edit');
+                Route::post('update/{id}', 'update')->name('update');
+                Route::post('status/{id}', 'status')->name('status');
+                Route::post('delete/{id}', 'delete')->name('delete');
+                Route::get('assign/{routeId}', 'assign')->name('assign');
+                Route::post('assign/{routeId}', 'assignStore')->name('assign.store');
+            });
+
+            //Dropping Points
+            Route::controller('DroppingPointController')->prefix('dropping-points')->name('dropping-points.')->group(function () {
+                Route::get('', 'index')->name('index');
+                Route::get('create', 'create')->name('create');
+                Route::post('store', 'store')->name('store');
+                Route::get('edit/{id}', 'edit')->name('edit');
+                Route::post('update/{id}', 'update')->name('update');
+                Route::post('status/{id}', 'status')->name('status');
+                Route::post('delete/{id}', 'delete')->name('delete');
+                Route::get('assign/{routeId}', 'assign')->name('assign');
+                Route::post('assign/{routeId}', 'assignStore')->name('assign.store');
+            });
+
+            //Dynamic Pricing
+            Route::controller('DynamicPricingController')->prefix('dynamic-pricing')->name('dynamic-pricing.')->group(function () {
+                Route::get('', 'index')->name('index');
+                Route::get('create', 'create')->name('create');
+                Route::post('store', 'store')->name('store');
+                Route::get('edit/{id}', 'edit')->name('edit');
+                Route::post('update/{id}', 'update')->name('update');
+                Route::post('status/{id}', 'status')->name('status');
+                Route::post('delete/{id}', 'delete')->name('delete');
             });
 
             //Report

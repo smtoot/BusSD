@@ -151,7 +151,93 @@ class OwnerController extends Controller
         $widget['b2c_revenue']              = $b2cRevenueThisMonth;
         $widget['b2c_revenue_percent_change'] = $b2cRevenuePercentChange;
 
+        // ========================================
+        // NEW PHASE 1.1: Enhanced KPIs
+        // ========================================
+        
+        // Occupancy Rate (Today's trips average)
+        $todayTrips = $owner->trips()->active()->whereDate('date', $today)->with('fleetType')->get();
+        $occupancyRates = $todayTrips->map(function($trip) {
+            $capacity = $trip->fleetCapacity();
+            $booked = $trip->bookedCount();
+            return $capacity > 0 ? ($booked / $capacity) * 100 : 0;
+        });
+        $widget['today_occupancy_rate'] = $occupancyRates->avg() ?? 0;
+        
+        // Today's Cancellations
+        $widget['today_cancellations'] = $owner->bookedTickets()
+            ->where('status', 0) // Cancelled status
+            ->whereDate('updated_at', $today)
+            ->count();
+        
+        // Operational Alerts - Low Occupancy Trips (next 48h, <30% booked)
+        $lowOccupancyThreshold = 30; // 30%
+        $upcomingTrips = $owner->trips()
+            ->active()
+            ->where('date', '>=', $today)
+            ->where('date', '<=', $today->copy()->addDays(2))
+            ->with('fleetType')
+            ->get();
+            
+        $lowOccupancyTrips = $upcomingTrips->filter(function($trip) use ($lowOccupancyThreshold) {
+            $capacity = $trip->fleetCapacity();
+            $booked = $trip->bookedCount();
+            $occupancy = $capacity > 0 ? ($booked / $capacity) * 100 : 0;
+            return $occupancy < $lowOccupancyThreshold && $occupancy >= 0;
+        });
+        
+        $widget['low_occupancy_count'] = $lowOccupancyTrips->count();
+        $widget['low_occupancy_trips'] = $lowOccupancyTrips->take(5)->map(function($trip) {
+            $capacity = $trip->fleetCapacity();
+            $booked = $trip->bookedCount();
+            return [
+                'id' => $trip->id,
+                'title' => $trip->title,
+                'date' => $trip->date->format('M d, Y'),
+                'occupancy' => $capacity > 0 ? round(($booked / $capacity) * 100, 1) : 0,
+                'booked' => $booked,
+                'capacity' => $capacity,
+            ];
+        });
+        
+        // Vehicle Conflicts (same vehicle assigned to overlapping trips)
+        $vehicleConflicts = collect();
+        $assignedBuses = \App\Models\AssignedBus::whereHas('trip', function($q) use ($owner, $today) {
+            $q->where('owner_id', $owner->id)
+              ->where('date', '>=', $today)
+              ->where('date', '<=', $today->copy()->addDays(7));
+        })->with('trip', 'vehicle')->get();
+        
+        $vehicleGroups = $assignedBuses->groupBy('vehicle_id');
+        foreach ($vehicleGroups as $vehicleId => $assignments) {
+            if ($assignments->count() > 1) {
+                // Check for time overlaps
+                $sortedAssignments = $assignments->sortBy('trip.departure_datetime');
+                for ($i = 0; $i < $sortedAssignments->count() - 1; $i++) {
+                    $current = $sortedAssignments->values()[$i];
+                    $next = $sortedAssignments->values()[$i + 1];
+                    
+                    if ($current->trip && $next->trip) {
+                        $currentEnd = $current->trip->arrival_datetime ?? $current->trip->departure_datetime;
+                        $nextStart = $next->trip->departure_datetime;
+                        
+                        if ($currentEnd && $nextStart && $currentEnd > $nextStart) {
+                            $vehicleConflicts->push([
+                                'vehicle' => $current->vehicle->registration_no ?? 'Unknown',
+                                'trip1' => $current->trip->title,
+                                'trip2' => $next->trip->title,
+                            ]);
+                        }
+                    }
+                }
+            }
+        }
+        
+        $widget['vehicle_conflicts'] = $vehicleConflicts->take(3);
+        $widget['vehicle_conflict_count'] = $vehicleConflicts->count();
+
         return view('owner.dashboard', compact('bookedTicket', 'topRoutes', 'monthlySale', 'pageTitle', 'widget', 'owner'));
+
     }
 
     public function salesReport(Request $request)

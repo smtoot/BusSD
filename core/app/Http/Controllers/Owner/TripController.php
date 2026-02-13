@@ -58,7 +58,11 @@ class TripController extends Controller
         }
         $fleetTypes = FleetType::active()->where('owner_id', $owner->id)->orderByDesc('id')->get();
         $schedules  = Schedule::active()->where('owner_id', $owner->id)->orderByDesc('id')->get();
-        $routes     = Route::active()->where('owner_id', $owner->id)->orderByDesc('id')->get();
+        // Allow Global Routes (owner_id = 0) + Owner's Routes
+        $routes     = Route::active()->with(['startingPoint', 'destinationPoint'])->where(function($q) use ($owner) {
+            $q->where('owner_id', $owner->id)->orWhere('owner_id', 0);
+        })->orderByDesc('id')->get();
+
         $vehicles   = Vehicle::active()->where('owner_id', $owner->id)->with(['fleetType', 'amenities'])->orderByDesc('id')->get();
         $drivers     = Driver::active()->where('owner_id', $owner->id)->orderByDesc('id')->get();
         $supervisors = Supervisor::active()->where('owner_id', $owner->id)->orderByDesc('id')->get();
@@ -71,8 +75,19 @@ class TripController extends Controller
         
         // Get cancellation policies
         $policies = CancellationPolicy::active()->orderBy('sort_order')->get();
+        
+        // Get branches for branch assignment
+        $branches = \App\Models\Branch::where('owner_id', $owner->id)->orderBy('name')->get();
+        
+        // Phase 2.3: Get route templates
+        $routeTemplates = \App\Models\RouteTemplate::where('owner_id', $owner->id)->active()->orderBy('name')->get();
 
-        return view('owner.trip.form', compact('pageTitle', 'fleetTypes', 'schedules', 'routes', 'trip', 'vehicles', 'drivers', 'supervisors', 'vehicleAmenities', 'tripAmenities', 'policies'));
+        // Phase 2.2: Get seat pricing modifiers count
+        $seatModifiersCount = \App\Models\SeatPricingModifier::where('owner_id', $owner->id)->active()->count();
+
+        $minB2CQuota = gs('min_b2c_quota', 0);
+
+        return view('owner.trip.form', compact('pageTitle', 'fleetTypes', 'schedules', 'routes', 'trip', 'vehicles', 'drivers', 'supervisors', 'vehicleAmenities', 'tripAmenities', 'policies', 'minB2CQuota', 'branches', 'routeTemplates', 'seatModifiersCount'));
     }
 
     public function store(Request $request, $id = 0)
@@ -81,8 +96,8 @@ class TripController extends Controller
             'title'      => 'required|string',
             'fleet_type' => 'required|integer|gt:0|exists:fleet_types,id',
             'route'      => 'required|integer|gt:0|exists:routes,id',
-            'from'       => 'required|integer|gt:0',
-            'to'         => 'required|integer|gt:0',
+            'starting_city_id' => 'required|integer|gt:0|exists:cities,id',
+            'destination_city_id' => 'required|integer|gt:0|exists:cities,id',
             'schedule'   => 'nullable|integer|gt:0|exists:schedules,id', // Make schedule nullable/optional
             'departure_datetime' => 'required|date',
             'arrival_datetime'   => 'required|date|after:departure_datetime',
@@ -102,18 +117,30 @@ class TripController extends Controller
             'last_minute_surcharge' => 'nullable|numeric|gte:0|max:100',
             'search_priority'   => 'nullable|integer|min:0|max:100',
             'trip_status'      => 'nullable|in:draft,pending,approved,active',
+            'route_template_id' => 'nullable|exists:route_templates,id',
             'amenities'        => 'nullable|array',
             'amenities.*'      => 'nullable|integer|exists:amenity_templates,id', // Validate against template IDs
             // Vehicle assignment
             'vehicle_id'       => 'required|integer|gt:0|exists:vehicles,id', // Made required
             'driver_id'        => 'nullable|integer|gt:0|exists:drivers,id',
             'supervisor_id'    => 'nullable|integer|gt:0|exists:supervisors,id',
+            // Branch assignment
+            'owning_branch_id' => 'nullable|integer|gt:0|exists:branches,id',
         ], [
-            'from.required' => trans('Invalid route selection. Please re-select the route.'),
-            'to.required'   => trans('Invalid route selection. Please re-select the route.'),
-            'from.gt'       => trans('Invalid route selection. Please re-select the route.'),
-            'to.gt'         => trans('Invalid route selection. Please re-select the route.'),
+            'starting_city_id.required' => trans('Invalid route selection. Please re-select the route.'),
+            'destination_city_id.required'   => trans('Invalid route selection. Please re-select the route.'),
+            'starting_city_id.gt'       => trans('Invalid route selection. Please re-select the route.'),
+            'destination_city_id.gt'         => trans('Invalid route selection. Please re-select the route.'),
         ]);
+
+        // Validate Inventory Quota
+        if ($request->inventory_allocation == 'partial') {
+            $minQuota = gs('min_b2c_quota', 0);
+            if ($request->inventory_count < $minQuota) {
+                $notify[] = ['error', trans('Partial inventory count cannot be less than the minimum quota of :quota seats.', ['quota' => $minQuota])];
+                return back()->withNotify($notify)->withInput();
+            }
+        }
 
         $owner = authUser();
         if ($id) {
@@ -150,10 +177,27 @@ class TripController extends Controller
             return back()->withNotify($notify)->withInput();
         }
         
-        $trip->starting_point    = $request->from;
-        $trip->destination_point = $request->to;
+        
+        $trip->starting_city_id    = $request->starting_city_id;
+        $trip->destination_city_id = $request->destination_city_id;
         // day_off removed
         $trip->b2c_locked_seats = $request->b2c_locked_seats ?? [];
+        
+        // Branch Assignment
+        if ($request->filled('owning_branch_id')) {
+            // Use selected branch
+            $trip->owning_branch_id = $request->owning_branch_id;
+        } elseif (!$id) {
+            // Auto-assign to owner's first branch for new trips
+            $firstBranch = \App\Models\Branch::where('owner_id', $owner->id)->first();
+            if ($firstBranch) {
+                $trip->owning_branch_id = $firstBranch->id;
+            }
+        }
+        
+        // Set origin and destination branches based on route cities (optional - can be customized later)
+        $trip->origin_branch_id = null; // Can be auto-detected or manually set later
+        $trip->destination_branch_id = null; // Can be auto-detected or manually set later
         
         // Inventory & Policy
         $trip->inventory_allocation = $request->inventory_allocation;
@@ -178,17 +222,24 @@ class TripController extends Controller
             $this->createOrUpdateTicketPrice($request, $owner);
         } elseif ($request->filled('base_price')) {
             // Wizard Step 2 logic: Handle simplified pricing
+            // Check for price in BOTH directions (Direct or Reverse)
             $ticketPrice = TicketPrice::where('owner_id', $owner->id)
                 ->where('route_id', $request->route)
                 ->where('fleet_type_id', $request->fleet_type)
                 ->first();
 
             if (!$ticketPrice) {
+                // Auto-create ticket price entry if none exists (Simplified flow)
                 $ticketPrice = new TicketPrice();
                 $ticketPrice->owner_id = $owner->id;
                 $ticketPrice->route_id = $request->route;
                 $ticketPrice->fleet_type_id = $request->fleet_type;
             }
+            // Logic to support reverse direction pricing could be complex here.
+            // For now, we update main_price. 
+            // Ideally, we should check if $request->from == route->start. 
+            // But TicketPrice is linked to Route, not specific trip instance's direction.
+            // So setting main_price updates the "Default" price for this Route+Fleet combo.
             $ticketPrice->main_price = $request->base_price;
             $ticketPrice->save();
         } else {
@@ -199,6 +250,10 @@ class TripController extends Controller
                 ->first();
                 
             if (!$ticketPrice) {
+                // Determine if we can auto-create a price from trip data? 
+                // No, we need base_price. 
+                // If base_price is missing (should be required in form), we error.
+                // But simplified wizard REQUIRES base_price.
                 $notify[] = ['error', trans('Ticket price not added for this fleet-route combination yet. Please add ticket price before creating a trip.')];
                 return back()->withNotify($notify)->withInput();
             }
@@ -633,6 +688,8 @@ class TripController extends Controller
         $schedule = new Schedule();
         $schedule->owner_id = $owner->id;
         $schedule->route_id = $routeId;
+        $schedule->starting_city_id = $request->starting_city_id;
+        $schedule->destination_city_id = $request->destination_city_id;
         
         // Auto-generate schedule title
         $timeStr = $departureDatetime->format('h:i A');

@@ -41,16 +41,14 @@
                             <thead>
                                 <tr>
                                     <th>@lang('Order')</th>
-                                    <th>@lang('Counter Name')</th>
-                                    <th>@lang('City')</th>
+                                    <th>@lang('City Name')</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($stoppages as $stoppage)
                                     <tr>
                                         <td>{{ $loop->iteration }}</td>
-                                        <td>{{ $stoppage->name }}</td>
-                                        <td>{{ $stoppage->city }}</td>
+                                        <td>{{ __($stoppage->name) }}</td>
                                     </tr>
                                 @empty
                                     <tr>

@@ -42,6 +42,19 @@
                                     @endforeach
                                 </select>
                             </div>
+                            @if(isset($branches) && $branches->count() > 1)
+                            <div class="col-lg-3 col-md-6">
+                                <label class="form-label">@lang('Branch')</label>
+                                <select name="branch_id" class="form-control">
+                                    <option value="">@lang('All Branches')</option>
+                                    @foreach($branches as $branch)
+                                        <option value="{{ $branch->id }}" {{ request('branch_id') == $branch->id ? 'selected' : '' }}>
+                                            {{ $branch->name }} @if($branch->code)({{ $branch->code }})@endif
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @endif
                             <div class="col-lg-2 col-md-6">
                                 <label class="form-label">@lang('Status')</label>
                                 <select name="status" class="form-control">

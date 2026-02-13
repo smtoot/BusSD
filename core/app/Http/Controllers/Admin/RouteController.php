@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Route;
 use App\Models\Counter;
+use App\Models\City;
 use Illuminate\Http\Request;
 
 class RouteController extends Controller
@@ -29,8 +30,27 @@ class RouteController extends Controller
         $pageTitle = __('Route Detail') . ' - ' . $route->name;
         
         // Fetch counter details for stoppages if stored as IDs
-        $stoppageIds = $route->stoppages ?? [];
-        $stoppages = Counter::whereIn('id', $stoppageIds)->orderByRaw("FIELD(id, ".implode(',', $stoppageIds).")")->get();
+        // Fetch counter details for stoppages if stored as IDs
+        $stoppageData = $route->stoppages ?? [];
+        $stoppageIds = [];
+        
+        foreach ($stoppageData as $item) {
+            if (is_array($item) && isset($item['id'])) {
+                $stoppageIds[] = $item['id'];
+            } elseif (is_numeric($item)) {
+                $stoppageIds[] = $item;
+            }
+        }
+        
+        if (!empty($stoppageIds)) {
+            $stoppages = City::whereIn('id', $stoppageIds)->get();
+            // Sort by the original order of IDs
+            $stoppages = $stoppages->sortBy(function ($model) use ($stoppageIds) {
+                return array_search($model->id, $stoppageIds);
+            })->values();
+        } else {
+            $stoppages = collect([]);
+        }
 
         return view('admin.routes.show', compact('pageTitle', 'route', 'stoppages'));
     }
@@ -38,127 +58,118 @@ class RouteController extends Controller
     public function create()
     {
         $pageTitle = __('Create New Route');
-        $counters = Counter::active()->orderByDesc('id')->get();
-        return view('admin.routes.create', compact('pageTitle', 'counters'));
+        $cities = City::active()->orderBy('name')->get();
+        return view('admin.routes.create', compact('pageTitle', 'cities'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'starting_point' => 'required|integer|gt:0|exists:counters,id',
-            'destination_point' => 'required|integer|gt:0|exists:counters,id',
+            'starting_city_id' => 'required|integer|gt:0|exists:cities,id',
+            'destination_city_id' => 'required|integer|gt:0|exists:cities,id',
             'distance' => 'nullable|string|max:40',
             'time' => 'nullable|string|max:40',
             'stoppages' => 'nullable|array|min:1',
-            'stoppages.*' => 'nullable|integer|gt:0|exists:counters,id'
+            'stoppages.*' => 'nullable|integer|gt:0|exists:cities,id'
         ], [
             'stoppages.*.numeric' => __('Invalid Stoppage Field')
         ]);
 
-        if ($request->starting_point == $request->destination_point) {
+        if ($request->starting_city_id == $request->destination_city_id) {
             $notify[] = ['error', __('Starting point and destination point can\'t be the same.')];
             return back()->withNotify($notify);
         }
 
         $stoppages = $request->stoppages ? array_filter($request->stoppages) : [];
 
-        if (!in_array($request->starting_point, $stoppages)) {
-            array_unshift($stoppages, $request->starting_point);
+        if (!in_array($request->starting_city_id, $stoppages)) {
+            array_unshift($stoppages, $request->starting_city_id);
         }
 
-        if (!in_array($request->destination_point, $stoppages)) {
-            array_push($stoppages, $request->destination_point);
+        if (!in_array($request->destination_city_id, $stoppages)) {
+            array_push($stoppages, $request->destination_city_id);
         }
 
         $route = new Route();
         $route->owner_id = 0; // Admin-defined global route
         $route->name = $request->name;
-        $route->starting_point = $request->starting_point;
-        $route->destination_point = $request->destination_point;
+        $route->starting_city_id = $request->starting_city_id;
+        $route->destination_city_id = $request->destination_city_id;
         $route->stoppages = array_unique($stoppages);
         $route->distance = $request->distance;
         $route->time = $request->time;
         $route->save();
 
         $notify[] = ['success', __('Route created successfully')];
-        return back()->withNotify($notify);
+        return to_route('admin.routes.index')->withNotify($notify);
     }
 
     public function edit($id)
     {
         $pageTitle = __('Edit Route');
         $route = Route::findOrFail($id);
-        $stoppagesData = $route->stoppages ?? [];
-
-        // Extract only IDs from the stoppages array of objects
-        // Format: [{"id": 1, "name": "Station A"}, {"id": 2, "name": "Station B"}]
-        $stoppagesArray = collect($stoppagesData)->pluck('id')->filter()->all();
-
-        // Remove starting and destination points
-        $pos = array_search($route->starting_point, $stoppagesArray);
-        if ($pos !== false) {
-            unset($stoppagesArray[$pos]);
+        $stoppagesData = $route->stoppages;
+        
+        // Standardize: stoppages are now simple ID arrays from the sortable list
+        $stoppagesArray = [];
+        if (is_array($stoppagesData)) {
+            foreach ($stoppagesData as $item) {
+                if (is_array($item) && isset($item['id'])) {
+                    $stoppagesArray[] = $item['id'];
+                } elseif (is_numeric($item)) {
+                    $stoppagesArray[] = $item;
+                }
+            }
         }
-        $pos = array_search($route->destination_point, $stoppagesArray);
-        if ($pos !== false) {
-            unset($stoppagesArray[$pos]);
-        }
-
-        // Re-index array to ensure sequential keys
-        $stoppagesArray = array_values($stoppagesArray);
 
         if (!empty($stoppagesArray)) {
-            // Fetch counters and sort them in PHP to maintain original order
-            $counters = Counter::active()
-                ->whereIn('id', $stoppagesArray)
-                ->get();
-
-            // Sort by the original stoppages array order
-            $stoppages = collect($stoppagesArray)->map(function($id) use ($counters) {
-                return $counters->firstWhere('id', $id);
+            $cityModels = City::active()->whereIn('id', $stoppagesArray)->get();
+            // Sort by the order in the array
+            $stoppages = collect($stoppagesArray)->map(function($id) use ($cityModels) {
+                return $cityModels->firstWhere('id', $id);
             })->filter()->values();
         } else {
-            $stoppages = [];
+            $stoppages = collect([]);
         }
 
-        $counters = Counter::active()->orderByDesc('id')->get();
-        return view('admin.routes.edit', compact('pageTitle', 'route', 'stoppages', 'counters'));
+        $cities = City::active()->orderBy('name')->get();
+        return view('admin.routes.edit', compact('pageTitle', 'route', 'stoppages', 'cities'));
     }
 
     public function update(Request $request, $id)
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'starting_point' => 'required|integer|gt:0|exists:counters,id',
-            'destination_point' => 'required|integer|gt:0|exists:counters,id',
+            'starting_city_id' => 'required|integer|gt:0|exists:cities,id',
+            'destination_city_id' => 'required|integer|gt:0|exists:cities,id',
             'distance' => 'nullable|string|max:40',
             'time' => 'nullable|string|max:40',
             'stoppages' => 'nullable|array|min:1',
-            'stoppages.*' => 'nullable|integer|gt:0|exists:counters,id'
+            'stoppages.*' => 'nullable|integer|gt:0|exists:cities,id'
         ], [
             'stoppages.*.numeric' => 'Invalid Stoppage Field'
         ]);
 
-        if ($request->starting_point == $request->destination_point) {
+        if ($request->starting_city_id == $request->destination_city_id) {
             $notify[] = ['error', 'Starting point and destination point can\'t be the same.'];
             return back()->withNotify($notify);
         }
 
         $stoppages = $request->stoppages ? array_filter($request->stoppages) : [];
 
-        if (!in_array($request->starting_point, $stoppages)) {
-            array_unshift($stoppages, $request->starting_point);
+        if (!in_array($request->starting_city_id, $stoppages)) {
+            array_unshift($stoppages, $request->starting_city_id);
         }
 
-        if (!in_array($request->destination_point, $stoppages)) {
-            array_push($stoppages, $request->destination_point);
+        if (!in_array($request->destination_city_id, $stoppages)) {
+            array_push($stoppages, $request->destination_city_id);
         }
 
         $route = Route::findOrFail($id);
         $route->name = $request->name;
-        $route->starting_point = $request->starting_point;
-        $route->destination_point = $request->destination_point;
+        $route->starting_city_id = $request->starting_city_id;
+        $route->destination_city_id = $request->destination_city_id;
         $route->stoppages = array_unique($stoppages);
         $route->distance = $request->distance;
         $route->time = $request->time;

@@ -34,6 +34,32 @@ class Vehicle extends Model
         return $this->hasOne(Trip::class);
     }
 
+    // Branch relationships for multi-branch fleet management
+    public function primaryBranch()
+    {
+        return $this->belongsTo(Branch::class, 'primary_branch_id');
+    }
+
+    public function currentBranch()
+    {
+        return $this->belongsTo(Branch::class, 'current_branch_id');
+    }
+
+    public function isInPool()
+    {
+        return $this->is_pooled;
+    }
+
+    public function assignToBranch(Branch $branch, $isPrimary = false)
+    {
+        if ($isPrimary) {
+            $this->primary_branch_id = $branch->id;
+        }
+        $this->current_branch_id = $branch->id;
+        $this->save();
+        return $this;
+    }
+
     /**
      * Vehicle amenities (built-in features)
      */

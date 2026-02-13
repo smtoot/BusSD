@@ -14,6 +14,7 @@ use App\Models\Transaction;
 use App\Models\BookedTicket;
 use App\Models\Passenger;
 use App\Models\SeatLock;
+use App\Models\BranchRevenue;
 use Illuminate\Http\Request;
 
 class PaymentController extends Controller
@@ -184,6 +185,72 @@ class PaymentController extends Controller
                 $ownerTransaction->trx          = $deposit->trx;
                 $ownerTransaction->remark       = 'b2c_ticket_sale';
                 $ownerTransaction->save();
+
+                // ===== Branch Revenue Tracking =====
+                if ($booking->trip && $booking->trip->owning_branch_id) {
+                    $trip = $booking->trip;
+                    $splitModel = $trip->revenue_split_model ?? 'owning_branch';
+                    
+                    // Determine revenue split based on model
+                    if ($splitModel === 'owning_branch' || !$trip->origin_branch_id || !$trip->destination_branch_id) {
+                        // Default: 100% to owning branch
+                        BranchRevenue::create([
+                            'branch_id' => $trip->owning_branch_id,
+                            'trip_id' => $trip->id,
+                            'booking_id' => $booking->id,
+                            'date' => $booking->date_of_journey,
+                            'total_amount' => $deposit->amount,
+                            'discount_amount' => 0, // Future: implement discount tracking
+                            'net_amount' => $operatorAmount, // After platform commission
+                            'split_model' => 'owning_branch',
+                            'split_percentage' => 100,
+                        ]);
+                    } elseif ($splitModel === 'origin_branch' && $trip->origin_branch_id) {
+                        // 100% to origin branch
+                        BranchRevenue::create([
+                            'branch_id' => $trip->origin_branch_id,
+                            'trip_id' => $trip->id,
+                            'booking_id' => $booking->id,
+                            'date' => $booking->date_of_journey,
+                            'total_amount' => $deposit->amount,
+                            'discount_amount' => 0,
+                            'net_amount' => $operatorAmount,
+                            'split_model' => 'origin_branch',
+                            'split_percentage' => 100,
+                        ]);
+                    } elseif ($splitModel === 'split_50_50' && $trip->origin_branch_id && $trip->destination_branch_id) {
+                        // 50% to origin, 50% to destination
+                        $splitAmount = $operatorAmount / 2;
+                        
+                        // Origin branch: 50%
+                        BranchRevenue::create([
+                            'branch_id' => $trip->origin_branch_id,
+                            'trip_id' => $trip->id,
+                            'booking_id' => $booking->id,
+                            'date' => $booking->date_of_journey,
+                            'total_amount' => $deposit->amount,
+                            'discount_amount' => 0,
+                            'net_amount' => $splitAmount,
+                            'split_model' => 'split_50_50',
+                            'split_percentage' => 50,
+                        ]);
+                        
+                        // Destination branch: 50%
+                        BranchRevenue::create([
+                            'branch_id' => $trip->destination_branch_id,
+                            'trip_id' => $trip->id,
+                            'booking_id' => $booking->id,
+                            'date' => $booking->date_of_journey,
+                            'total_amount' => $deposit->amount,
+                            'discount_amount' => 0,
+                            'net_amount' => $splitAmount,
+                            'split_model' => 'split_50_50',
+                            'split_percentage' => 50,
+                        ]);
+                    }
+                    // Note: 'custom' split model not yet implemented - requires JSON parsing
+                }
+                // ===== End Branch Revenue Tracking =====
 
                 notify($passenger, 'TICKET_COMPLETE', [
                     'method_name'     => $methodName,

@@ -4,6 +4,7 @@ use Carbon\Carbon;
 use App\Lib\Captcha;
 use App\Notify\Notify;
 use App\Lib\ClientInfo;
+use App\Models\City;
 use App\Models\Counter;
 use App\Lib\CurlRequest;
 use App\Lib\FileManager;
@@ -567,7 +568,7 @@ function stoppageCombination($numbers, $arraySize, $level = 1, $i = 0, $addThis 
 
 function getStoppageInfo($stoppages)
 {
-    $data = Counter::routeStoppages($stoppages);
+    $data = City::routeStoppages($stoppages);
     return $data;
 }
 

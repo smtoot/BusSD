@@ -13,7 +13,7 @@ class CounterController extends Controller
         $pageTitle = 'All Counters';
         $counters = Counter::query()
             ->with(['owner'])
-            ->searchable(['name', 'city', 'location'])
+            ->searchable(['name', 'city:name', 'location'])
             ->filter(['owner_id', 'status'])
             ->orderByDesc('id')
             ->paginate(getPaginate());

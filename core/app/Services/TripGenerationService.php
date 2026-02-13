@@ -120,6 +120,34 @@ class TripGenerationService
             }
         }
 
+        // Phase 1.2: Copy boarding points from schedule to trip
+        foreach ($schedule->scheduleBoardingPoints as $schedulePoint) {
+            $scheduledTime = $this->calculateTimeFromOffset($schedule->starts_from, $schedulePoint->time_offset_minutes);
+            
+            \App\Models\TripBoardingPoint::create([
+                'trip_id' => $trip->id,
+                'boarding_point_id' => $schedulePoint->boarding_point_id,
+                'scheduled_time' => $scheduledTime,
+                'sort_order' => $schedulePoint->sort_order,
+                'notes' => $schedulePoint->notes,
+                'passenger_count' => 0,
+            ]);
+        }
+
+        // Phase 1.2: Copy dropping points from schedule to trip
+        foreach ($schedule->scheduleDroppingPoints as $schedulePoint) {
+            $scheduledTime = $this->calculateTimeFromOffset($schedule->starts_from, $schedulePoint->time_offset_minutes);
+            
+            \App\Models\TripDroppingPoint::create([
+                'trip_id' => $trip->id,
+                'dropping_point_id' => $schedulePoint->dropping_point_id,
+                'scheduled_time' => $scheduledTime,
+                'sort_order' => $schedulePoint->sort_order,
+                'notes' => $schedulePoint->notes,
+                'passenger_count' => 0,
+            ]);
+        }
+
         return true;
     }
 
@@ -127,5 +155,15 @@ class TripGenerationService
     {
         $routeName = $schedule->route ? $schedule->route->name : 'Unknown Route';
         return $schedule->name ?: "{$routeName} - " . $date->format('Y-m-d');
+    }
+
+    /**
+     * Calculate actual time from base time and offset in minutes.
+     * Phase 1.2: Helper for point time calculation.
+     */
+    protected function calculateTimeFromOffset($baseTime, $offsetMinutes)
+    {
+        $time = Carbon::parse($baseTime);
+        return $time->addMinutes($offsetMinutes)->format('H:i:s');
     }
 }

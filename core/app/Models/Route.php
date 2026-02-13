@@ -20,12 +20,12 @@ class Route extends Model
 
     public function startingPoint()
     {
-        return $this->belongsTo(Counter::class, 'starting_point');
+        return $this->belongsTo(City::class, 'starting_city_id');
     }
 
     public function destinationPoint()
     {
-        return $this->belongsTo(Counter::class, 'destination_point');
+        return $this->belongsTo(City::class, 'destination_city_id');
     }
 
     public function trips()
@@ -48,4 +48,22 @@ class Route extends Model
         return $this->hasMany(BookedTicket::class , Trip::class)->where('booked_tickets.status', '0');
     }
 
+    public function boardingPoints()
+    {
+        return $this->belongsToMany(BoardingPoint::class, 'route_boarding_points')
+            ->withPivot('pickup_time_offset', 'sort_order')
+            ->orderBy('pivot_sort_order');
+    }
+
+    public function droppingPoints()
+    {
+        return $this->belongsToMany(DroppingPoint::class, 'route_dropping_points')
+            ->withPivot('dropoff_time_offset', 'sort_order')
+            ->orderBy('pivot_sort_order');
+    }
+
+    public function dynamicPricingRules()
+    {
+        return $this->hasMany(DynamicPricingRule::class);
+    }
 }

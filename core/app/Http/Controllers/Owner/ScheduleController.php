@@ -27,7 +27,10 @@ class ScheduleController extends Controller
     {
         $pageTitle = "Create New Schedule";
         $owner = authUser();
-        $routes = Route::where('owner_id', $owner->id)->get();
+        // Allow Global Routes (owner_id = 0) + Owner's Routes
+        $routes = Route::active()->with(['startingPoint', 'destinationPoint'])->where(function($q) use ($owner) {
+            $q->where('owner_id', $owner->id)->orWhere('owner_id', 0);
+        })->get();
         $fleetTypes = FleetType::where('owner_id', $owner->id)->get();
         $vehicles = Vehicle::where('owner_id', $owner->id)->with(['fleetType', 'amenities'])->get();
         
@@ -39,8 +42,21 @@ class ScheduleController extends Controller
         
         // Get cancellation policies
         $policies = CancellationPolicy::active()->orderBy('sort_order')->get();
+        
+        // Phase 1.2: Load available boarding and dropping points
+        $boardingPoints = \App\Models\BoardingPoint::where('owner_id', $owner->id)
+            ->active()
+            ->with('city')
+            ->orderBy('sort_order')
+            ->get();
+            
+        $droppingPoints = \App\Models\DroppingPoint::where('owner_id', $owner->id)
+            ->active()
+            ->with('city')
+            ->orderBy('sort_order')
+            ->get();
 
-        return view('owner.schedule.form', compact('pageTitle', 'routes', 'fleetTypes', 'vehicles', 'vehicleAmenities', 'tripAmenities', 'policies'));
+        return view('owner.schedule.form', compact('pageTitle', 'routes', 'fleetTypes', 'vehicles', 'vehicleAmenities', 'tripAmenities', 'policies', 'boardingPoints', 'droppingPoints'));
     }
 
     public function edit($id)
@@ -48,7 +64,10 @@ class ScheduleController extends Controller
         $pageTitle = "Edit Schedule";
         $owner = authUser();
         $schedule = Schedule::where('owner_id', $owner->id)->findOrFail($id);
-        $routes = Route::where('owner_id', $owner->id)->get();
+        // Allow Global Routes (owner_id = 0) + Owner's Routes
+        $routes = Route::active()->with(['startingPoint', 'destinationPoint'])->where(function($q) use ($owner) {
+            $q->where('owner_id', $owner->id)->orWhere('owner_id', 0);
+        })->get();
         $fleetTypes = FleetType::where('owner_id', $owner->id)->get();
         $vehicles = Vehicle::where('owner_id', $owner->id)->with(['fleetType', 'amenities'])->get();
         
@@ -60,8 +79,21 @@ class ScheduleController extends Controller
         
         // Get cancellation policies
         $policies = CancellationPolicy::active()->orderBy('sort_order')->get();
+        
+        // Phase 1.2: Load available boarding and dropping points
+        $boardingPoints = \App\Models\BoardingPoint::where('owner_id', $owner->id)
+            ->active()
+            ->with('city')
+            ->orderBy('sort_order')
+            ->get();
+            
+        $droppingPoints = \App\Models\DroppingPoint::where('owner_id', $owner->id)
+            ->active()
+            ->with('city')
+            ->orderBy('sort_order')
+            ->get();
 
-        return view('owner.schedule.form', compact('pageTitle', 'schedule', 'routes', 'fleetTypes', 'vehicles', 'vehicleAmenities', 'tripAmenities', 'policies'));
+        return view('owner.schedule.form', compact('pageTitle', 'schedule', 'routes', 'fleetTypes', 'vehicles', 'vehicleAmenities', 'tripAmenities', 'policies', 'boardingPoints', 'droppingPoints'));
     }
 
     public function store(Request $request, $id = 0)
@@ -92,6 +124,15 @@ class ScheduleController extends Controller
             'trip_status'           => 'required|in:draft,pending,approved,active',
             'amenities'             => 'nullable|array',
             'amenities.*'           => 'nullable|integer|exists:amenity_templates,id',
+            // Phase 1.2: Boarding/Dropping Points
+            'boarding_points'       => 'nullable|array',
+            'boarding_points.*.point_id' => 'required|integer|exists:boarding_points,id',
+            'boarding_points.*.offset_minutes' => 'required|integer|min:0',
+            'boarding_points.*.notes' => 'nullable|string|max:500',
+            'dropping_points'       => 'nullable|array',
+            'dropping_points.*.point_id' => 'required|integer|exists:dropping_points,id',
+            'dropping_points.*.offset_minutes' => 'required|integer|min:0',
+            'dropping_points.*.notes' => 'nullable|string|max:500',
         ]);
 
         $owner = authUser();
@@ -132,6 +173,36 @@ class ScheduleController extends Controller
         $schedule->amenities            = $request->amenities;
 
         $schedule->save();
+
+        // Phase 1.2: Save boarding points
+        if ($request->has('boarding_points') && is_array($request->boarding_points)) {
+            // Delete existing points for updates
+            $schedule->scheduleBoardingPoints()->delete();
+            
+            foreach ($request->boarding_points as $index => $pointData) {
+                $schedule->scheduleBoardingPoints()->create([
+                    'boarding_point_id' => $pointData['point_id'],
+                    'time_offset_minutes' => $pointData['offset_minutes'],
+                    'sort_order' => $index,
+                    'notes' => $pointData['notes'] ?? null,
+                ]);
+            }
+        }
+
+        // Phase 1.2: Save dropping points
+        if ($request->has('dropping_points') && is_array($request->dropping_points)) {
+            // Delete existing points for updates
+            $schedule->scheduleDroppingPoints()->delete();
+            
+            foreach ($request->dropping_points as $index => $pointData) {
+                $schedule->scheduleDroppingPoints()->create([
+                    'dropping_point_id' => $pointData['point_id'],
+                    'time_offset_minutes' => $pointData['offset_minutes'],
+                    'sort_order' => $index,
+                    'notes' => $pointData['notes'] ?? null,
+                ]);
+            }
+        }
 
         // Trigger Trip Generation
         $generationService = new \App\Services\TripGenerationService();

@@ -8,7 +8,8 @@
     <title>{{ gs()->siteName($pageTitle ?? '') }}</title>
 
     <link rel="shortcut icon" type="image/png" href="{{ siteFavicon() }}">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('assets/global/css/bootstrap.min.css') }}">
 
     <link rel="stylesheet" href="{{ asset('assets/admin/css/vendor/bootstrap-toggle.min.css') }}">
@@ -19,6 +20,7 @@
 
     <link rel="stylesheet" href="{{ asset('assets/global/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/admin/css/app.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/global/css/design_system.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/admin/css/manager_custom.css') }}">
 
     @if (isRTL())

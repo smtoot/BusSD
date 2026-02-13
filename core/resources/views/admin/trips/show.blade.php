@@ -25,11 +25,11 @@
                             <span class="fw-bold">{{ @$trip->route->name }}</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                            @lang('Start Point')
+                            @lang('Starting City')
                             <span class="fw-bold">{{ @$trip->startingPoint->name }}</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                            @lang('End Point')
+                            @lang('Destination City')
                             <span class="fw-bold">{{ @$trip->destinationPoint->name }}</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -50,15 +50,9 @@
                 <div class="card-body">
                     <h5 class="card-title border-bottom pb-2">@lang('Trip Operations')</h5>
                     <div class="row">
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-12 mb-3">
                             <h6 class="text-muted">@lang('Assigned Vehicle')</h6>
                             <p class="fw-bold">{{ @$trip->vehicle->nick_name ?? 'N/A' }} ({{ @$trip->vehicle->register_no ?? 'N/A' }})</p>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <h6 class="text-muted">@lang('Days Off')</h6>
-                            <p class="fw-bold">
-                                {{ $trip->day_off ? implode(', ', $trip->day_off) : 'None' }}
-                            </p>
                         </div>
                     </div>
                 </div>

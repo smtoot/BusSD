@@ -21,8 +21,8 @@ class Trip extends Model
         'fleet_type_id',
         'route_id',
         'schedule_id',
-        'starting_point',
-        'destination_point',
+        'starting_city_id',
+        'destination_city_id',
 
         'b2c_locked_seats',
         'status',
@@ -37,6 +37,7 @@ class Trip extends Model
         'search_priority',
         'trip_status',
         'date',
+        'route_template_id',
     ];
 
     /**
@@ -104,12 +105,12 @@ class Trip extends Model
 
     public function startingPoint()
     {
-        return $this->belongsTo(Counter::class, 'starting_point');
+        return $this->belongsTo(City::class, 'starting_city_id');
     }
 
     public function destinationPoint()
     {
-        return $this->belongsTo(Counter::class, 'destination_point');
+        return $this->belongsTo(City::class, 'destination_city_id');
     }
 
     public function vehicle()
@@ -120,6 +121,22 @@ class Trip extends Model
     public function cancellationPolicy()
     {
         return $this->belongsTo(CancellationPolicy::class);
+    }
+
+    // Branch relationships for multi-branch operations
+    public function owningBranch()
+    {
+        return $this->belongsTo(Branch::class, 'owning_branch_id');
+    }
+
+    public function originBranch()
+    {
+        return $this->belongsTo(Branch::class, 'origin_branch_id');
+    }
+
+    public function destinationBranch()
+    {
+        return $this->belongsTo(Branch::class, 'destination_branch_id');
     }
 
     /**
@@ -404,5 +421,79 @@ class Trip extends Model
         $booked = $this->bookedCount();
         if ($booked == 0) return 0;
         return round(($this->boardedCount() / $booked) * 100);
+    }
+
+    /**
+     * Get applicable dynamic pricing rules for this trip
+     */
+    public function getApplicablePricingRules()
+    {
+        return DynamicPricingRule::active()
+            ->where(function ($query) {
+                $query->where('owner_id', $this->owner_id)
+                      ->orWhere('owner_id', 0);
+            })
+            ->where(function ($query) {
+                $query->where('route_id', $this->route_id)
+                      ->orWhereNull('route_id');
+            })
+            ->where(function ($query) {
+                $query->where('fleet_type_id', $this->fleet_type_id)
+                      ->orWhereNull('fleet_type_id');
+            })
+            ->validForDate($this->date ?? now())
+            ->validForDayOfWeek(($this->date ?? now())->dayOfWeek)
+            ->orderByDesc('priority')
+            ->orderByDesc('id')
+            ->get()
+            ->filter(function ($rule) {
+                return $rule->isApplicable($this);
+            });
+    }
+
+    /**
+     * Calculate final price with dynamic pricing
+     */
+    public function calculateDynamicPrice($basePrice = null)
+    {
+        $price = $basePrice ?? $this->getBasePrice();
+        
+        // Apply applicable dynamic pricing rules
+        $applicableRules = $this->getApplicablePricingRules();
+        
+        foreach ($applicableRules as $rule) {
+            $price = $rule->applyToPrice($price);
+        }
+        
+        return max(0, round($price, 2));
+    }
+
+    // ============================
+    // Pricing Service Integration (Phase 2.1)
+    // ============================
+
+    /**
+     * Get calculated price using centralized pricing service
+     * This applies all dynamic pricing rules
+     */
+    public function getCalculatedPriceAttribute(): float
+    {
+        return app(\App\Services\TripPricingService::class)->calculatePrice($this);
+    }
+
+    /**
+     * Get detailed pricing breakdown showing base price and all modifiers
+     */
+    public function getPricingBreakdown(array $options = []): array
+    {
+        return app(\App\Services\TripPricingService::class)->getPriceBreakdown($this, $options);
+    }
+
+    /**
+     * Get suggested optimal price based on historical data and rules
+     */
+    public function getSuggestedPrice(): float
+    {
+        return app(\App\Services\TripPricingService::class)->suggestPrice($this);
     }
 }
