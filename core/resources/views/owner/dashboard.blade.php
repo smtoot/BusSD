@@ -22,7 +22,7 @@
                     <div class="rk-quick-links">
                         <a href="{{ route('owner.trip.form') }}" class="rk-quick-link"><i class="las la-plus-circle"></i> @lang('New Trip')</a>
                         <a href="{{ route('owner.report.sale.index') }}" class="rk-quick-link"><i class="las la-receipt"></i> @lang('Bookings')</a>
-                        <a href="{{ route('owner.report.sale.b2c') }}" class="rk-quick-link"><i class="las la-mobile"></i> @lang('App Sales')</a>
+                        <a href="{{ route('owner.report.sale.app') }}" class="rk-quick-link"><i class="las la-mobile"></i> @lang('App Sales')</a>
                     </div>
                 </div>
                 <div class="rk-today-strip__grid">

@@ -62,7 +62,7 @@
                     <a href="{{ route('owner.manage.transport') }}"><i class="las la-wrench"></i></a>
                 </button>
             </li>
-            {{-- B2C Notifications --}}
+            {{-- App Notifications --}}
             <li class="dropdown">
                 <button type="button" class="primary--layer" data-bs-toggle="dropdown" data-bs-placement="bottom"
                     title="@lang('App Bookings')" id="notificationButton">
@@ -81,7 +81,7 @@
                         </div>
                     </div>
                     <div class="dropdown-footer text-center border-top">
-                        <a href="{{ route('owner.report.sale.b2c') }}" class="dropdown-menu__item d-block px-3 py-2">
+                        <a href="{{ route('owner.report.sale.app') }}" class="dropdown-menu__item d-block px-3 py-2">
                             @lang('View All App Sales') <i class="las la-arrow-right"></i>
                         </a>
                     </div>
@@ -208,10 +208,9 @@
             </li>`
         }
 
-        // B2C Notifications
         function loadNotifications() {
             $.ajax({
-                url: '{{ route("owner.notifications.b2c") }}',
+                url: '{{ route("owner.notifications.app") }}',
                 method: 'GET',
                 success: function(response) {
                     if (response.status === 'success') {
@@ -252,7 +251,7 @@
             } else {
                 notifications.forEach(notification => {
                     html += `
-                        <div class="notification-item border-bottom px-3 py-3" style="cursor: pointer;" onclick="window.location.href='{{ route("owner.report.sale.b2c") }}'">
+                        <div class="notification-item border-bottom px-3 py-3" style="cursor: pointer;" onclick="window.location.href='{{ route("owner.report.sale.app") }}'">
                             <div class="d-flex align-items-start">
                                 <div class="notification-icon me-3">
                                     <i class="las la-ticket-alt text--success" style="font-size: 24px;"></i>
@@ -273,7 +272,7 @@
             }
         }
 
-        // Load notifications on page load
+        // App Notifications on page load
         $(document).ready(function() {
             loadNotifications();
 

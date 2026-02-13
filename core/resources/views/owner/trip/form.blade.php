@@ -689,9 +689,9 @@
                 // Partial Quota Validation
                 if($('input[name="inventory_allocation"]:checked').val() === 'partial') {
                     const count = parseInt($('input[name="inventory_count"]').val()) || 0;
-                    const minQuota = {{ $minB2CQuota ?? 0 }};
+                    const minQuota = {{ $minAppQuota ?? 0 }};
                     if(count < minQuota) {
-                        notify('error', `@lang("Minimum B2C quota is") ${minQuota}`);
+                        notify('error', `@lang("Minimum App quota is") ${minQuota}`);
                         return;
                     }
                 }
