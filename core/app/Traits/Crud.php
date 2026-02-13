@@ -40,7 +40,7 @@ trait Crud
             $user = $this->model::where('owner_id', $this->owner->id)->findOrFail($id);
         } else {
             $pageTitle = 'Add New ' . $this->title;
-            $user = [];
+            $user = new $this->model;
         }
         $info       = json_decode(json_encode(getIpInfo()), true);
         $mobileCode = isset($info['code']) ? implode(',', $info['code']) : '';
