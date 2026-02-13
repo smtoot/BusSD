@@ -19,7 +19,7 @@
         </div>
     </div>
 
-    <!-- B2C Operations Row -->
+    <!-- App Operations Row -->
     <div class="row mt-4 gy-4">
         <div class="col-xxl-3 col-sm-6">
             <x-widget style="7" link="{{ route('admin.settlements.index') }}" icon="las la-hand-holding-usd" title="Pending Settlements"
@@ -122,7 +122,7 @@
                                 </div>
                                 <div class="widget-card-content">
                                     <h6 class="widget-card-amount">{{ showAmount($widget['total_commissions']) }}</h6>
-                                    <p class="widget-card-title">@lang('Total B2C Commission')</p>
+                                    <p class="widget-card-title">@lang('Total App Commission')</p>
                                 </div>
                             </div>
                         </div>
@@ -186,7 +186,7 @@
             <div class="card h-100">
                 <div class="card-body">
                     <div class="d-flex flex-wrap justify-content-between">
-                        <h5 class="card-title">@lang('Booking Comparison (B2C vs Counter)')</h5>
+                        <h5 class="card-title">@lang('Booking Comparison (App vs Counter)')</h5>
                         <div id="bookingDatePicker" class="border p-1 cursor-pointer rounded">
                             <i class="la la-calendar"></i>&nbsp;
                             <span></span> <i class="la la-caret-down"></i>
@@ -327,7 +327,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse($latestB2CBookings as $booking)
+                                @forelse($latestAppBookings as $booking)
                                     <tr>
                                         <td>
                                             <span class="fw-bold">{{ @$booking->passenger->fullname }}</span>
@@ -348,7 +348,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td class="text-muted text-center" colspan="100%">@lang('No B2C bookings found')</td>
+                                        <td class="text-muted text-center" colspan="100%">@lang('No App bookings found')</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -406,7 +406,7 @@
             document.querySelector("#bookingChartArea"),
             'Count',
             [{
-                name: 'B2C',
+                name: 'App',
                 data: []
             }, {
                 name: 'Counter',

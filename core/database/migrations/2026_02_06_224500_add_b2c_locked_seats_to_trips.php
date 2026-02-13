@@ -13,9 +13,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('trips', function (Blueprint $row) {
-            $row->text('app_locked_seats')->nullable();
-        });
+        if (!Schema::hasColumn('trips', 'app_locked_seats')) {
+            Schema::table('trips', function (Blueprint $row) {
+                $row->text('app_locked_seats')->nullable();
+            });
+        }
     }
 
     /**

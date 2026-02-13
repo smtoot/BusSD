@@ -36,7 +36,7 @@ class SettlementController extends Controller
         $startDate = Carbon::parse($request->start_date)->startOfDay();
         $endDate = Carbon::parse($request->end_date)->endOfDay();
 
-        // Calculate Gross Volume for B2C bookings
+        // Calculate Gross Volume for App bookings
         $grossAmount = BookedTicket::where('owner_id', $owner->id)
             ->whereNotNull('passenger_id')
             ->where('status', 1)
@@ -44,7 +44,7 @@ class SettlementController extends Controller
             ->sum(\DB::raw('price * ticket_count'));
 
         if ($grossAmount <= 0) {
-            $notify[] = ['error', 'No B2C sales found for this operator in the specified period.'];
+            $notify[] = ['error', 'No App sales found for this operator in the specified period.'];
             return back()->withNotify($notify);
         }
 

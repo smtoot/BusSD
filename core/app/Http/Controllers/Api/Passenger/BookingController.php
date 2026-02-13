@@ -47,7 +47,7 @@ class BookingController extends Controller
         $date = Carbon::parse($request->date)->format('m/d/Y');
         $requestedSeats = array_map('strval', $request->seats);
 
-        // 1. Static B2C Exclusions (Counter only seats)
+        // 1. Static App Exclusions (Counter only seats)
         $staticLocked = is_array($trip->app_locked_seats) ? $trip->app_locked_seats : [];
         foreach ($requestedSeats as $seat) {
             if (in_array((string)$seat, array_map('strval', $staticLocked))) {

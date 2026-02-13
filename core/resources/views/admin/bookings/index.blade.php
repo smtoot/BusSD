@@ -41,7 +41,7 @@
                                             @if($booking->passenger_id)
                                                 <span class="fw-bold">{{ @$booking->passenger->fullname }}</span>
                                                 <br>
-                                                <small class="text-muted">@lang('B2C')</small>
+                                                <small class="text-muted">@lang('App')</small>
                                             @else
                                                 <span class="fw-bold">{{ @$booking->counterManager->fullname }}</span>
                                                 <br>

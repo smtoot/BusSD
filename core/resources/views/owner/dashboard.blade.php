@@ -153,10 +153,10 @@
                     </div>
                     <h4 class="rk-kpi-card__amount">{{ gs('cur_sym') }}{{ getAmount($widget['app_sales']) }}</h4>
                     <div class="rk-kpi-card__footer">
-                        @if($widget['b2c_percent_change'] > 0)
-                            <span class="rk-pill rk-pill--success"><i class="las la-arrow-up"></i> {{ number_format($widget['b2c_percent_change'], 1) }}%</span>
-                        @elseif($widget['b2c_percent_change'] < 0)
-                            <span class="rk-pill rk-pill--danger"><i class="las la-arrow-down"></i> {{ number_format(abs($widget['b2c_percent_change']), 1) }}%</span>
+                        @if($widget['app_percent_change'] > 0)
+                            <span class="rk-pill rk-pill--success"><i class="las la-arrow-up"></i> {{ number_format($widget['app_percent_change'], 1) }}%</span>
+                        @elseif($widget['app_percent_change'] < 0)
+                            <span class="rk-pill rk-pill--danger"><i class="las la-arrow-down"></i> {{ number_format(abs($widget['app_percent_change']), 1) }}%</span>
                         @else
                             <span class="rk-pill rk-pill--muted"><i class="las la-minus"></i> @lang('Flat')</span>
                         @endif
@@ -178,12 +178,12 @@
                         <div class="rk-kpi-card__icon rk-kpi-card__icon--amber"><i class="las la-coins"></i></div>
                         <span class="rk-kpi-card__label">@lang('App Revenue')</span>
                     </div>
-                    <h4 class="rk-kpi-card__amount">{{ gs('cur_sym') }}{{ getAmount($widget['b2c_revenue']) }}</h4>
+                    <h4 class="rk-kpi-card__amount">{{ gs('cur_sym') }}{{ getAmount($widget['app_revenue']) }}</h4>
                     <div class="rk-kpi-card__footer">
-                        @if($widget['b2c_revenue_percent_change'] > 0)
-                            <span class="rk-pill rk-pill--success"><i class="las la-arrow-up"></i> {{ number_format($widget['b2c_revenue_percent_change'], 1) }}%</span>
-                        @elseif($widget['b2c_revenue_percent_change'] < 0)
-                            <span class="rk-pill rk-pill--danger"><i class="las la-arrow-down"></i> {{ number_format(abs($widget['b2c_revenue_percent_change']), 1) }}%</span>
+                        @if($widget['app_revenue_percent_change'] > 0)
+                            <span class="rk-pill rk-pill--success"><i class="las la-arrow-up"></i> {{ number_format($widget['app_revenue_percent_change'], 1) }}%</span>
+                        @elseif($widget['app_revenue_percent_change'] < 0)
+                            <span class="rk-pill rk-pill--danger"><i class="las la-arrow-down"></i> {{ number_format(abs($widget['app_revenue_percent_change']), 1) }}%</span>
                         @else
                             <span class="rk-pill rk-pill--muted"><i class="las la-minus"></i> @lang('Flat')</span>
                         @endif

@@ -121,7 +121,7 @@
             },
             {
                 "keyword": [
-                    "b2c bookings",
+                    "app bookings",
                     "Manage bookings"
                 ],
                 "title": "App Booking",
@@ -601,9 +601,9 @@
             },
             {
                 "keyword": [
-                    "b2c performance",
+                    "app performance",
                     "Report",
-                    "b2c performance report",
+                    "app performance report",
                     "performance activity"
                 ],
                 "title": "App Performance",

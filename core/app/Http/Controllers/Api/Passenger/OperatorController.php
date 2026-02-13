@@ -15,8 +15,8 @@ class OperatorController extends Controller
     public function index()
     {
         $operators = Owner::active()
-            ->orderByDesc('b2c_verified')
-            ->get(['id', 'firstname', 'lastname', 'username', 'image', 'b2c_verified', 'general_settings']);
+            ->orderByDesc('app_verified')
+            ->get(['id', 'firstname', 'lastname', 'username', 'image', 'app_verified', 'general_settings']);
 
         $results = $operators->map(function($op) {
             $avgRating = TripRating::whereHas('trip', function($q) use ($op) {
@@ -27,7 +27,7 @@ class OperatorController extends Controller
                 'id' => $op->id,
                 'name' => $op->general_settings->company_name ?? ($op->firstname . ' ' . $op->lastname),
                 'logo' => $op->image ? url(getFilePath('ownerProfile') . '/' . $op->image) : null,
-                'is_verified' => (bool) $op->b2c_verified,
+                'is_verified' => (bool) $op->app_verified,
                 'rating' => round($avgRating, 1),
             ];
         });
@@ -62,7 +62,7 @@ class OperatorController extends Controller
                 'id' => $op->id,
                 'name' => $op->general_settings->company_name ?? ($op->firstname . ' ' . $op->lastname),
                 'logo' => $op->image ? url(getFilePath('ownerProfile') . '/' . $op->image) : null,
-                'is_verified' => (bool) $op->b2c_verified,
+                'is_verified' => (bool) $op->app_verified,
                 'rating' => round($avgRating, 1),
                 'total_reviews' => $reviewsCount,
                 'total_trips' => $tripsCount,

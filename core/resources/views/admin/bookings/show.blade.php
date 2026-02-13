@@ -18,7 +18,7 @@
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             @lang('Channel')
                             @if($booking->passenger_id)
-                                <span class="badge badge--primary">@lang('B2C')</span>
+                                <span class="badge badge--primary">@lang('App')</span>
                             @else
                                 <span class="badge badge--info">@lang('Counter')</span>
                             @endif

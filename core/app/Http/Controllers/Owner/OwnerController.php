@@ -253,8 +253,8 @@ class OwnerController extends Controller
             $dates = $this->getAllMonths($request->start_date, $request->end_date);
         }
 
-        // Get B2C sales (with passenger_id)
-        $b2cSales = BookedTicket::where('owner_id', authUser('owner')->id)
+        // Get App sales (with passenger_id)
+        $appSales = BookedTicket::where('owner_id', authUser('owner')->id)
             ->whereNotNull('passenger_id')
             ->whereDate('created_at', '>=', $request->start_date)
             ->whereDate('created_at', '<=', $request->end_date)
@@ -279,7 +279,7 @@ class OwnerController extends Controller
         foreach ($dates as $date) {
             $data[] = [
                 'created_on' => $date,
-                'b2c' => getAmount($b2cSales->where('created_on', $date)->first()?->amount ?? 0),
+                'app' => getAmount($appSales->where('created_on', $date)->first()?->amount ?? 0),
                 'counter' => getAmount($counterSales->where('created_on', $date)->first()?->amount ?? 0)
             ];
         }
@@ -287,8 +287,8 @@ class OwnerController extends Controller
         $report['created_on']   = $data->pluck('created_on');
         $report['data']     = [
             [
-                'name' => __('B2C (App)'),
-                'data' => $data->pluck('b2c')
+                'name' => __('App'),
+                'data' => $data->pluck('app')
             ],
             [
                 'name' => __('Counter'),

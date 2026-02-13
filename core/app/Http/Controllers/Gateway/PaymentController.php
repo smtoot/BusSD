@@ -183,7 +183,7 @@ class PaymentController extends Controller
                 $ownerTransaction->trx_type     = '+';
                 $ownerTransaction->details      = 'Credit from App Sale (Commission: ' . $commissionRate . '%)';
                 $ownerTransaction->trx          = $deposit->trx;
-                $ownerTransaction->remark       = 'b2c_ticket_sale';
+                $ownerTransaction->remark       = 'app_ticket_sale';
                 $ownerTransaction->save();
 
                 // ===== Branch Revenue Tracking =====
