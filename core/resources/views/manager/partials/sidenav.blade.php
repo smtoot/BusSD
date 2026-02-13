@@ -13,7 +13,7 @@
         <div class="sidebar__menu-wrapper">
             <ul class="sidebar__menu">
                 @foreach ($sideBarLinks as $key => $data)
-                    @if (@$data->permission && !authUser()->hasPermission($data->permission))
+                    @if (@$data->permission && !authUser('manager')->hasPermission($data->permission))
                         @continue
                     @endif
 
